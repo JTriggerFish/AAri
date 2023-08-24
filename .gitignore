@@ -1,0 +1,16 @@
+# C++ build files
+build/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*.swn
+
+# Other
+*.log
