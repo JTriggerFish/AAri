@@ -5,7 +5,7 @@
       "name": "Debug",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/builddir/AAri",
+      "program": "${workspaceFolder}/debug/AAri",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

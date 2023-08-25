@@ -1,17 +1,33 @@
+#define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
+#include <catch2/catch_all.hpp>
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch_test_macros.hpp>
-#include "../src/core/utils/FieldMap.h"
+TEST_CASE("FieldMap works as expected", "[FieldMap]")
+{
+    // REQUIRE(MyMap::get("one") == 1);
+    // REQUIRE(MyMap::get("two") == 2);
+    // REQUIRE(MyMap::get("three") == 3);
+    // REQUIRE_THROWS_AS(MyMap::get("four"), std::runtime_error);
+}
+int main(int argc, char *argv[])
+{
+    Catch::Session session; // There must be exactly one instance
 
-inline constexpr char one[] = "one";
-inline constexpr char two[] = "two";
-inline constexpr char three[] = "three";
+    // writing to session.configData() here sets defaults
+    // this is the preferred way to set them
 
-using MyMap = FieldMap<NameArray<one, two, three>, IntArray<1, 2, 3>>;
+    int returnCode = session.applyCommandLine(argc, argv);
+    if (returnCode != 0) // Indicates a command line error
+        return returnCode;
 
-TEST_CASE("FieldMap works as expected", "[FieldMap]") {
-    REQUIRE(MyMap::get("one") == 1);
-    REQUIRE(MyMap::get("two") == 2);
-    REQUIRE(MyMap::get("three") == 3);
-    REQUIRE_THROWS_AS(MyMap::get("four"), std::runtime_error);
+    // writing to session.configData() or session.Config() here
+    // overrides command line args
+    // only do this if you know you need to
+
+    int numFailed = session.run();
+
+    // numFailed is clamped to 255 as some unices only use the lower 8 bits.
+    // This clamping has already been applied, so just return it here
+    // You can also do any post run clean-up here
+    return numFailed;
 }

@@ -1,5 +1,4 @@
 # C++ build files
-builddir/
 *.o
 *.a
 *.so
