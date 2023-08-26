@@ -1,12 +1,20 @@
 project('AAri', 'cpp')
 
-pybind11_dep = dependency('pybind11')
-sdl2_dep = dependency('SDL2')
+dependencies = [
+    dependency('pybind11'),
+    dependency('SDL2')
+]
 
 source_files = files('src/main.cpp',
-    'src/core/utils/FieldMap.cpp')
-executable('AAri', source_files, dependencies: [pybind11_dep, sdl2_dep])
+    'src/core/utils/FieldMap.cpp'
+    )
 
-catch2_dep = dependency('catch2')
-catch_test_prog = executable('utils_tests', 'tests/cpp/utils_tests.cpp', dependencies:[catch2_dep])
+executable('AAri', source_files, dependencies: dependencies)
+
+
+# Tests
+test_deps = [
+    dependency('catch2')
+]
+catch_test_prog = executable('utils_tests', 'tests/cpp/utils_tests.cpp', dependencies: test_deps)
 test('Utils tests', catch_test_prog)
