@@ -6,7 +6,9 @@ dependencies = [
 ]
 
 source_files = files('src/main.cpp',
-    'src/core/utils/FieldMap.cpp'
+    'src/core/utils/FieldMap.cpp',
+    'src/core/graph.cpp',
+    'src/core/audio_engine.cpp'
     )
 
 executable('AAri', source_files, dependencies: dependencies)

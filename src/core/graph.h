@@ -13,8 +13,8 @@ namespace Graph
     template <size_t IN, size_t OUT>
     struct InputOutput
     {
-        float[IN] inputs;
-        float[OUT] outputs;
+        float inputs[IN];
+        float outputs[OUT];
     };
     class Block
     {
@@ -22,7 +22,7 @@ namespace Graph
         virtual size_t input_size() = 0;
         virtual size_t output_size() = 0;
         virtual float *inputs() = 0;
-        virtual const float *outtputs() = 0;
+        virtual const float *outputs() = 0;
 
         virtual void process(AudioContext) = 0;
     };
@@ -32,4 +32,4 @@ namespace Graph
         std::vector<std::unique_ptr<Block>> blocks;
     };
 }
-#endif GRAPH_H
+#endif //GRAPH_H
