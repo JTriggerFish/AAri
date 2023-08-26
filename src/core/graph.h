@@ -6,6 +6,14 @@
 #include <unordered_map>
 #include <stack>
 #include <algorithm>
+#include <stdexcept>
+#include <xmmintrin.h>
+#include <pmmintrin.h>
+
+#define ASSERT(condition) \
+    if (!(condition)) { \
+        throw std::runtime_error("Assertion failed: " #condition); \
+    }
 
 namespace Graph {
     struct AudioContext {
@@ -13,25 +21,50 @@ namespace Graph {
         double clock; // Current elapsed time in seconds
     };
 
-    template<size_t IN, size_t OUT>
-    struct InputOutput {
-        float inputs[IN];
-        float outputs[OUT];
+    class Block;
+
+    struct Wire {
+        Block *in;
+        Block *out;
+        size_t in_index;
+        size_t width;
+        size_t out_index;
+        size_t id;
+
+        Wire(Block *in, Block *out,
+             size_t in_index, size_t width,
+             size_t out_index) : in(in), out(out), in_index(in_index), width(width), out_index(out_index) {
+            id = ++_latest_id;
+        }
+
+        Wire() : in(nullptr), out(nullptr), in_index(0), width(0), out_index(0), id(0) {}
+
+
+        Wire(const Wire &) = default;               // Copy constructor
+        Wire &operator=(const Wire &) = default;
+
+    private:
+        static size_t _latest_id;
     };
 
     class Block {
     public:
+        friend class AudioGraph;
+
         double last_processed_time;
 
-        virtual size_t input_size() = 0;
+        virtual size_t input_size() const = 0;
 
-        virtual size_t output_size() = 0;
+        virtual size_t output_size() const = 0;
 
-        virtual float *inputs() = 0;
+        virtual float *inputs() const = 0;
 
-        virtual float *outputs() = 0;
+        virtual float *outputs() const = 0;
+
+        virtual Wire *get_input_wires(size_t &size) const = 0;
 
         virtual void process(AudioContext) = 0;
+
 
         virtual std::string name() = 0;
 
@@ -42,140 +75,107 @@ namespace Graph {
 
         Block() : last_processed_time(0.0) { _id = ++_latest_id; }
 
+        virtual void connect(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
+
+        virtual void disconnect(size_t out_index_or_id, bool is_id) = 0;
+
     private:
         static size_t _latest_id;
     };
 
-    struct Wire {
-        Block *_in;
-        Block *_out;
-        size_t in_index;
-        size_t in_size;
-        size_t out_index;
-        size_t out_size;
-        size_t _id;
+    template<size_t IN, size_t OUT>
+    struct InputOutput {
+        float inputs[IN] = {0};
+        float outputs[OUT] = {0};
+        Wire inputs_wires[IN];
 
-        Wire(Block *in, Block *out,
-             size_t in_index, size_t in_size,
-             size_t out_index, size_t out_size) : _in(in),
-                                                  _out(out),
-                                                  in_index(in_index),
-                                                  in_size(in_size),
-                                                  out_index(out_index),
-                                                  out_size(out_size) {
-            _id = ++_latest_id;
+        virtual void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index) {
+            ASSERT(in != nullptr);
+            ASSERT(in_index + width <= in->output_size());
+            ASSERT(out_index + width <= IN);
+
+            int free_idx = -1;
+            for (size_t i = 0; i < IN; ++i) {
+                const Wire &wire = inputs_wires[i];
+                if (wire.in == nullptr)
+                    free_idx = (int) i;
+                if (out_index < wire.out_index + wire.width)
+                    throw std::runtime_error("Wires crossing");
+            }
+            if (free_idx == -1)
+                throw std::runtime_error("No free wire");
+            inputs_wires[free_idx] = Wire(in, out, in_index, width, out_index);
         }
 
-        size_t id() const { return _id; }
+        void disconnect(size_t out_index_or_id, bool is_id) {
+            for (size_t i = 0; i < IN; ++i) {
+                Wire &wire = inputs_wires[i];
+                if ((is_id && wire.id == out_index_or_id) || (!is_id && wire.out_index == out_index_or_id)) {
+                    wire.in = nullptr;
+                    wire.in_index = 0;
+                    wire.width = 0;
+                    wire.out_index = 0;
+                    wire.id = 0;
+                    return;
+                }
+            }
 
-        Wire(const Wire &) = default;               // Copy constructor
-        Wire &operator=(const Wire &) = default;
+            throw std::runtime_error("No matching wire found to disconnect.");
+        }
 
-    private:
-        static size_t _latest_id;
     };
+
 
     class AudioGraph {
     public:
-        AudioGraph() : _ordered(false) {
-            _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
-            _tempStack.reserve(256); // Similarly, an arbitrary number.
-            _topologicalOrder.reserve(256)
-        }
-
         void add_block(std::unique_ptr<Block> block) {
             _blocks[block->id()] = std::move(block);
             _ordered = false;
         }
 
-        void add_wire(const Wire &wire) {
-            _wires.insert_or_assign(wire.id(), wire);
+        void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index) {
+            out->connect(in, in_index, width, out_index);
             _ordered = false;
         }
 
+        void disconnect(Block *out, size_t out_index_or_id, bool is_id) {
+            out->disconnect(out_index_or_id, is_id);
+            _ordered = false;
+        }
+
+
         void process(AudioContext ctx);
+
+        AudioGraph() : _ordered(false) {
+            _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
+            _tempStack.reserve(256); // Similarly, an arbitrary number.
+            _topologicalOrder.reserve(256);
+            _outgoingWires.reserve(256);
+
+            //Disable denormals for performance
+            _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+            _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+        }
+
 
     private:
         std::unordered_map<size_t, std::unique_ptr<Block> > _blocks;
-        std::unordered_map<size_t, Wire> _wires;
-
         std::vector<Block *> _topologicalOrder;
-        std::unordered_map<Block *, bool> _visited;
-
-        std::vector<Block *> _tempStack;
-
         bool _ordered = false;
 
         void dfs(Block *vertex);
 
         void update_ordering();
+
+    private:
+        // Temp memory
+        std::unordered_map<Block *, bool> _visited;
+        std::vector<Block *> _tempStack;
+        std::unordered_multimap<Block *, Wire> _outgoingWires;
+
     };
 
-    void AudioGraph::dfs(Block *startVertex) {
-        _tempStack.clear();
-        _tempStack.push_back(startVertex);
 
-        while (!_tempStack.empty()) {
-            Block *current = _tempStack.back();
-            _tempStack.pop_back();
-
-            if (!_visited[current]) {
-                _visited[current] = true;
-
-                // Add all unvisited neighbors to the temporary stack
-                for (const auto &wirePair: _wires) {
-                    const Wire &wire = wirePair.second;
-                    if (wire._in == current && !_visited[wire._out]) {
-                        _tempStack.push_back(wire._out);
-                    }
-                }
-                // After visiting all neighbors, add current node to topological order
-                _topologicalOrder.push_back(current);
-            }
-        }
-    }
-
-    void AudioGraph::process(AudioContext ctx) {
-        if (!_ordered) {
-            update_ordering();
-            _ordered = true;
-        }
-
-        // Process the blocks in topological order
-        for (Block *block: _topologicalOrder) {
-            if (block->last_processed_time == ctx.clock) {
-                continue; // This block has already been processed
-            }
-
-            // Copy output values to input values of dependent blocks
-            for (const auto &wirePair: _wires) {
-                const Wire &wire = wirePair.second;
-                if (wire._in == block) {
-                    std::copy(block->outputs() + wire.in_index, block->outputs() + wire.in_index + wire.in_size,
-                              wire._out->inputs() + wire.out_index);
-                }
-            }
-
-            // Process the block
-            block->process(ctx);
-            block->last_processed_time = ctx.clock;
-        }
-    }
-
-    void AudioGraph::update_ordering() {
-        _topologicalOrder.clear();
-
-        for (auto &pair: _visited) {
-            pair.second = false;
-        }
-
-        for (const auto &blockPair: _blocks) {
-            if (!_visited[blockPair.second.get()]) {
-                dfs(blockPair.second.get());
-            }
-        }
-
-    }
 }
 
 #endif //GRAPH_H
