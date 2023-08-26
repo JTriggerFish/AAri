@@ -1,4 +1,4 @@
-project('AAri', 'cpp')
+project('AAri', 'cpp', version:'0.0.1')
 
 dependencies = [
     dependency('pybind11'),
