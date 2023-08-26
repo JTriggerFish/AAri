@@ -77,17 +77,20 @@ namespace Graph {
 
     class AudioGraph {
     public:
-        AudioGraph() {
-            _visited.reserve(1000); // Arbitrary number, you can adjust based on your expectations.
-            _stack.reserve(1000); // Similarly, an arbitrary number.
+        AudioGraph() : _ordered(false) {
+            _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
+            _tempStack.reserve(256); // Similarly, an arbitrary number.
+            _topologicalOrder.reserve(256)
         }
 
         void add_block(std::unique_ptr<Block> block) {
             _blocks[block->id()] = std::move(block);
+            _ordered = false;
         }
 
         void add_wire(const Wire &wire) {
             _wires.insert_or_assign(wire.id(), wire);
+            _ordered = false;
         }
 
         void process(AudioContext ctx);
@@ -96,41 +99,50 @@ namespace Graph {
         std::unordered_map<size_t, std::unique_ptr<Block> > _blocks;
         std::unordered_map<size_t, Wire> _wires;
 
+        std::vector<Block *> _topologicalOrder;
         std::unordered_map<Block *, bool> _visited;
-        std::vector<Block *> _stack;
+
         std::vector<Block *> _tempStack;
 
+        bool _ordered = false;
+
         void dfs(Block *vertex);
+
+        void update_ordering();
     };
 
-    void AudioGraph::dfs(Block *vertex) {
-        _visited[vertex] = true;
+    void AudioGraph::dfs(Block *startVertex) {
+        _tempStack.clear();
+        _tempStack.push_back(startVertex);
 
-        // Visit all the blocks connected via outgoing wires from this block
-        for (const auto &wirePair: _wires) {
-            const Wire &wire = wirePair.second;
-            if (wire._in == vertex && !_visited[wire._out]) {
-                dfs(wire._out);
+        while (!_tempStack.empty()) {
+            Block *current = _tempStack.back();
+            _tempStack.pop_back();
+
+            if (!_visited[current]) {
+                _visited[current] = true;
+
+                // Add all unvisited neighbors to the temporary stack
+                for (const auto &wirePair: _wires) {
+                    const Wire &wire = wirePair.second;
+                    if (wire._in == current && !_visited[wire._out]) {
+                        _tempStack.push_back(wire._out);
+                    }
+                }
+                // After visiting all neighbors, add current node to topological order
+                _topologicalOrder.push_back(current);
             }
         }
-
-        _stack.push_back(vertex);
     }
 
     void AudioGraph::process(AudioContext ctx) {
-        for (auto &pair: _visited) {
-            pair.second = false;
-        }
-        _stack.clear();
-
-        for (const auto &blockPair: _blocks) {
-            if (!_visited[blockPair.second.get()]) {
-                dfs(blockPair.second.get());
-            }
+        if (!_ordered) {
+            update_ordering();
+            _ordered = true;
         }
 
         // Process the blocks in topological order
-        for (Block *block: _stack) {
+        for (Block *block: _topologicalOrder) {
             if (block->last_processed_time == ctx.clock) {
                 continue; // This block has already been processed
             }
@@ -148,6 +160,21 @@ namespace Graph {
             block->process(ctx);
             block->last_processed_time = ctx.clock;
         }
+    }
+
+    void AudioGraph::update_ordering() {
+        _topologicalOrder.clear();
+
+        for (auto &pair: _visited) {
+            pair.second = false;
+        }
+
+        for (const auto &blockPair: _blocks) {
+            if (!_visited[blockPair.second.get()]) {
+                dfs(blockPair.second.get());
+            }
+        }
+
     }
 }
 
