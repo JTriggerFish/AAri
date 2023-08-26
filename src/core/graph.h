@@ -89,7 +89,7 @@ namespace Graph {
         float outputs[OUT] = {0};
         Wire inputs_wires[IN];
 
-        virtual void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index) {
+        void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index) {
             ASSERT(in != nullptr);
             ASSERT(in_index + width <= in->output_size());
             ASSERT(out_index + width <= IN);
@@ -128,34 +128,16 @@ namespace Graph {
 
     class AudioGraph {
     public:
-        void add_block(std::unique_ptr<Block> block) {
-            _blocks[block->id()] = std::move(block);
-            _ordered = false;
-        }
+        void add_block(std::unique_ptr<Block> block);
 
-        void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index) {
-            out->connect(in, in_index, width, out_index);
-            _ordered = false;
-        }
+        void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index);
 
-        void disconnect(Block *out, size_t out_index_or_id, bool is_id) {
-            out->disconnect(out_index_or_id, is_id);
-            _ordered = false;
-        }
+        void disconnect(Block *out, size_t out_index_or_id, bool is_id);
 
 
         void process(AudioContext ctx);
 
-        AudioGraph() : _ordered(false) {
-            _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
-            _tempStack.reserve(256); // Similarly, an arbitrary number.
-            _topologicalOrder.reserve(256);
-            _outgoingWires.reserve(256);
-
-            //Disable denormals for performance
-            _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-            _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-        }
+        AudioGraph();
 
 
     private:
