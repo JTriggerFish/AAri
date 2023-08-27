@@ -2,8 +2,8 @@
 #include "graph_io.h"
 
 namespace Graph {
-    size_t Block::_latest_id = 1;
-    size_t Wire::_latest_id = 1;
+    size_t Block::_latest_id = 0;
+    size_t Wire::_latest_id = 0;
 
     void AudioGraph::dfs(Block *startVertex) {
         _tempStack.clear();
@@ -26,7 +26,7 @@ namespace Graph {
                 }
 
                 // After visiting all neighbors, add current node to topological order
-                _topologicalOrder.push_back(current);
+                _topologicalOrder.push_front(current); // Using push_front to reverse the order
             }
         }
     }
@@ -77,7 +77,7 @@ namespace Graph {
             // Copy inputs
             for (size_t i = 0; i < n; ++i) {
                 const Wire &wire = inputs[i];
-                ASSERT(wire.in != nullptr);
+                if (wire.in == nullptr) continue;
                 ASSERT(wire.out_index + wire.width <= block->input_size());
                 std::copy(wire.in->outputs() + wire.in_index,
                           wire.in->outputs() + wire.in_index + wire.width,
@@ -93,7 +93,6 @@ namespace Graph {
     AudioGraph::AudioGraph() : _ordered(false) {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _tempStack.reserve(256); // Similarly, an arbitrary number.
-        _topologicalOrder.reserve(256);
         _outgoingWires.reserve(256);
 
         //Disable denormals for performance
@@ -115,11 +114,14 @@ namespace Graph {
     void AudioGraph::disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id) {
         // If the out block is not specified, find it first:
         auto wires_owner = out_block_id.has_value() ? _blocks[out_block_id.value()].get() : find_wire_owner(wire_id);
+        if (wires_owner == nullptr)
+            throw std::runtime_error("Wire is not connected to any block");
         wires_owner->disconnect_wire(wire_id, true);
         _ordered = false;
     }
 
     Block *AudioGraph::find_wire_owner(size_t wire_id) {
+        if (wire_id == 0) return nullptr; // Invalid wire id
         Block *wires_owner = nullptr;
         for (auto &block: _blocks) {
             size_t n;

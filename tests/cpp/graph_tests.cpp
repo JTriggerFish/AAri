@@ -45,44 +45,64 @@ public:
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     AudioGraph graph;
 
-    auto _block1 = std::make_shared<DummyBlock1>();
-    auto _block2 = std::make_shared<DummyBlock2>();
+    auto _block1 = std::make_shared<DummyBlock2>();
+    auto _block2 = std::make_shared<DummyBlock1>();
 
-    DummyBlock1 *block1 = _block1.get();
-    DummyBlock2 *block2 = _block2.get();
+    auto block1 = _block1.get();
+    auto block2 = _block2.get();
 
-    graph.add_block(std::move(_block1));
-    graph.add_block(std::move(_block2));
+    graph.add_block(_block2);
+    graph.add_block(_block1);
 
     SECTION("Adding and processing blocks") {
-        AudioContext ctx = {44100.0f, 0.0};
+        AudioContext ctx = {44100.0f, 0.1f};
 
-// Simple processing test
-        block1->outputs()[0] = 2.0f; // Set a value to block1's output
+        // Simple processing test
+        block2->inputs()[0] = 1.0f;
         graph.process(ctx);
 
-        REQUIRE(block1->outputs()[0] == 2.0f); // block1 simply multiplies by 2
-        REQUIRE(block2->outputs()[0] == 0.0f); // block2 hasn't been connected to anything so it should be 0
+        REQUIRE(block1->last_processed_time == 0.1f);
+        REQUIRE(block2->last_processed_time == 0.1f);
 
-// Connecting the blocks and processing again
-        graph.connect_wire(block1, block2, 0, 1, 0);
+        REQUIRE(block2->outputs()[0] == 2.0f); // DummyBlock1 simply multiplies by 2
+        REQUIRE(block1->outputs()[0] == 3.0f); // DummyBlock2 adds 3
+    }
+
+        // Note that each section rebuilds the graph, so the ids will be different
+    SECTION("Testing connection") {
+        // Connecting the blocks and processing again
+        graph.connect_wire(block2->id(), block1->id(), 0, 1, 0);
+        AudioContext ctx = {44100.0f, 0.2f};
+        block2->inputs()[0] = 2.0f;
         graph.process(ctx);
 
-        REQUIRE(block2->outputs()[0] == 7.0f); // block1 output is 2, so block2 output should be 2*2 + 3 = 7
+        REQUIRE(block1->last_processed_time == 0.2f);
+        REQUIRE(block2->last_processed_time == 0.2f);
+        REQUIRE(block2->outputs()[0] == 4.0f); // DummyBlock1 simply multiplies by 2
+        REQUIRE(block1->outputs()[0] == 7.0f); // block2 output is 2, so block1 output should be 2*2+ 3 = 7
+
+        //Adding the wire again should throw an exception
+        REQUIRE_THROWS(graph.connect_wire(block2->id(), block1->id(), 0, 1, 0));
     }
 
     SECTION("Testing disconnection") {
-        graph.connect_wire(block1, block2, 0, 1, 0);
+        graph.connect_wire(block2->id(), block1->id(), 0, 1, 0);
+        block2->inputs()[0] = 1.0f;
 
 // Disconnect blocks using id
         size_t n;
-        graph.disconnect_wire(block2->get_input_wires(n)[0].id, std::nullopt);
+        // There is no wire connected to block2
+        REQUIRE_THROWS(graph.disconnect_wire(block2->get_input_wires(n)[0].id));
 
-        AudioContext ctx = {44100.0f, 0.0};
-        block1->outputs()[0] = 3.0f; // Set a value to block1's output
+        graph.disconnect_wire(block1->get_input_wires(n)[0].id);
+
+        AudioContext ctx = {44100.0f, 0.3f};
         graph.process(ctx);
+        REQUIRE(block1->last_processed_time == 0.3f);
+        REQUIRE(block2->last_processed_time == 0.3f);
 
-        REQUIRE(block2->outputs()[0] == 0.0f); // block2 hasn't been connected to anything so it should be 0
+        REQUIRE(block2->outputs()[0] == 2.0f); // block1 simply multiplies by 2
+        REQUIRE(block1->outputs()[0] == 3.0f); // should be back to initial output
     }
 }
 

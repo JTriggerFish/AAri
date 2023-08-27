@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <list>
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -74,7 +75,7 @@ namespace Graph {
     protected:
         size_t _id;
 
-        Block() : last_processed_time(0.0) { _id = ++_latest_id; }
+        Block() : last_processed_time(-1.0) { _id = ++_latest_id; }
 
         virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
 
@@ -93,7 +94,7 @@ namespace Graph {
 
         void connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index);
 
-        void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id);
+        void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id = std::nullopt);
 
         void process(AudioContext ctx);
 
@@ -102,7 +103,7 @@ namespace Graph {
 
     private:
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
-        std::vector<Block *> _topologicalOrder;
+        std::list<Block *> _topologicalOrder;
         bool _ordered = false;
 
         void dfs(Block *vertex);
