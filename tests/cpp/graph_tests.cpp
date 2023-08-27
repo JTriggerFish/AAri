@@ -3,31 +3,17 @@
 
 #include <catch2/catch_all.hpp>
 #include <../../src/core/graph.h>
+#include <../../src/core/graph_io.h>
 
 using namespace Graph;
 
 // Define a couple of dummy blocks for testing purposes
 class DummyBlock1 : public Block {
 public:
-    InputOutput<1, 1> io;
 
     DummyBlock1() {}
 
-    virtual size_t input_size() const override {
-        return 1;
-    }
-
-    virtual size_t output_size() const override {
-        return 1;
-    }
-
-    virtual float *inputs() const override {
-        return (float *) this->io.inputs;
-    }
-
-    virtual float *outputs() const override {
-        return (float *) this->io.inputs;
-    }
+    IMPLEMENT_BLOCK_IO(1, 1);
 
     virtual void process(AudioContext ctx) override {
         outputs()[0] = inputs()[0] * 2.0f;
@@ -36,43 +22,14 @@ public:
     virtual std::string name() override {
         return "DummyBlock1";
     }
-
-    virtual Wire *get_input_wires(size_t &size) const override {
-        size = 1;
-        return (Wire *) &io.inputs_wires;
-    }
-
-protected:
-    virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override {
-        io.connect(in, this, in_index, width, out_index);
-    }
-
-    virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override {
-        io.disconnect(out_index_or_id, is_id);
-    }
 };
 
 class DummyBlock2 : public Block {
 public:
-    InputOutput<1, 1> io;
-
     DummyBlock2() {}
 
-    virtual size_t input_size() const override {
-        return 1;
-    }
+    IMPLEMENT_BLOCK_IO(1, 1);
 
-    virtual size_t output_size() const override {
-        return 1;
-    }
-
-    virtual float *inputs() const override {
-        return (float *) io.inputs;
-    }
-
-    virtual float *outputs() const override {
-        return (float *) io.outputs;
-    }
 
     virtual void process(AudioContext ctx) override {
         outputs()[0] = inputs()[0] + 3.0f;
@@ -82,19 +39,6 @@ public:
         return "DummyBlock2";
     }
 
-    virtual Wire *get_input_wires(size_t &size) const override {
-        size = 1;
-        return (Wire *) &io.inputs_wires;
-    }
-
-protected:
-    virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override {
-        io.connect(in, this, in_index, width, out_index);
-    }
-
-    virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override {
-        io.disconnect(out_index_or_id, is_id);
-    }
 };
 
 // Unit tests

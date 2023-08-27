@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "graph_io.h"
 
 namespace Graph {
     size_t Block::_latest_id = 1;
