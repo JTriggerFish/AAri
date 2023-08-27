@@ -43,11 +43,11 @@ public:
     }
 
 protected:
-    virtual void connect(Block *in, size_t in_index, size_t width, size_t out_index) override {
+    virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override {
         io.connect(in, this, in_index, width, out_index);
     }
 
-    virtual void disconnect(size_t out_index_or_id, bool is_id) override {
+    virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override {
         io.disconnect(out_index_or_id, is_id);
     }
 };
@@ -88,11 +88,11 @@ public:
     }
 
 protected:
-    virtual void connect(Block *in, size_t in_index, size_t width, size_t out_index) override {
+    virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override {
         io.connect(in, this, in_index, width, out_index);
     }
 
-    virtual void disconnect(size_t out_index_or_id, bool is_id) override {
+    virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override {
         io.disconnect(out_index_or_id, is_id);
     }
 };
@@ -101,8 +101,8 @@ protected:
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     AudioGraph graph;
 
-    std::unique_ptr<DummyBlock1> _block1 = std::make_unique<DummyBlock1>();
-    std::unique_ptr<DummyBlock2> _block2 = std::make_unique<DummyBlock2>();
+    auto _block1 = std::make_shared<DummyBlock1>();
+    auto _block2 = std::make_shared<DummyBlock2>();
 
     DummyBlock1 *block1 = _block1.get();
     DummyBlock2 *block2 = _block2.get();
@@ -121,18 +121,18 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         REQUIRE(block2->outputs()[0] == 0.0f); // block2 hasn't been connected to anything so it should be 0
 
 // Connecting the blocks and processing again
-        graph.connect(block1, block2, 0, 1, 0);
+        graph.connect_wire(block1, block2, 0, 1, 0);
         graph.process(ctx);
 
         REQUIRE(block2->outputs()[0] == 7.0f); // block1 output is 2, so block2 output should be 2*2 + 3 = 7
     }
 
     SECTION("Testing disconnection") {
-        graph.connect(block1, block2, 0, 1, 0);
+        graph.connect_wire(block1, block2, 0, 1, 0);
 
 // Disconnect blocks using id
         size_t n;
-        graph.disconnect(block2, block2->get_input_wires(n)[0].id, true);
+        graph.disconnect_wire(block2->get_input_wires(n)[0].id, std::nullopt);
 
         AudioContext ctx = {44100.0f, 0.0};
         block1->outputs()[0] = 3.0f; // Set a value to block1's output

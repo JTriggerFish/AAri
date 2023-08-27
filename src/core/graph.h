@@ -7,8 +7,7 @@
 #include <stack>
 #include <algorithm>
 #include <stdexcept>
-#include <xmmintrin.h>
-#include <pmmintrin.h>
+#include <optional>
 
 #define ASSERT(condition) \
     if (!(condition)) { \
@@ -70,14 +69,16 @@ namespace Graph {
 
         size_t id() const { return _id; }
 
+        virtual ~Block() = default;
+
     protected:
         size_t _id;
 
         Block() : last_processed_time(0.0) { _id = ++_latest_id; }
 
-        virtual void connect(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
+        virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
 
-        virtual void disconnect(size_t out_index_or_id, bool is_id) = 0;
+        virtual void disconnect_wire(size_t out_index_or_id, bool is_id) = 0;
 
     private:
         static size_t _latest_id;
@@ -120,7 +121,7 @@ namespace Graph {
                 }
             }
 
-            throw std::runtime_error("No matching wire found to disconnect.");
+            throw std::runtime_error("No matching wire found to disconnect_wire.");
         }
 
     };
@@ -128,12 +129,13 @@ namespace Graph {
 
     class AudioGraph {
     public:
-        void add_block(std::unique_ptr<Block> block);
+        void add_block(const std::shared_ptr<Block> &block);
 
-        void connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index);
+        void remove_block(size_t block_id);
 
-        void disconnect(Block *out, size_t out_index_or_id, bool is_id);
+        void connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index);
 
+        void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id);
 
         void process(AudioContext ctx);
 
@@ -141,13 +143,15 @@ namespace Graph {
 
 
     private:
-        std::unordered_map<size_t, std::unique_ptr<Block> > _blocks;
+        std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::vector<Block *> _topologicalOrder;
         bool _ordered = false;
 
         void dfs(Block *vertex);
 
         void update_ordering();
+
+        Block *find_wire_owner(size_t wire_id);
 
     private:
         // Temp memory

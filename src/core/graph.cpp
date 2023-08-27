@@ -96,22 +96,59 @@ namespace Graph {
         _outgoingWires.reserve(256);
 
         //Disable denormals for performance
-        _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-        _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     }
 
-    void AudioGraph::add_block(std::unique_ptr<Block> block) {
-        _blocks[block->id()] = std::move(block);
+    void AudioGraph::add_block(const std::shared_ptr<Block> &block) {
+        _blocks[block->id()] = block;
         _ordered = false;
     }
 
-    void AudioGraph::connect(Block *in, Block *out, size_t in_index, size_t width, size_t out_index) {
-        out->connect(in, in_index, width, out_index);
+    void
+    AudioGraph::connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index) {
+        auto out = _blocks[out_block_id].get();
+        auto in = _blocks[in_block_id].get();
+        out->connect_wire(in, in_index, width, out_index);
         _ordered = false;
     }
 
-    void AudioGraph::disconnect(Block *out, size_t out_index_or_id, bool is_id) {
-        out->disconnect(out_index_or_id, is_id);
+    void AudioGraph::disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id) {
+        // If the out block is not specified, find it first:
+        auto wires_owner = out_block_id.has_value() ? _blocks[out_block_id.value()].get() : find_wire_owner(wire_id);
+        wires_owner->disconnect_wire(wire_id, true);
+        _ordered = false;
+    }
+
+    Block *AudioGraph::find_wire_owner(size_t wire_id) {
+        Block *wires_owner = nullptr;
+        for (auto &block: _blocks) {
+            size_t n;
+            Wire *wires = block.second->get_input_wires(n);
+            for (size_t i = 0; i < n; ++i) {
+                if (wires[i].id == wire_id) {
+                    wires_owner = block.second.get();
+                    break;
+                }
+            }
+        }
+        return wires_owner;
+    }
+
+    void AudioGraph::remove_block(const size_t block_id) {
+        auto it = _blocks.find(block_id);
+        if (it != _blocks.end()) {
+            auto chopping_block = it->second.get();
+            // 1. Remove wires connecting to this block
+            for (auto &block: _blocks) {
+                size_t n;
+                Wire *wires = block.second->get_input_wires(n);
+                for (size_t i = 0; i < n; ++i) {
+                    if (wires[i].in == chopping_block) {
+                        block.second->disconnect_wire(wires[i].id, true);
+                    }
+                }
+            }
+            _blocks.erase(it);
+        }
         _ordered = false;
     }
 
