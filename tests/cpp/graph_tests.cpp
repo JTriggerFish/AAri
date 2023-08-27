@@ -106,6 +106,88 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     }
 }
 
+
+// Define a new dummy block with multiple inputs and outputs
+class DummyBlock3 : public Block {
+public:
+    DummyBlock3() {}
+
+    IMPLEMENT_BLOCK_IO(2, 2);
+
+    virtual void process(AudioContext ctx) override {
+        outputs()[0] = inputs()[0] * 2.0f;
+        outputs()[1] = inputs()[1] + 4.0f;
+    }
+
+    virtual std::string name() override {
+        return "DummyBlock3";
+    }
+};
+
+TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
+    AudioGraph graph;
+
+    auto block1 = std::make_shared<DummyBlock1>();
+    auto block2 = std::make_shared<DummyBlock2>();
+    auto block3 = std::make_shared<DummyBlock3>();
+
+    graph.add_block(block1);
+    graph.add_block(block2);
+    graph.add_block(block3);
+
+    SECTION("Testing Multiple layers of dependencies") {
+        // Connect block1 -> block3 -> block2
+        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
+        graph.connect_wire(block3->id(), block2->id(), 0, 1, 0);
+
+        AudioContext ctx = {44100.0f, 0.5f};
+        block1->inputs()[0] = 2.0f;
+        graph.process(ctx);
+
+        REQUIRE(block1->outputs()[0] == 4.0f);
+        REQUIRE(block3->outputs()[0] == 8.0f);
+        REQUIRE(block2->outputs()[0] == 11.0f);
+    }
+
+    SECTION("Testing Blocks with Multiple Inputs and Outputs") {
+        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
+        graph.connect_wire(block2->id(), block3->id(), 0, 1, 1);
+
+        AudioContext ctx = {44100.0f, 0.6f};
+        block1->inputs()[0] = 3.0f;
+        block2->inputs()[0] = 2.0f;
+        graph.process(ctx);
+
+        REQUIRE(block1->outputs()[0] == 6.0f);
+        REQUIRE(block2->outputs()[0] == 5.0f);
+        REQUIRE(block3->outputs()[0] == 12.0f);
+        REQUIRE(block3->outputs()[1] == 6.0f);
+    }
+
+    SECTION("Testing Multiple Wires to the Same Block") {
+        // Connect block1 -> block3 and block2 -> block3
+        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
+        graph.connect_wire(block2->id(), block3->id(), 0, 1, 1);
+
+        AudioContext ctx = {44100.0f, 0.7f};
+        block1->inputs()[0] = 1.0f;
+        block2->inputs()[0] = 3.0f;
+        graph.process(ctx);
+
+        REQUIRE(block1->outputs()[0] == 2.0f);
+        REQUIRE(block2->outputs()[0] == 6.0f);
+        REQUIRE(block3->outputs()[0] == 4.0f);
+        REQUIRE(block3->outputs()[1] == 7.0f);
+    }
+
+    SECTION("Testing Overlapping Wire Regions") {
+        // Connecting block1 -> block3 with overlapping regions
+        graph.connect_wire(block1->id(), block3->id(), 0, 2, 0);
+        REQUIRE_THROWS(graph.connect_wire(block2->id(), block3->id(), 0, 2, 1));  // This should throw due to overlap
+    }
+}
+
+
 int main(int argc, char *argv[]) {
     Catch::Session session; // There must be exactly one instance
 
