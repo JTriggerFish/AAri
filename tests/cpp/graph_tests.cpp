@@ -20,7 +20,7 @@ public:
     }
 
     virtual std::string name() override {
-        return "DummyBlock1";
+        return "DummyBlock1_" + std::to_string(id());
     }
 };
 
@@ -36,7 +36,7 @@ public:
     }
 
     virtual std::string name() override {
-        return "DummyBlock2";
+        return "DummyBlock2_" + std::to_string(id());
     }
 
 };
@@ -120,7 +120,7 @@ public:
     }
 
     virtual std::string name() override {
-        return "DummyBlock3";
+        return "DummyBlock3_" + std::to_string(id());
     }
 };
 
@@ -161,29 +161,35 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         REQUIRE(block1->outputs()[0] == 6.0f);
         REQUIRE(block2->outputs()[0] == 5.0f);
         REQUIRE(block3->outputs()[0] == 12.0f);
-        REQUIRE(block3->outputs()[1] == 6.0f);
+        REQUIRE(block3->outputs()[1] == 9.0f);
     }
 
-    SECTION("Testing Multiple Wires to the Same Block") {
-        // Connect block1 -> block3 and block2 -> block3
-        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
-        graph.connect_wire(block2->id(), block3->id(), 0, 1, 1);
+    SECTION("Testing wire with width > 1") {
+        auto block4 = std::make_shared<DummyBlock3>();
+        graph.add_block(block4);
+        graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
 
         AudioContext ctx = {44100.0f, 0.7f};
-        block1->inputs()[0] = 1.0f;
-        block2->inputs()[0] = 3.0f;
-        graph.process(ctx);
+        block3->inputs()[0] = 1.0f;
+        block3->inputs()[1] = 1.0f;
 
-        REQUIRE(block1->outputs()[0] == 2.0f);
-        REQUIRE(block2->outputs()[0] == 6.0f);
-        REQUIRE(block3->outputs()[0] == 4.0f);
-        REQUIRE(block3->outputs()[1] == 7.0f);
+        graph.process(ctx);
+        REQUIRE(block3->outputs()[0] == 2.0f);
+        REQUIRE(block3->outputs()[1] == 5.0f);
+        REQUIRE(block4->outputs()[0] == 4.0f);
+        REQUIRE(block4->outputs()[1] == 9.0f);
+
+        // This should throw because block 1 output is of size 1
+        REQUIRE_THROWS(graph.connect_wire(block1->id(), block3->id(), 0, 2, 0));
+        //This should throw because block 2 input is of size 1
+        REQUIRE_THROWS(graph.connect_wire(block3->id(), block2->id(), 0, 2, 0));
     }
 
     SECTION("Testing Overlapping Wire Regions") {
-        // Connecting block1 -> block3 with overlapping regions
-        graph.connect_wire(block1->id(), block3->id(), 0, 2, 0);
-        REQUIRE_THROWS(graph.connect_wire(block2->id(), block3->id(), 0, 2, 1));  // This should throw due to overlap
+        auto block4 = std::make_shared<DummyBlock3>();
+        graph.add_block(block4);
+        graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
+        REQUIRE_THROWS(graph.connect_wire(block1->id(), block4->id(), 0, 1, 1));  // This should throw due to overlap
     }
 }
 

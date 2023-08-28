@@ -6,29 +6,15 @@ namespace Graph {
     size_t Wire::_latest_id = 0;
 
     void AudioGraph::dfs(Block *startVertex) {
-        _tempStack.clear();
-        _tempStack.push_back(startVertex);
-
-        while (!_tempStack.empty()) {
-            Block *current = _tempStack.back();
-            _tempStack.pop_back();
-
-            if (!_visited[current]) {
-                _visited[current] = true;
-
-                // Use our prebuilt multimap to fetch all output wires for the current block efficiently
-                auto wireRange = _outgoingWires.equal_range(current);
-                for (auto wireIt = wireRange.first; wireIt != wireRange.second; ++wireIt) {
-                    const Wire &wire = wireIt->second;
-                    if (!_visited[wire.out]) {
-                        _tempStack.push_back(wire.out);
-                    }
-                }
-
-                // After visiting all neighbors, add current node to topological order
-                _topologicalOrder.push_front(current); // Using push_front to reverse the order
+        _visited[startVertex] = true;
+        auto wireRange = _outgoingWires.equal_range(startVertex);
+        for (auto wireIt = wireRange.first; wireIt != wireRange.second; ++wireIt) {
+            const Wire &wire = wireIt->second;
+            if (!_visited[wire.out]) {
+                dfs(wire.out);
             }
         }
+        _topologicalOrder.push_front(startVertex); // Add to topological order after all descendants are visited
     }
 
     void AudioGraph::update_ordering() {
