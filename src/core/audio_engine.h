@@ -1,6 +1,7 @@
 
 #ifndef AUDIO_ENGINE_H
 #define AUDIO_ENGINE_H
+#define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
 #include <mutex>

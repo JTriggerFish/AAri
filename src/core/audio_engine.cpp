@@ -41,8 +41,9 @@ void AudioEngine::stopAudio() {
     SDL_PauseAudioDevice(audioDevice, 1);
 }
 
-void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int len) {
+void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int _len) {
     AudioEngine *engine = static_cast<AudioEngine *>(userdata);
+    auto len = size_t(_len);
 
     if (engine->audioGraph == nullptr || engine->outputNodeIndex == 0) {
         return;
@@ -59,7 +60,7 @@ void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int len) {
     const auto output_size = (size_t) outputBlock->output_size();
     const auto offset = engine->outputChannelStart;
 
-    for (int i = 0; i < len / sizeof(float); i++) {
+    for (size_t i = 0; i < len / sizeof(float); i++) {
         engine->clock_seconds += seconds_per_sample;
         engine->audioGraph->process({sample_freq, engine->clock_seconds});
         buffer[i] = block_output[offset];
@@ -80,3 +81,6 @@ void AudioEngine::set_output_node(size_t node_index, size_t block_output_index) 
     outputChannelStart = block_output_index;
 }
 
+// FOR SDL2
+int main(int argc, char *argv[]) {
+}
