@@ -60,7 +60,7 @@ void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int _len) {
     const auto output_size = (size_t) outputBlock->output_size();
     const auto offset = engine->outputChannelStart;
 
-    for (size_t i = 0; i < len / sizeof(float); i++) {
+    for (size_t i = 0; i < len / sizeof(float); i += 2) {
         engine->clock_seconds += seconds_per_sample;
         engine->audioGraph->process({sample_freq, engine->clock_seconds});
         buffer[i] = block_output[offset];

@@ -38,6 +38,9 @@ PYBIND11_MODULE(AAri, m) {
                  py::arg("amp_db") = -30.0f,
                  py::arg("panning") = 0.0f);
 
+    py::class_<StereoMixer, Mixer>(m, "StereoMixer")
+            .def(py::init<>());
+
     // SineOsc bindings
     py::class_<SineOsc, Oscillator>(m, "SineOsc")
             .def(py::init<float, float>(),

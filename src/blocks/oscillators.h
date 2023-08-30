@@ -20,14 +20,14 @@ public:
         OUT
     };
 
-    SineOsc(float freq = 110.0f, float amplitude = 1.0f) : phase(0.0f) {
+    explicit SineOsc(float freq = 110.0f, float amplitude = 1.0f) : phase(0.0f) {
         io.inputs[FREQ] = freq;
         io.inputs[AMP] = amplitude;
     }
 
     IMPLEMENT_BLOCK_IO(2, 1);
 
-    virtual void process(Graph::AudioContext ctx) override {
+    void process(Graph::AudioContext ctx) override {
         float freq = io.inputs[FREQ];
         float amplitude = io.inputs[AMP];
         float phase_inc = freq / ctx.sample_freq;
@@ -36,7 +36,7 @@ public:
         phase = fmodf(phase + phase_inc, 1.0f);
     }
 
-    virtual std::string name() const override {
+    std::string name() const override {
         return "SineOsc_" + std::to_string(id());
     }
 
