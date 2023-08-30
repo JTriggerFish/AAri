@@ -1,11 +1,82 @@
 
 #include "audio_engine.h"
-#include <xmmintrin.h>
-#include <pmmintrin.h>
+#include <iostream>
 
-void disable_denormals() {
-    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+AudioEngine::AudioEngine() : clock_seconds(0), outputNodeIndex(0), outputChannelStart(0) {
+    // Initialize SDL2 Audio
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        std::cerr << "Failed to initialize SDL2 Audio: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    // Audio spec initialization
+    SDL_zero(audioSpec);
+    audioSpec.freq = 48000;
+    audioSpec.format = AUDIO_F32;
+    audioSpec.channels = 2;
+    audioSpec.samples = 1024;
+    audioSpec.callback = AudioEngine::audioCallback;
+    audioSpec.userdata = this;
+
+    // Open audio device
+    audioDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, NULL, 0);
+    if (audioDevice == 0) {
+        std::cerr << "Failed to open audio device: " << SDL_GetError() << std::endl;
+    }
+    audioGraph = std::make_unique<Graph::AudioGraph>();
+
 }
 
-//TODO be able to specify the output block to use from the graph
+AudioEngine::~AudioEngine() {
+    SDL_CloseAudioDevice(audioDevice);
+    SDL_Quit();
+}
+
+void AudioEngine::startAudio() {
+    SDL_PauseAudioDevice(audioDevice, 0);
+    clock_seconds = 0;
+}
+
+void AudioEngine::stopAudio() {
+    SDL_PauseAudioDevice(audioDevice, 1);
+}
+
+void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int len) {
+    AudioEngine *engine = static_cast<AudioEngine *>(userdata);
+
+    if (engine->audioGraph == nullptr || engine->outputNodeIndex == 0) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(engine->audioMutex);
+    Graph::Block *outputBlock;
+    if (!engine->audioGraph->get_block(engine->outputNodeIndex, &outputBlock)) {
+        return;
+    }
+    auto *buffer = (float *) stream;
+    const float sample_freq = engine->audioSpec.freq;
+    const double seconds_per_sample = 1.0 / engine->audioSpec.freq;
+    auto block_output = outputBlock->outputs();
+    const auto output_size = (size_t) outputBlock->output_size();
+    const auto offset = engine->outputChannelStart;
+
+    for (int i = 0; i < len / sizeof(float); i++) {
+        engine->clock_seconds += seconds_per_sample;
+        engine->audioGraph->process({sample_freq, engine->clock_seconds});
+        buffer[i] = block_output[offset];
+        buffer[i + 1] = offset + 1 < output_size ? block_output[offset + 1] : buffer[i];
+
+    }
+}
+
+void AudioEngine::set_output_node(size_t node_index, size_t block_output_index) {
+    Graph::Block *outputBlock;
+    if (!audioGraph->get_block(node_index, &outputBlock)) {
+        throw std::runtime_error("Invalid output node index : node doesn't exist on the graph");
+    }
+    if (block_output_index >= outputBlock->output_size()) {
+        throw std::runtime_error("Invalid output channel start : block doesn't have enough outputs");
+    }
+    outputNodeIndex = node_index;
+    outputChannelStart = block_output_index;
+}
+

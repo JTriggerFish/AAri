@@ -66,7 +66,7 @@ struct InputOutput {
         return io.outputs; \
     } \
     \
-    virtual Wire *get_input_wires(size_t &size) override { \
+    virtual Graph::Wire *get_input_wires(size_t &size) override { \
         size = IN; \
         return io.inputs_wires; \
     } \

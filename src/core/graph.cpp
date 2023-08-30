@@ -5,7 +5,10 @@ namespace Graph {
     size_t Block::_latest_id = 0;
     size_t Wire::_latest_id = 0;
 
-    void AudioGraph::dfs(Block *startVertex) {
+    
+void AudioGraph::dfs(Block *startVertex) {
+    std::lock_guard<std::mutex> lock(graphMutex);
+
         std::stack<Block *> dfsStack;
         dfsStack.push(startVertex);
 

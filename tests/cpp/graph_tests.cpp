@@ -19,7 +19,7 @@ public:
         outputs()[0] = inputs()[0] * 2.0f;
     }
 
-    virtual std::string name() override {
+    virtual std::string name() const override {
         return "DummyBlock1_" + std::to_string(id());
     }
 };
@@ -35,7 +35,7 @@ public:
         outputs()[0] = inputs()[0] + 3.0f;
     }
 
-    virtual std::string name() override {
+    virtual std::string name() const override {
         return "DummyBlock2_" + std::to_string(id());
     }
 
@@ -119,7 +119,7 @@ public:
         outputs()[1] = inputs()[1] + 4.0f;
     }
 
-    virtual std::string name() override {
+    virtual std::string name() const override {
         return "DummyBlock3_" + std::to_string(id());
     }
 };

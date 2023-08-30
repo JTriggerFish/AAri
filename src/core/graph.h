@@ -8,7 +8,10 @@
 #include <stack>
 #include <algorithm>
 #include <stdexcept>
+
 #include <optional>
+#include <mutex>
+
 
 #define ASSERT(condition) \
     if (!(condition)) { \
@@ -66,7 +69,7 @@ namespace Graph {
         virtual void process(AudioContext) = 0;
 
 
-        virtual std::string name() = 0;
+        virtual std::string name() const = 0;
 
         size_t id() const { return _id; }
 
@@ -88,6 +91,9 @@ namespace Graph {
 
     class AudioGraph {
     public:
+        std::mutex graphMutex;
+
+    public:
         AudioGraph();
 
         // Topology modifying functions:
@@ -101,6 +107,15 @@ namespace Graph {
 
         // Processing functions:
         void process(AudioContext ctx);
+
+        bool get_block(size_t block_id, Block **block) {
+            auto it = _blocks.find(block_id);
+            if (it != _blocks.end()) {
+                *block = it->second.get();
+                return true;
+            }
+            return false;
+        }
 
 
         enum NodeState {
