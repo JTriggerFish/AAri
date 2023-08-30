@@ -88,6 +88,9 @@ namespace Graph {
 
     class AudioGraph {
     public:
+        AudioGraph();
+
+        // Topology modifying functions:
         void add_block(const std::shared_ptr<Block> &block);
 
         void remove_block(size_t block_id);
@@ -96,9 +99,9 @@ namespace Graph {
 
         void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id = std::nullopt);
 
+        // Processing functions:
         void process(AudioContext ctx);
 
-        AudioGraph();
 
         enum NodeState {
             UNVISITED,
@@ -109,7 +112,6 @@ namespace Graph {
     private:
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
-        bool _ordered = false;
 
         void dfs(Block *vertex);
 
