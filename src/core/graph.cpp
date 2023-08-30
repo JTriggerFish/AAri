@@ -6,24 +6,42 @@ namespace Graph {
     size_t Wire::_latest_id = 0;
 
     void AudioGraph::dfs(Block *startVertex) {
-        _visited[startVertex] = true;
-        auto wireRange = _outgoingWires.equal_range(startVertex);
-        for (auto wireIt = wireRange.first; wireIt != wireRange.second; ++wireIt) {
-            const Wire &wire = wireIt->second;
-            if (!_visited[wire.out]) {
-                dfs(wire.out);
+        std::stack<Block *> dfsStack;
+        dfsStack.push(startVertex);
+
+        while (!dfsStack.empty()) {
+            Block *current = dfsStack.top();
+            dfsStack.pop();
+
+            if (_nodeState[current] == VISITING) {
+                // We've finished processing this node and its descendants
+                _nodeState[current] = VISITED;
+                _topologicalOrder.push_front(current);
+            } else if (_nodeState[current] == UNVISITED) {
+                _nodeState[current] = VISITING;
+                dfsStack.push(current);  // Push it back to process it again after its descendants
+
+                auto wireRange = _outgoingWires.equal_range(current);
+                for (auto wireIt = wireRange.first; wireIt != wireRange.second; ++wireIt) {
+                    const Wire &wire = wireIt->second;
+                    if (_nodeState[wire.out] == UNVISITED) {
+                        dfsStack.push(wire.out);
+                    } else if (_nodeState[wire.out] == VISITING) {
+                        // Cycle detected
+                        throw std::runtime_error("Cycle detected in the audio graph!");
+                    }
+                }
             }
         }
-        _topologicalOrder.push_front(startVertex); // Add to topological order after all descendants are visited
     }
 
     void AudioGraph::update_ordering() {
         _topologicalOrder.clear();
         _outgoingWires.clear();
-        _visited.clear();
+        _nodeState.clear();
 
         for (auto &pair: _blocks) {
-            _visited[pair.second.get()] = false;
+            _nodeState[pair.second.get()] = UNVISITED;
         }
 
         // Collect all outgoing wires for each block
@@ -40,7 +58,7 @@ namespace Graph {
         }
 
         for (const auto &blockPair: _blocks) {
-            if (!_visited[blockPair.second.get()]) {
+            if (_nodeState[blockPair.second.get()] == UNVISITED) {
                 dfs(blockPair.second.get());
             }
         }
@@ -78,7 +96,7 @@ namespace Graph {
 
     AudioGraph::AudioGraph() : _ordered(false) {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
-        _tempStack.reserve(256); // Similarly, an arbitrary number.
+        _nodeState.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _outgoingWires.reserve(256);
 
         //Disable denormals for performance

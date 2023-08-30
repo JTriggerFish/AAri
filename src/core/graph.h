@@ -100,6 +100,11 @@ namespace Graph {
 
         AudioGraph();
 
+        enum NodeState {
+            UNVISITED,
+            VISITING,
+            VISITED
+        };
 
     private:
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
@@ -115,8 +120,8 @@ namespace Graph {
     private:
         // Temp memory
         std::unordered_map<Block *, bool> _visited;
-        std::vector<Block *> _tempStack;
         std::unordered_multimap<Block *, Wire> _outgoingWires;
+        std::unordered_map<Block *, NodeState> _nodeState;
 
     };
 

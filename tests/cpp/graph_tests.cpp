@@ -162,6 +162,13 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         REQUIRE(block2->outputs()[0] == 5.0f);
         REQUIRE(block3->outputs()[0] == 12.0f);
         REQUIRE(block3->outputs()[1] == 9.0f);
+    }SECTION("Testing that cycles throw an error") {
+        // Connect block1 -> block3 -> block2 -> block1
+        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
+        graph.connect_wire(block3->id(), block2->id(), 0, 1, 0);
+        graph.connect_wire(block2->id(), block1->id(), 0, 1, 0);
+
+        REQUIRE_THROWS(graph.process({44100.0f, 0.7f}));
     }
 
     SECTION("Testing wire with width > 1") {
