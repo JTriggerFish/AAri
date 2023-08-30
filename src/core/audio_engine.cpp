@@ -83,4 +83,5 @@ void AudioEngine::set_output_node(size_t node_index, size_t block_output_index) 
 
 // FOR SDL2
 int main(int argc, char *argv[]) {
+    return 0;
 }

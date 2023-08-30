@@ -100,11 +100,10 @@ namespace Graph {
     }
 
 
-    const Block *AudioGraph::add_block(std::unique_ptr<Block> block) {
+    void AudioGraph::add_block(const std::shared_ptr<Block> &block) {
         auto id = block->id();
-        _blocks[id] = std::move(block);
+        _blocks[id] = block;
         update_ordering();
-        return _blocks[id].get();
     }
 
     void AudioGraph::remove_block(const size_t block_id) {

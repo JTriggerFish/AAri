@@ -45,12 +45,12 @@ public:
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     AudioGraph graph;
 
-    auto _block1 = std::make_unique<DummyBlock2>();
-    auto _block2 = std::make_unique<DummyBlock1>();
+    auto block1 = std::make_shared<DummyBlock2>();
+    auto block2 = std::make_shared<DummyBlock1>();
 
     // Cheat a bit and use const_cast to get around the constness of the returned pointer
-    auto block1 = const_cast<Graph::Block *>( graph.add_block(std::move(_block1)));
-    auto block2 = const_cast<Graph::Block *>( graph.add_block(std::move(_block2)));
+    graph.add_block(block1);
+    graph.add_block(block2);
 
     SECTION("Adding and processing blocks") {
         AudioContext ctx = {44100.0f, 0.1f};
@@ -125,13 +125,14 @@ public:
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
     AudioGraph graph;
 
-    auto _block1 = std::make_unique<DummyBlock1>();
-    auto _block2 = std::make_unique<DummyBlock2>();
-    auto _block3 = std::make_unique<DummyBlock3>();
+    auto block1 = std::make_shared<DummyBlock1>();
+    auto block2 = std::make_shared<DummyBlock2>();
+    auto block3 = std::make_shared<DummyBlock3>();
 
-    auto block1 = const_cast<Graph::Block *>( graph.add_block(std::move(_block1)));
-    auto block2 = const_cast<Graph::Block *>( graph.add_block(std::move(_block2)));
-    auto block3 = const_cast<Graph::Block *>( graph.add_block(std::move(_block3)));
+    graph.add_block(block1);
+    graph.add_block(block2);
+    graph.add_block(block3);
+
 
     SECTION("Testing Multiple layers of dependencies") {
         // Connect block1 -> block3 -> block2
@@ -169,8 +170,8 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     }
 
     SECTION("Testing wire with width > 1") {
-        auto _block4 = std::make_unique<DummyBlock3>();
-        auto block4 = const_cast<Graph::Block *>( graph.add_block(std::move(_block4)));
+        auto block4 = std::make_shared<DummyBlock3>();
+        graph.add_block(block4);
 
         graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
 
@@ -191,8 +192,8 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     }
 
     SECTION("Testing Overlapping Wire Regions") {
-        auto _block4 = std::make_unique<DummyBlock3>();
-        auto block4 = const_cast<Graph::Block *>( graph.add_block(std::move(_block4)));
+        auto block4 = std::make_shared<DummyBlock3>();
+        graph.add_block(block4);
 
         graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
         REQUIRE_THROWS(graph.connect_wire(block1->id(), block4->id(), 0, 1, 1));  // This should throw due to overlap

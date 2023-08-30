@@ -64,11 +64,6 @@ namespace Graph {
 
         virtual const float *outputs() const = 0;
 
-        virtual Wire *get_input_wires(size_t &size) = 0;
-
-        virtual void process(AudioContext) = 0;
-
-
         virtual std::string name() const = 0;
 
         size_t id() const { return _id; }
@@ -79,6 +74,10 @@ namespace Graph {
         size_t _id;
 
         Block() : last_processed_time(-1.0) { _id = ++_latest_id; }
+
+        virtual void process(AudioContext) = 0;
+
+        virtual Wire *get_input_wires(size_t &size) = 0;
 
         virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
 
@@ -97,9 +96,7 @@ namespace Graph {
         AudioGraph();
 
         // Topology modifying functions:
-        // add_block takes a unique pointer that it moves, and returns a const pointer to the block
-        // since it is now owned by the graph
-        const Block *add_block(std::unique_ptr<Block> block);
+        void add_block(const std::shared_ptr<Block> &block);
 
         void remove_block(size_t block_id);
 
@@ -127,7 +124,7 @@ namespace Graph {
         };
 
     private:
-        std::unordered_map<size_t, std::unique_ptr<Block> > _blocks;
+        std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
 
         void dfs(Block *vertex);
