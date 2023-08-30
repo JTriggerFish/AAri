@@ -12,6 +12,8 @@
     <option name="_new_additionalArguments" value="&quot;&quot;" />
     <option name="_new_target" value="&quot;test_python_bindings.TestAAriPythonBindings&quot;" />
     <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-    <method v="2" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Meson release" run_configuration_type="CLionExternalRunConfiguration" />
+    </method>
   </configuration>
 </component>

@@ -12,19 +12,18 @@ dependencies_python = [
     dependency('python3'),
 ]
 
-core_lib = static_library('core',
-  ['src/core/utils/FieldMap.cpp',
+core_files = ['src/core/utils/FieldMap.cpp',
    'src/core/graph.cpp',
    'src/core/audio_engine.cpp',
    'src/blocks/oscillators.cpp',
    'src/blocks/mixers.cpp',
-   ],
-)
+   ]
 
+core_lib = static_library('core', core_files, dependencies: dependencies_core)
 
 executable('AAri', 'src/main.cpp', dependencies: dependencies_core, link_with: core_lib)
 
-py.extension_module('AAri', 'bindings/python_bindings.cpp',
+py.extension_module('AAri', ['bindings/python_bindings.cpp'],
  dependencies: dependencies_core + dependencies_python,
   link_with: core_lib,
    # install_dir: py.get_install_dir())

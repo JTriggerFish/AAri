@@ -1,7 +1,7 @@
 import unittest
 import sys
 
-sys.path.append('../../debug/')  # Add the parent directory to the path so we can import the module
+sys.path.append('../../release/')  # Add the parent directory to the path so we can import the module
 
 import AAri  # Assuming the compiled module is named 'AAri'
 

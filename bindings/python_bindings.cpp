@@ -10,6 +10,7 @@
 
 
 namespace py = pybind11;
+using namespace Graph;
 
 PYBIND11_MODULE(AAri, m) {
     m.doc() = "AAri audio engine Python bindings";
@@ -20,7 +21,18 @@ PYBIND11_MODULE(AAri, m) {
             .def("startAudio", &AudioEngine::startAudio)
             .def("stopAudio", &AudioEngine::stopAudio);
 
+    py::class_<Graph::AudioGraph>(m, "AudioGraph")
+            .def(py::init<>())
+            .def("add_block", &AudioGraph::add_block)
+            .def("remove_block", &AudioGraph::remove_block)
+            .def("connect_wire", &AudioGraph::connect_wire)
+            .def("disconnect_wire", &AudioGraph::disconnect_wire);
+
     // MonoToStereo bindings
+    py::class_<Graph::Block>(m, "Block");
+    py::class_<Mixer, Graph::Block>(m, "Mixer");
+    py::class_<Oscillator, Graph::Block>(m, "Oscillator");
+
     py::class_<MonoToStereo, Mixer>(m, "MonoToStereo")
             .def(py::init<float, float>(),
                  py::arg("amp_db") = -30.0f,
