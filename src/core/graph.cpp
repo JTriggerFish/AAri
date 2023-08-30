@@ -5,9 +5,9 @@ namespace Graph {
     size_t Block::_latest_id = 0;
     size_t Wire::_latest_id = 0;
 
-    
-void AudioGraph::dfs(Block *startVertex) {
-    std::lock_guard<std::mutex> lock(graphMutex);
+
+    void AudioGraph::dfs(Block *startVertex) {
+        std::lock_guard<std::mutex> lock(graphMutex);
 
         std::stack<Block *> dfsStack;
         dfsStack.push(startVertex);
@@ -99,9 +99,12 @@ void AudioGraph::dfs(Block *startVertex) {
         _outgoingWires.reserve(256);
     }
 
-    void AudioGraph::add_block(const std::shared_ptr<Block> &block) {
-        _blocks[block->id()] = block;
+
+    const Block *AudioGraph::add_block(std::unique_ptr<Block> block) {
+        auto id = block->id();
+        _blocks[id] = std::move(block);
         update_ordering();
+        return _blocks[id].get();
     }
 
     void AudioGraph::remove_block(const size_t block_id) {

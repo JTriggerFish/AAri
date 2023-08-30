@@ -16,7 +16,7 @@ public:
     IMPLEMENT_BLOCK_IO(1, 1);
 
     virtual void process(AudioContext ctx) override {
-        outputs()[0] = inputs()[0] * 2.0f;
+        io.outputs[0] = io.inputs[0] * 2.0f;
     }
 
     virtual std::string name() const override {
@@ -32,7 +32,7 @@ public:
 
 
     virtual void process(AudioContext ctx) override {
-        outputs()[0] = inputs()[0] + 3.0f;
+        io.outputs[0] = io.inputs[0] + 3.0f;
     }
 
     virtual std::string name() const override {
@@ -45,14 +45,12 @@ public:
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     AudioGraph graph;
 
-    auto _block1 = std::make_shared<DummyBlock2>();
-    auto _block2 = std::make_shared<DummyBlock1>();
+    auto _block1 = std::make_unique<DummyBlock2>();
+    auto _block2 = std::make_unique<DummyBlock1>();
 
-    auto block1 = _block1.get();
-    auto block2 = _block2.get();
-
-    graph.add_block(_block2);
-    graph.add_block(_block1);
+    // Cheat a bit and use const_cast to get around the constness of the returned pointer
+    auto block1 = const_cast<Graph::Block *>( graph.add_block(std::move(_block1)));
+    auto block2 = const_cast<Graph::Block *>( graph.add_block(std::move(_block2)));
 
     SECTION("Adding and processing blocks") {
         AudioContext ctx = {44100.0f, 0.1f};
@@ -115,8 +113,8 @@ public:
     IMPLEMENT_BLOCK_IO(2, 2);
 
     virtual void process(AudioContext ctx) override {
-        outputs()[0] = inputs()[0] * 2.0f;
-        outputs()[1] = inputs()[1] + 4.0f;
+        io.outputs[0] = io.inputs[0] * 2.0f;
+        io.outputs[1] = io.inputs[1] + 4.0f;
     }
 
     virtual std::string name() const override {
@@ -127,13 +125,13 @@ public:
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
     AudioGraph graph;
 
-    auto block1 = std::make_shared<DummyBlock1>();
-    auto block2 = std::make_shared<DummyBlock2>();
-    auto block3 = std::make_shared<DummyBlock3>();
+    auto _block1 = std::make_unique<DummyBlock1>();
+    auto _block2 = std::make_unique<DummyBlock2>();
+    auto _block3 = std::make_unique<DummyBlock3>();
 
-    graph.add_block(block1);
-    graph.add_block(block2);
-    graph.add_block(block3);
+    auto block1 = const_cast<Graph::Block *>( graph.add_block(std::move(_block1)));
+    auto block2 = const_cast<Graph::Block *>( graph.add_block(std::move(_block2)));
+    auto block3 = const_cast<Graph::Block *>( graph.add_block(std::move(_block3)));
 
     SECTION("Testing Multiple layers of dependencies") {
         // Connect block1 -> block3 -> block2
@@ -171,8 +169,9 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     }
 
     SECTION("Testing wire with width > 1") {
-        auto block4 = std::make_shared<DummyBlock3>();
-        graph.add_block(block4);
+        auto _block4 = std::make_unique<DummyBlock3>();
+        auto block4 = const_cast<Graph::Block *>( graph.add_block(std::move(_block4)));
+
         graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
 
         AudioContext ctx = {44100.0f, 0.7f};
@@ -192,8 +191,9 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     }
 
     SECTION("Testing Overlapping Wire Regions") {
-        auto block4 = std::make_shared<DummyBlock3>();
-        graph.add_block(block4);
+        auto _block4 = std::make_unique<DummyBlock3>();
+        auto block4 = const_cast<Graph::Block *>( graph.add_block(std::move(_block4)));
+
         graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
         REQUIRE_THROWS(graph.connect_wire(block1->id(), block4->id(), 0, 1, 1));  // This should throw due to overlap
     }

@@ -62,7 +62,7 @@ namespace Graph {
 
         virtual float *inputs() = 0;
 
-        virtual float *outputs() = 0;
+        virtual const float *outputs() const = 0;
 
         virtual Wire *get_input_wires(size_t &size) = 0;
 
@@ -97,7 +97,9 @@ namespace Graph {
         AudioGraph();
 
         // Topology modifying functions:
-        void add_block(const std::shared_ptr<Block> &block);
+        // add_block takes a unique pointer that it moves, and returns a const pointer to the block
+        // since it is now owned by the graph
+        const Block *add_block(std::unique_ptr<Block> block);
 
         void remove_block(size_t block_id);
 
@@ -125,7 +127,7 @@ namespace Graph {
         };
 
     private:
-        std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
+        std::unordered_map<size_t, std::unique_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
 
         void dfs(Block *vertex);

@@ -62,7 +62,7 @@ struct InputOutput {
         return io.inputs; \
     } \
     \
-    virtual float *outputs() override { \
+    virtual const float *outputs() const override { \
         return io.outputs; \
     } \
     \

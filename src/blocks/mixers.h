@@ -45,4 +45,8 @@ public:
 
 };
 
+class MonoMixer : public Mixer {
+
+};
+
 #endif //RELEASE_MIXERS_H
