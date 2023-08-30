@@ -33,6 +33,11 @@ PYBIND11_MODULE(AAri, m) {
     py::class_<Mixer, Graph::Block>(m, "Mixer");
     py::class_<Oscillator, Graph::Block>(m, "Oscillator");
 
+    py::class_<Affine, Mixer>(m, "Affine")
+            .def(py::init<float, float>(),
+                 py::arg("a") = 0.0f,
+                 py::arg("b") = 1.0f);
+
     py::class_<MonoToStereo, Mixer>(m, "MonoToStereo")
             .def(py::init<float, float>(),
                  py::arg("amp_db") = -30.0f,

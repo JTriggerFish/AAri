@@ -45,6 +45,40 @@ public:
 
 };
 
+class Affine : public Mixer {
+    /** Affine mixer
+     *  Takes 1 input and 2 parameters
+     *  Outputs the affine combination
+     *  y = a + b * y
+     */
+public:
+    enum Inputs {
+        A,
+        B,
+    };
+    enum Outputs {
+        OUT
+    };
+
+    explicit Affine(float a = 0.0f, float b = 1.0f) {
+        io.inputs[A] = a;
+        io.inputs[B] = b;
+    }
+
+    IMPLEMENT_BLOCK_IO(2, 1);
+
+    void process(Graph::AudioContext ctx) override {
+        const float a = io.inputs[A];
+        const float b = io.inputs[B];
+        io.outputs[OUT] = a + b * io.outputs[OUT];
+    }
+
+    std::string name() const override {
+        return "Affine_" + std::to_string(id());
+    }
+
+};
+
 class StereoMixer : public Mixer {
 public:
     IMPLEMENT_BLOCK_IO(32, 2);
