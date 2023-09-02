@@ -3,13 +3,13 @@ import sys
 
 sys.path.append('../../release/')  # Add the parent directory to the path so we can import the module
 
-import AAri  # Assuming the compiled module is named 'AAri'
+import AAri_cpp
 
 
 class TestAAriPythonBindings(unittest.TestCase):
 
     def test_audio_engine(self):
-        audio_engine = AAri.AudioEngine()
+        audio_engine = AAri_cpp.AudioEngine()
         self.assertIsNotNone(audio_engine)
 
         # Test starting and stopping the audio engine
@@ -17,11 +17,11 @@ class TestAAriPythonBindings(unittest.TestCase):
         audio_engine.stopAudio()
 
     def test_mono_to_stereo_block(self):
-        mono_to_stereo = AAri.MonoToStereo(amp_db=-20.0, panning=0.5)
+        mono_to_stereo = AAri_cpp.MonoToStereo(amp_db=-20.0, panning=0.5)
         self.assertIsNotNone(mono_to_stereo)
 
     def test_sine_osc_block(self):
-        sine_osc = AAri.SineOsc(freq=440.0, amplitude=0.8)
+        sine_osc = AAri_cpp.SineOsc(freq=440.0, amplitude=0.8)
         self.assertIsNotNone(sine_osc)
 
 

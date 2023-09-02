@@ -70,6 +70,12 @@ namespace Graph {
 
         virtual ~Block() = default;
 
+        std::vector<Wire> py_get_input_wires() {
+            size_t n;
+            auto wires = get_input_wires(n);
+            return {wires, wires + n};
+        }
+
     protected:
         size_t _id;
 
@@ -79,7 +85,7 @@ namespace Graph {
 
         virtual Wire *get_input_wires(size_t &size) = 0;
 
-        virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
+        virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
 
         virtual void disconnect_wire(size_t out_index_or_id, bool is_id) = 0;
 
@@ -100,7 +106,7 @@ namespace Graph {
 
         void remove_block(size_t block_id);
 
-        void connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index);
+        size_t connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index);
 
         void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id = std::nullopt);
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CLionExternalBuildManager">
+    <target id="b849a02a-bb46-42aa-9194-a6469fb26593" name="meson release" defaultType="TOOL">
+      <configuration id="5775a82f-8117-462a-8166-b8f3b013d664" name="meson release" toolchainName="MinGW">
+        <build type="TOOL">
+          <tool actionId="Tool_External Tools_meson release build" />
+        </build>
+      </configuration>
+    </target>
+  </component>
+</project>

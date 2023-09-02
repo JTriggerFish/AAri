@@ -81,7 +81,7 @@ public:
 
 class StereoMixer : public Mixer {
 public:
-    IMPLEMENT_BLOCK_IO(32, 2);
+    IMPLEMENT_BLOCK_IO(64, 2);
 
     enum Outputs {
         LEFT, RIGHT

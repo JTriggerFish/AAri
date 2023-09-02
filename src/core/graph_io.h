@@ -10,7 +10,7 @@ struct InputOutput {
     float outputs[OUT] = {0};
     Graph::Wire inputs_wires[IN];
 
-    void connect(Graph::Block *in, Graph::Block *out, size_t in_index, size_t width, size_t out_index) {
+    size_t connect(Graph::Block *in, Graph::Block *out, size_t in_index, size_t width, size_t out_index) {
         ASSERT(in != nullptr);
         ASSERT(in_index + width <= in->output_size());
         ASSERT(out_index + width <= IN);
@@ -26,6 +26,7 @@ struct InputOutput {
         if (free_idx == -1)
             throw std::runtime_error("No free wire");
         inputs_wires[free_idx] = Graph::Wire(in, out, in_index, width, out_index);
+        return inputs_wires[free_idx].id;
     }
 
     void disconnect(size_t out_index_or_id, bool is_id) {
@@ -71,8 +72,8 @@ struct InputOutput {
         return io.inputs_wires; \
     } \
     \
-    virtual void connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override { \
-        io.connect(in, this, in_index, width, out_index); \
+    virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override { \
+        return io.connect(in, this, in_index, width, out_index); \
     } \
     \
     virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override { \

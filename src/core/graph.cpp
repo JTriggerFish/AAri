@@ -126,13 +126,14 @@ namespace Graph {
         update_ordering();
     }
 
-    void
+    size_t
     AudioGraph::connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index) {
         auto out = _blocks[out_block_id].get();
         auto in = _blocks[in_block_id].get();
-        out->connect_wire(in, in_index, width, out_index);
+        auto id = out->connect_wire(in, in_index, width, out_index);
 
         update_ordering();
+        return id;
     }
 
     void AudioGraph::disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id) {
