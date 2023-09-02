@@ -4,8 +4,6 @@ sys.path.append(
 )  # Add the parent directory to the path so we can import the module
 
 import AAri_cpp  # Import the Pybind11 module
-import time
-import re
 import numpy as np
 
 
@@ -31,8 +29,8 @@ class MixerBase(Block):
         :param width:
         :return:
         """
-        wires = self.block_ptr.wires
-        free_inputs = np.zeros(len(self.block_ptr.input_size), dtype=int)
+        wires = self.block_ptr.wires()
+        free_inputs = np.zeros(self.block_ptr.input_size(), dtype=int)
         for wire in wires:
             free_inputs[wire.in_index : wire.in_index + wire.width] = 1
         free_inputs = np.where(free_inputs == 0)[0]
@@ -54,21 +52,21 @@ class StereoMixerBase(MixerBase):
     def __lshift__(self, block: Block):
         self._graph.add_block(block)
         free_slot = self._find_free_slot(2)
-        if block.block_ptr.output_size > 2:
+        if block.block_ptr.output_size() > 2:
             raise RuntimeError("Cannot connect block with more than 2 outputs")
-        if block.block_ptr.output_size == 1:
-                stereo = AAri_cpp.MonoToStereo()
+        if block.block_ptr.output_size() == 1:
+                stereo = Block(AAri_cpp.MonoToStereo(amp_db=-30.0, panning=0.5))
                 self._graph.add_block(stereo)
                 self._graph.connect(block, stereo, 0, 1, free_slot)
-                block = Block(stereo)
+                block = stereo
         self._graph.connect(block, self, 0, 2, free_slot)
 
 
 class AudioGraph:
     """Cpp graph wrapper"""
 
-    def __init__(self):
-        self.graph = AAri_cpp.AudioGraph()
+    def __init__(self, cpp_graph: AAri_cpp.AudioGraph):
+        self.graph = cpp_graph
         self.output_block = None
 
     def add_block(self, block: Block):
@@ -78,14 +76,6 @@ class AudioGraph:
 
     def remove_block(self, block: Block):
         self.graph.remove_block(block.block_ptr)
-
-    def _set_output_block(self, block: Block):
-        self.add_block(block)
-        self.output_block = block
-
-    @property
-    def out(self):
-        return self.output_block
 
     def connect(
         self,
@@ -105,8 +95,8 @@ class AudioGraph:
         :return:
         """
         return self.graph.connect_wire(
-            block_from.block_ptr.id,
-            block_to.block_ptr.id,
+            block_from.block_ptr.id(),
+            block_to.block_ptr.id(),
             channel_from,
             width,
             channel_to,
@@ -133,16 +123,17 @@ class AudioEngine:
         Any initialization logic should go here.
         """
         self.engine = AAri_cpp.AudioEngine()
-        self._graph = AudioGraph()
+        self._graph = AudioGraph(self.engine.get_graph())
         self.set_output_block(StereoMixerBase())
 
     def set_output_block(self, block: Block):
         self._graph.add_block(block)
         self.engine.set_output_block(block.block_ptr.id(), 0)
+        self.output_block = block
 
     @property
-    def out(self):
-        return self._graph.out
+    def out(self) -> Block:
+        return self.output_block
 
     def start(self):
         self.engine.startAudio()

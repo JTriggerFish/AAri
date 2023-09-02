@@ -23,7 +23,7 @@ AudioEngine::AudioEngine() : clock_seconds(0), outputNodeIndex(0), outputChannel
     if (audioDevice == 0) {
         std::cerr << "Failed to open audio device: " << SDL_GetError() << std::endl;
     }
-    audioGraph = std::make_unique<Graph::AudioGraph>();
+    audioGraph = std::make_shared<Graph::AudioGraph>();
 
 }
 
@@ -70,7 +70,7 @@ void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int _len) {
 }
 
 void AudioEngine::set_output_block(size_t node_index, size_t block_output_index) {
-    Graph::Block *outputBlock;
+    Graph::Block *outputBlock = nullptr;
     if (!audioGraph->get_block(node_index, &outputBlock)) {
         throw std::runtime_error("Invalid output node index : node doesn't exist on the graph");
     }

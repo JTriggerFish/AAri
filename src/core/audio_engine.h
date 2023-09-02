@@ -18,8 +18,8 @@ public:
 
     void stopAudio();
 
-    Graph::AudioGraph *getAudioGraph() {
-        return audioGraph.get();
+    std::shared_ptr<Graph::AudioGraph> getAudioGraph() {
+        return audioGraph;
     }
 
     void set_output_block(size_t node_index, size_t block_output_index);
@@ -32,7 +32,7 @@ private:
     SDL_AudioDeviceID audioDevice;
     SDL_AudioSpec audioSpec;
     std::mutex audioMutex;
-    std::unique_ptr<Graph::AudioGraph> audioGraph;
+    std::shared_ptr<Graph::AudioGraph> audioGraph;
     size_t outputNodeIndex;
     size_t outputChannelStart;
 };

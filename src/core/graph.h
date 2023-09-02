@@ -125,6 +125,12 @@ namespace Graph {
             }
             return false;
         }
+        std::unordered_map<size_t, std::shared_ptr<Block> > get_all_blocks() {
+            return _blocks;
+        }
+        std::vector<Block *> get_topological_order() {
+            return {_topologicalOrder.begin(), _topologicalOrder.end()};
+        }
 
 
         enum NodeState {
