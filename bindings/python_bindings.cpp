@@ -39,8 +39,8 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("wires", &Graph::Block::py_get_input_wires);
 
     py::class_<Graph::Wire>(m, "Wire", py::module_local())
-            .def_readonly("in", &Graph::Wire::in)
-            .def_readonly("out", &Graph::Wire::out)
+            .def_readonly("input", &Graph::Wire::in)
+            .def_readonly("output", &Graph::Wire::out)
             .def_readonly("in_index", &Graph::Wire::in_index)
             .def_readonly("width", &Graph::Wire::width)
             .def_readonly("out_index", &Graph::Wire::out_index);

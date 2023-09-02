@@ -51,14 +51,14 @@ class StereoMixerBase(MixerBase):
 
     def __lshift__(self, block: Block):
         self._graph.add_block(block)
-        free_slot = self._find_free_slot(2)
         if block.block_ptr.output_size() > 2:
             raise RuntimeError("Cannot connect block with more than 2 outputs")
         if block.block_ptr.output_size() == 1:
                 stereo = Block(AAri_cpp.MonoToStereo(amp_db=-30.0, panning=0.5))
                 self._graph.add_block(stereo)
-                self._graph.connect(block, stereo, 0, 1, free_slot)
+                self._graph.connect(block, stereo, 0, 1, 0)
                 block = stereo
+        free_slot = self._find_free_slot(2)
         self._graph.connect(block, self, 0, 2, free_slot)
 
 
