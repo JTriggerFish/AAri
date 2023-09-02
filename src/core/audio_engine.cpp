@@ -69,7 +69,7 @@ void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int _len) {
     }
 }
 
-void AudioEngine::set_output_node(size_t node_index, size_t block_output_index) {
+void AudioEngine::set_output_block(size_t node_index, size_t block_output_index) {
     Graph::Block *outputBlock;
     if (!audioGraph->get_block(node_index, &outputBlock)) {
         throw std::runtime_error("Invalid output node index : node doesn't exist on the graph");

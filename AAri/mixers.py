@@ -1,6 +1,7 @@
 import AAri_cpp  # Import the Pybind11 module
 
-from python.AAri.audio_engine import Block
+from AAri.audio_engine import Block
+from AAri.audio_engine import StereoMixerBase as StereoMixer
 
 
 class MonoToStereo(Block):

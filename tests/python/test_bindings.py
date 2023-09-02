@@ -1,13 +1,14 @@
 import unittest
 import sys
 
-sys.path.append('../../release/')  # Add the parent directory to the path so we can import the module
+sys.path.append(
+    "../../release/"
+)  # Add the parent directory to the path so we can import the module
 
 import AAri_cpp
 
 
 class TestAAriPythonBindings(unittest.TestCase):
-
     def test_audio_engine(self):
         audio_engine = AAri_cpp.AudioEngine()
         self.assertIsNotNone(audio_engine)
@@ -25,5 +26,5 @@ class TestAAriPythonBindings(unittest.TestCase):
         self.assertIsNotNone(sine_osc)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

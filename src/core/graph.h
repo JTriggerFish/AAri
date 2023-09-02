@@ -113,6 +113,10 @@ namespace Graph {
         // Processing functions:
         void process(AudioContext ctx);
 
+        bool has_block(size_t block_id) {
+            return _blocks.find(block_id) != _blocks.end();
+        }
+
         bool get_block(size_t block_id, Block **block) {
             auto it = _blocks.find(block_id);
             if (it != _blocks.end()) {

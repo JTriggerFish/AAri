@@ -18,36 +18,45 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("startAudio", &AudioEngine::startAudio)
             .def("stopAudio", &AudioEngine::stopAudio)
             .def("get_graph", &AudioEngine::getAudioGraph, py::return_value_policy::reference)
-            .def("set_output_node", &AudioEngine::set_output_node, py::arg("node_index"), py::arg("block_output_index"));
+            .def("set_output_block", &AudioEngine::set_output_block, py::arg("node_index"), py::arg("block_output_index"));
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
             .def(py::init<>())
-            .def("add_block", &AudioGraph::add_block, py::arg("block"), py::return_value_policy::reference)
+            .def("add_block", &AudioGraph::add_block, py::arg("block"))
             .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
             .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),
                  py::arg("in_index"), py::arg("width"), py::arg("out_index"))
-            .def("disconnect_wire", &AudioGraph::disconnect_wire, py::arg("wire_id"), py::arg("out_block_id") = py::none());
+            .def("disconnect_wire", &AudioGraph::disconnect_wire, py::arg("wire_id"), py::arg("out_block_id") = py::none())
+            .def("has_block", &AudioGraph::has_block, py::arg("block_id"));
 
-    py::class_<Graph::Block>(m, "Block", py::module_local())
+    py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
             .def("id", &Graph::Block::id)
             .def("input_size", &Graph::Block::input_size)
             .def("output_size", &Graph::Block::output_size)
+            .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
             .def("wires", &Graph::Block::py_get_input_wires);
 
-    py::class_<Mixer, Graph::Block>(m, "Mixer");
-    py::class_<Oscillator, Graph::Block>(m, "Oscillator");
+    py::class_<Graph::Wire>(m, "Wire", py::module_local())
+            .def_readonly("in", &Graph::Wire::in)
+            .def_readonly("out", &Graph::Wire::out)
+            .def_readonly("in_index", &Graph::Wire::in_index)
+            .def_readonly("width", &Graph::Wire::width)
+            .def_readonly("out_index", &Graph::Wire::out_index);
 
-    py::class_<Affine, Mixer>(m, "Affine", py::module_local())
+    py::class_<Mixer, Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
+    py::class_<Oscillator, Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
+
+    py::class_<Affine, Mixer, std::shared_ptr<Affine>>(m, "Affine", py::module_local())
             .def(py::init<float, float>(),
                  py::arg("a") = 0.0f,
                  py::arg("b") = 1.0f);
 
-    py::class_<MonoToStereo, Mixer>(m, "MonoToStereo", py::module_local())
+    py::class_<MonoToStereo, Mixer, std::shared_ptr<MonoToStereo>>(m, "MonoToStereo", py::module_local())
             .def(py::init<float, float>(),
                  py::arg("amp_db") = -30.0f,
                  py::arg("panning") = 0.0f);
 
-    py::class_<StereoMixer, Mixer>(m, "StereoMixer", py::module_local())
+    py::class_<StereoMixer, Mixer, std::shared_ptr<StereoMixer>>(m, "StereoMixer", py::module_local())
             .def(py::init<>());
 
     // SineOsc bindings
@@ -57,7 +66,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
     py::enum_<SineOsc::Outputs>(m, "SineOscOutputs")
             .value("OUT", SineOsc::Outputs::OUT);
 
-    py::class_<SineOsc, Oscillator>(m, "SineOsc", py::module_local())
+    py::class_<SineOsc, Oscillator, std::shared_ptr<SineOsc>>(m, "SineOsc", py::module_local())
             .def(py::init<float, float>(),
                  py::arg("freq") = 110.0f,
                  py::arg("amplitude") = 1.0f);

@@ -22,7 +22,7 @@ public:
         return audioGraph.get();
     }
 
-    void set_output_node(size_t node_index, size_t block_output_index);
+    void set_output_block(size_t node_index, size_t block_output_index);
 
 private:
     static void audioCallback(void *userdata, Uint8 *stream, int len);
