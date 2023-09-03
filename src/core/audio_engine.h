@@ -24,6 +24,10 @@ public:
 
     void set_output_block(size_t node_index, size_t block_output_index);
 
+    SDL_AudioDeviceID get_audio_device() const {
+        return audioDevice;
+    }
+
 private:
     static void audioCallback(void *userdata, Uint8 *stream, int len);
 
@@ -31,7 +35,6 @@ private:
 
     SDL_AudioDeviceID audioDevice;
     SDL_AudioSpec audioSpec;
-    std::mutex audioMutex;
     std::shared_ptr<Graph::AudioGraph> audioGraph;
     size_t outputNodeIndex;
     size_t outputChannelStart;

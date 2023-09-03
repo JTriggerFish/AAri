@@ -23,7 +23,7 @@ AudioEngine::AudioEngine() : clock_seconds(0), outputNodeIndex(0), outputChannel
     if (audioDevice == 0) {
         std::cerr << "Failed to open audio device: " << SDL_GetError() << std::endl;
     }
-    audioGraph = std::make_shared<Graph::AudioGraph>();
+    audioGraph = std::make_shared<Graph::AudioGraph>(get_audio_device());
 
 }
 
@@ -48,7 +48,6 @@ void AudioEngine::audioCallback(void *userdata, Uint8 *stream, int _len) {
     if (engine->audioGraph == nullptr || engine->outputNodeIndex == 0) {
         return;
     }
-    std::lock_guard<std::mutex> lock(engine->audioMutex);
     Graph::Block *outputBlock;
     if (!engine->audioGraph->get_block(engine->outputNodeIndex, &outputBlock)) {
         return;
@@ -77,8 +76,11 @@ void AudioEngine::set_output_block(size_t node_index, size_t block_output_index)
     if (block_output_index >= outputBlock->output_size()) {
         throw std::runtime_error("Invalid output channel start : block doesn't have enough outputs");
     }
+    SDL_LockAudioDevice(audioDevice);
     outputNodeIndex = node_index;
     outputChannelStart = block_output_index;
+    SDL_UnlockAudioDevice(audioDevice);
+
 }
 
 // FOR SDL2

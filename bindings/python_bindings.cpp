@@ -18,10 +18,11 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("startAudio", &AudioEngine::startAudio)
             .def("stopAudio", &AudioEngine::stopAudio)
             .def("get_graph", &AudioEngine::getAudioGraph)
+            .def("get_audio_device", &AudioEngine::get_audio_device)
             .def("set_output_block", &AudioEngine::set_output_block, py::arg("node_index"), py::arg("block_output_index"));
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
-            .def(py::init<>())
+            .def(py::init<uint32_t>())
             .def("add_block", &AudioGraph::add_block, py::arg("block"))
             .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
             .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),

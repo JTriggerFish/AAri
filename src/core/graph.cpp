@@ -7,7 +7,6 @@ namespace Graph {
 
 
     void AudioGraph::dfs(Block *startVertex) {
-        std::lock_guard<std::mutex> lock(graphMutex);
 
         std::stack<Block *> dfsStack;
         dfsStack.push(startVertex);
@@ -93,7 +92,7 @@ namespace Graph {
         }
     }
 
-    AudioGraph::AudioGraph() {
+    AudioGraph::AudioGraph(int audioDevice) : _audioDevice(audioDevice) {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _nodeState.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _outgoingWires.reserve(256);
@@ -101,38 +100,41 @@ namespace Graph {
 
 
     void AudioGraph::add_block(const std::shared_ptr<Block> &block) {
+        // Note: no wires yet so no need to lock or update ordering
         auto id = block->id();
         _blocks[id] = block;
-        update_ordering();
     }
 
     void AudioGraph::remove_block(const size_t block_id) {
         auto it = _blocks.find(block_id);
-        if (it != _blocks.end()) {
-            auto chopping_block = it->second.get();
-            // 1. Remove wires connecting to this block
-            for (auto &block: _blocks) {
-                size_t n;
-                Wire *wires = block.second->get_input_wires(n);
-                for (size_t i = 0; i < n; ++i) {
-                    if (wires[i].in == chopping_block) {
-                        block.second->disconnect_wire(wires[i].id, true);
-                    }
+        if (it == _blocks.end())
+            throw std::runtime_error("Block not found");
+        auto chopping_block = it->second.get();
+        lock();
+        // 1. Remove wires connecting to this block
+        for (auto &block: _blocks) {
+            size_t n;
+            Wire *wires = block.second->get_input_wires(n);
+            for (size_t i = 0; i < n; ++i) {
+                if (wires[i].in == chopping_block) {
+                    block.second->disconnect_wire(wires[i].id, true);
                 }
             }
-            _blocks.erase(it);
         }
-
+        _blocks.erase(it);
         update_ordering();
+        unlock();
     }
 
     size_t
     AudioGraph::connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index) {
+        lock();
         auto out = _blocks[out_block_id].get();
         auto in = _blocks[in_block_id].get();
         auto id = out->connect_wire(in, in_index, width, out_index);
 
         update_ordering();
+        unlock();
         return id;
     }
 
@@ -141,9 +143,10 @@ namespace Graph {
         auto wires_owner = out_block_id.has_value() ? _blocks[out_block_id.value()].get() : find_wire_owner(wire_id);
         if (wires_owner == nullptr)
             throw std::runtime_error("Wire is not connected to any block");
+        lock();
         wires_owner->disconnect_wire(wire_id, true);
-
         update_ordering();
+        unlock();
     }
 
     Block *AudioGraph::find_wire_owner(size_t wire_id) {

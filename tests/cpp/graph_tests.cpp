@@ -43,7 +43,7 @@ public:
 
 // Unit tests
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
-    AudioGraph graph;
+    AudioGraph graph(-1);
 
     auto block1 = std::make_shared<DummyBlock2>();
     auto block2 = std::make_shared<DummyBlock1>();
@@ -123,7 +123,7 @@ public:
 };
 
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
-    AudioGraph graph;
+    AudioGraph graph(-1);
 
     auto block1 = std::make_shared<DummyBlock1>();
     auto block2 = std::make_shared<DummyBlock2>();

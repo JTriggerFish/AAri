@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <SDL2/SDL.h>
 #include <list>
 #include <vector>
 #include <memory>
@@ -95,11 +96,9 @@ namespace Graph {
 
 
     class AudioGraph {
-    public:
-        std::mutex graphMutex;
 
     public:
-        AudioGraph();
+        AudioGraph(int audioDevice);
 
         // Topology modifying functions:
         void add_block(const std::shared_ptr<Block> &block);
@@ -142,12 +141,22 @@ namespace Graph {
     private:
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
+        int _audioDevice;
+
 
         void dfs(Block *vertex);
 
         void update_ordering();
 
         Block *find_wire_owner(size_t wire_id);
+        void lock() const{
+            if( _audioDevice >= 0)
+                SDL_LockAudioDevice(_audioDevice);
+        }
+        void unlock() const{
+            if( _audioDevice >= 0)
+                SDL_UnlockAudioDevice(_audioDevice);
+        }
 
     private:
         // Temp memory
