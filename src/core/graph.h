@@ -71,11 +71,7 @@ namespace Graph {
 
         virtual ~Block() = default;
 
-        std::vector<Wire> py_get_input_wires() {
-            size_t n;
-            auto wires = get_input_wires(n);
-            return {wires, wires + n};
-        }
+        std::vector<Wire> py_get_input_wires() const;
 
     protected:
         size_t _id;
@@ -84,7 +80,7 @@ namespace Graph {
 
         virtual void process(AudioContext) = 0;
 
-        virtual Wire *get_input_wires(size_t &size) = 0;
+        virtual const Wire * get_input_wires(size_t &size) const = 0;
 
         virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
 
@@ -99,6 +95,9 @@ namespace Graph {
 
     public:
         AudioGraph(int audioDevice);
+        ~AudioGraph() {
+            unlock();
+        }
 
         // Topology modifying functions:
         void add_block(const std::shared_ptr<Block> &block);
@@ -142,6 +141,7 @@ namespace Graph {
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
         int _audioDevice;
+        bool _locked;
 
 
         void dfs(Block *vertex);
@@ -149,12 +149,14 @@ namespace Graph {
         void update_ordering();
 
         Block *find_wire_owner(size_t wire_id);
-        void lock() const{
-            if( _audioDevice >= 0)
+        void lock() {
+            if( _audioDevice >= 0) {
                 SDL_LockAudioDevice(_audioDevice);
+                _locked=true;
+            }
         }
         void unlock() const{
-            if( _audioDevice >= 0)
+            if (_locked)
                 SDL_UnlockAudioDevice(_audioDevice);
         }
 

@@ -32,7 +32,7 @@ class MixerBase(Block):
         wires = self.block_ptr.wires
         free_inputs = np.zeros(self.block_ptr.input_size, dtype=int)
         for wire in wires:
-            free_inputs[wire.in_index : wire.in_index + wire.width] = 1
+            free_inputs[wire.out_index : wire.out_index + wire.width] = 1
         free_inputs = np.where(free_inputs == 0)[0]
         for i in range(len(free_inputs - width)):
             if np.array_equal(

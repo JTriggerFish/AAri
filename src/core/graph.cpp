@@ -3,6 +3,17 @@
 
 namespace Graph {
     size_t Block::_latest_id = 0;
+
+    std::vector<Wire> Block::py_get_input_wires() const {
+        size_t n;
+        auto wires = get_input_wires(n);
+        std::vector<Wire> result = {wires, wires + n};
+        result.erase(std::remove_if(result.begin(), result.end(), [](const Wire &w) {
+            return w.in == nullptr;
+        }), result.end());
+        return result;
+    }
+
     size_t Wire::_latest_id = 0;
 
 
@@ -50,7 +61,7 @@ namespace Graph {
         for (const auto &blockPair: _blocks) {
             Block *potentialDependentBlock = blockPair.second.get();
             size_t n;
-            Wire *inputs = potentialDependentBlock->get_input_wires(n);
+            const Wire *inputs = potentialDependentBlock->get_input_wires(n);
             for (size_t i = 0; i < n; ++i) {
                 const Wire &wire = inputs[i];
                 if (wire.in != nullptr) {
@@ -75,7 +86,7 @@ namespace Graph {
             }
 
             size_t n;
-            Wire *inputs = block->get_input_wires(n);
+            const Wire *inputs = block->get_input_wires(n);
             // Copy inputs
             for (size_t i = 0; i < n; ++i) {
                 const Wire &wire = inputs[i];
@@ -92,7 +103,7 @@ namespace Graph {
         }
     }
 
-    AudioGraph::AudioGraph(int audioDevice) : _audioDevice(audioDevice) {
+    AudioGraph::AudioGraph(int audioDevice) : _audioDevice(audioDevice), _locked(false) {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _nodeState.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _outgoingWires.reserve(256);
@@ -121,7 +132,7 @@ namespace Graph {
         _blocks.erase(it);
         for (auto &block: _blocks) {
             size_t n;
-            Wire *wires = block.second->get_input_wires(n);
+            const Wire *wires = block.second->get_input_wires(n);
             for (size_t i = 0; i < n; ++i) {
                 if (wires[i].in == chopping_block) {
                     block.second->disconnect_wire(wires[i].id, true);
@@ -160,7 +171,7 @@ namespace Graph {
         Block *wires_owner = nullptr;
         for (auto &block: _blocks) {
             size_t n;
-            Wire *wires = block.second->get_input_wires(n);
+            const Wire *wires = block.second->get_input_wires(n);
             for (size_t i = 0; i < n; ++i) {
                 if (wires[i].id == wire_id) {
                     wires_owner = block.second.get();

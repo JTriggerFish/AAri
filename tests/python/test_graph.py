@@ -16,7 +16,6 @@ class TestAAriPythonBindings(unittest.TestCase):
         for freq in range(220, 440, 5):
             osc = SineOsc(freq=freq, amplitude=1.0)
             audio_engine.out << osc
-            pass
         audio_engine.out << osc2
         sleep(3)
         audio_engine.stop()
