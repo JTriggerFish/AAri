@@ -7,15 +7,12 @@ from AAri.oscillators import SineOsc
 
 
 class TestAAriPythonBindings(unittest.TestCase):
-    def test_sound(self):
+    def test_mini_saw(self):
         audio_engine = AudioEngine()
         audio_engine.start()
-        osc = SineOsc(freq=220.0, amplitude=1.0)
-        audio_engine.out << osc
-        osc2 = SineOsc(freq=440.0, amplitude=1.0)
-        for freq in range(220, 440, 5):
-            osc = SineOsc(freq=freq, amplitude=1.0)
+        base_freq = 220
+        for mul in range(1, 32):
+            osc = SineOsc(freq=mul*base_freq, amplitude=1.0 / mul)
             audio_engine.out << osc
-        audio_engine.out << osc2
         sleep(3)
         audio_engine.stop()
