@@ -100,9 +100,13 @@ namespace Graph {
 
 
     void AudioGraph::add_block(const std::shared_ptr<Block> &block) {
-        // Note: no wires yet so no need to lock or update ordering
         auto id = block->id();
         _blocks[id] = block;
+        // Note even though the blocks are not connected, blocks on the graph are expected
+        // to be processed so we need to update the ordering
+        lock();
+        update_ordering();
+        unlock();
     }
 
     void AudioGraph::remove_block(const size_t block_id) {
@@ -111,7 +115,10 @@ namespace Graph {
             throw std::runtime_error("Block not found");
         auto chopping_block = it->second.get();
         lock();
-        // 1. Remove wires connecting to this block
+        // The block owns its wires to other blocks so these are going automatically, but
+        // we also need to
+        // remove wires connecting to this block
+        _blocks.erase(it);
         for (auto &block: _blocks) {
             size_t n;
             Wire *wires = block.second->get_input_wires(n);
@@ -121,7 +128,6 @@ namespace Graph {
                 }
             }
         }
-        _blocks.erase(it);
         update_ordering();
         unlock();
     }

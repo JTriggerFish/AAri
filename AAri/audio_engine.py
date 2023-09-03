@@ -29,8 +29,8 @@ class MixerBase(Block):
         :param width:
         :return:
         """
-        wires = self.block_ptr.wires()
-        free_inputs = np.zeros(self.block_ptr.input_size(), dtype=int)
+        wires = self.block_ptr.wires
+        free_inputs = np.zeros(self.block_ptr.input_size, dtype=int)
         for wire in wires:
             free_inputs[wire.in_index : wire.in_index + wire.width] = 1
         free_inputs = np.where(free_inputs == 0)[0]
@@ -51,9 +51,9 @@ class StereoMixerBase(MixerBase):
 
     def __lshift__(self, block: Block):
         self._graph.add_block(block)
-        if block.block_ptr.output_size() > 2:
+        if block.block_ptr.output_size > 2:
             raise RuntimeError("Cannot connect block with more than 2 outputs")
-        if block.block_ptr.output_size() == 1:
+        if block.block_ptr.output_size == 1:
                 stereo = Block(AAri_cpp.MonoToStereo(amp_db=-30.0, panning=0.5))
                 self._graph.add_block(stereo)
                 self._graph.connect(block, stereo, 0, 1, 0)
@@ -71,7 +71,7 @@ class AudioGraph:
 
     def add_block(self, block: Block):
         # First check if the block is already in the graph:
-        if not self.graph.has_block(block.block_ptr.id()):
+        if not self.graph.has_block(block.block_ptr.id):
             self.graph.add_block(block.block_ptr)
 
     def remove_block(self, block: Block):
@@ -95,8 +95,8 @@ class AudioGraph:
         :return:
         """
         return self.graph.connect_wire(
-            block_from.block_ptr.id(),
-            block_to.block_ptr.id(),
+            block_from.block_ptr.id,
+            block_to.block_ptr.id,
             channel_from,
             width,
             channel_to,
@@ -128,7 +128,7 @@ class AudioEngine:
 
     def set_output_block(self, block: Block):
         self._graph.add_block(block)
-        self.engine.set_output_block(block.block_ptr.id(), 0)
+        self.engine.set_output_block(block.block_ptr.id, 0)
         self.output_block = block
 
     @property

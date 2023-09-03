@@ -18,8 +18,9 @@ struct InputOutput {
         int free_idx = -1;
         for (size_t i = 0; i < IN; ++i) {
             const Graph::Wire &wire = inputs_wires[i];
-            if (wire.in == nullptr)
+            if (wire.in == nullptr && free_idx == -1) {
                 free_idx = (int) i;
+            }
             if (out_index < wire.out_index + wire.width)
                 throw std::runtime_error("Wires crossing");
         }

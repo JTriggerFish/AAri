@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run meson tests" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="release" TARGET_NAME="meson test release" CONFIG_NAME="meson test release" RUN_PATH="$PROJECT_DIR$/graph_tests.exe">
+  <configuration default="false" name="Run meson tests" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$/../debug" PASS_PARENT_ENVS_2="true" PROJECT_NAME="release" TARGET_NAME="meson debug build" CONFIG_NAME="meson debug build" RUN_PATH="$PROJECT_DIR$/../debug/graph_tests.exe">
     <method v="2">
       <option name="CLION.EXTERNAL.BUILD" enabled="true" />
     </method>

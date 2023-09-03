@@ -33,11 +33,12 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("get_topological_order", &AudioGraph::get_topological_order);
 
     py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
-            .def("id", &Graph::Block::id)
-            .def("input_size", &Graph::Block::input_size)
-            .def("output_size", &Graph::Block::output_size)
+            .def_property_readonly("id", &Graph::Block::id)
+            .def_property_readonly("name", &Graph::Block::name)
+            .def_property_readonly("input_size", &Graph::Block::input_size)
+            .def_property_readonly("output_size", &Graph::Block::output_size)
             .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
-            .def("wires", &Graph::Block::py_get_input_wires);
+            .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
 
     py::class_<Graph::Wire>(m, "Wire", py::module_local())
             .def_readonly("input", &Graph::Wire::in)
