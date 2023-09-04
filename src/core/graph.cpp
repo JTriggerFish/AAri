@@ -91,10 +91,9 @@ namespace Graph {
             for (size_t i = 0; i < n; ++i) {
                 const Wire &wire = inputs[i];
                 if (wire.in == nullptr) continue;
-                ASSERT(wire.out_index + wire.width <= block->input_size());
-                std::copy(wire.in->outputs() + wire.in_index,
-                          wire.in->outputs() + wire.in_index + wire.width,
-                          block->inputs() + wire.out_index);
+                //ASSERT(wire.out_index + wire.width <= block->input_size());
+                memcpy(block->inputs() + wire.out_index, wire.in->outputs() + wire.in_index,
+                       wire.width * sizeof(float));
             }
 
             // Process the block
