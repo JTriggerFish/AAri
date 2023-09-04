@@ -31,7 +31,7 @@ public:
         float freq = io.inputs[FREQ];
         float amplitude = io.inputs[AMP];
         float phase_inc = freq / ctx.sample_freq;
-        io.outputs[OUT] = amplitude * sinf(2.0f * M_PI * phase);
+        io.outputs[OUT] = amplitude * sinf(2.0f * std::numbers::pi * phase);
 
         phase = fmodf(phase + phase_inc, 1.0f);
     }
