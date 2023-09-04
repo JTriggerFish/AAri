@@ -13,6 +13,7 @@ dependencies_python = [
 ]
 
 core_files = ['src/core/utils/FieldMap.cpp',
+    'src/core/block.cpp',
    'src/core/graph.cpp',
    'src/core/audio_engine.cpp',
    'src/blocks/oscillators.cpp',

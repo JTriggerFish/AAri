@@ -3,11 +3,13 @@
 #define RELEASE_GRAPH_IO_H
 
 #include "graph.h"
+#include "block.h"
 
 template<size_t IN, size_t OUT>
-struct InputOutput {
-    float inputs[IN] = {0};
-    float outputs[OUT] = {0};
+class InputOutput : virtual public Graph::Block {
+public:
+    float _inputs[IN] = {0};
+    float _outputs[OUT] = {0};
     Graph::Wire inputs_wires[IN];
 
     size_t connect(Graph::Block *in, Graph::Block *out, size_t in_index, size_t width, size_t out_index) {
@@ -45,40 +47,19 @@ struct InputOutput {
 
         throw std::runtime_error("No matching wire found to disconnect_wire.");
     }
+    virtual size_t input_size() const override {
+        return IN;
+    }
+    virtual size_t output_size() const override {
+        return OUT;
+    }
+    virtual float *inputs() override {
+        return _inputs;
+    }
+    virtual const float *outputs() const override {
+        return _outputs;
+    }
 
 };
-
-#define IMPLEMENT_BLOCK_IO(IN, OUT) \
-                                    \
-    InputOutput<IN, OUT> io;         \
-                                    \
-    virtual size_t input_size() const override { \
-        return IN; \
-    } \
-    \
-    virtual size_t output_size() const override { \
-        return OUT; \
-    } \
-    \
-    virtual float *inputs() override { \
-        return io.inputs; \
-    } \
-    \
-    virtual const float *outputs() const override { \
-        return io.outputs; \
-    } \
-    \
-    virtual const Graph::Wire * get_input_wires(size_t &size) const override { \
-        size = IN; \
-        return io.inputs_wires; \
-    } \
-    \
-    virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) override { \
-        return io.connect(in, this, in_index, width, out_index); \
-    } \
-    \
-    virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override { \
-        io.disconnect(out_index_or_id, is_id); \
-    } \
 
 #endif //RELEASE_GRAPH_IO_H

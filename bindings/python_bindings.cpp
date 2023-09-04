@@ -6,6 +6,7 @@
 #include <../../src/core/audio_engine.h>
 #include <../../src/blocks/oscillators.h>
 #include <../../src/blocks/mixers.h>
+#include "IBlock.h"
 
 namespace py = pybind11;
 using namespace Graph;
@@ -33,10 +34,10 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("get_topological_order", &AudioGraph::get_topological_order);
 
     py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
-            .def_property_readonly("id", &Graph::Block::id)
-            .def_property_readonly("name", &Graph::Block::name)
-            .def_property_readonly("input_size", &Graph::Block::input_size)
-            .def_property_readonly("output_size", &Graph::Block::output_size)
+            .def_property_readonly("id", &IBlock::id)
+            .def_property_readonly("name", &IBlock::name)
+            .def_property_readonly("input_size", &IBlock::input_size)
+            .def_property_readonly("output_size", &IBlock::output_size)
             .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
             .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
 

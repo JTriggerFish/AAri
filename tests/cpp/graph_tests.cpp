@@ -3,20 +3,19 @@
 
 #include <catch2/catch_all.hpp>
 #include <../../src/core/graph.h>
+#include <../../src/core/block.h>
 #include <../../src/core/graph_io.h>
 
 using namespace Graph;
 
 // Define a couple of dummy blocks for testing purposes
-class DummyBlock1 : public Block {
+class DummyBlock1 : public virtual Graph::Block, public InputOutput<1, 1>{
 public:
 
-    DummyBlock1() {}
-
-    IMPLEMENT_BLOCK_IO(1, 1);
+    DummyBlock1() = default;
 
     virtual void process(AudioContext ctx) override {
-        io.outputs[0] = io.inputs[0] * 2.0f;
+        _outputs[0] = _inputs[0] * 2.0f;
     }
 
     virtual std::string name() const override {
@@ -24,15 +23,13 @@ public:
     }
 };
 
-class DummyBlock2 : public Block {
+class DummyBlock2 : public virtual Block, public InputOutput<1, 1>{
 public:
-    DummyBlock2() {}
-
-    IMPLEMENT_BLOCK_IO(1, 1);
+    DummyBlock2() = default;
 
 
     virtual void process(AudioContext ctx) override {
-        io.outputs[0] = io.inputs[0] + 3.0f;
+        _outputs[0] = _inputs[0] + 3.0f;
     }
 
     virtual std::string name() const override {
@@ -113,8 +110,8 @@ public:
     IMPLEMENT_BLOCK_IO(2, 2);
 
     virtual void process(AudioContext ctx) override {
-        io.outputs[0] = io.inputs[0] * 2.0f;
-        io.outputs[1] = io.inputs[1] + 4.0f;
+        _outputs[0] = _inputs[0] * 2.0f;
+        _outputs[1] = _inputs[1] + 4.0f;
     }
 
     virtual std::string name() const override {
