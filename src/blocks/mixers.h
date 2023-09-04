@@ -1,17 +1,16 @@
 //
 //
 #include <src/core/graph.h>
-#include <src/core/block.h>
 #include <src/core/graph_io.h>
 #include <cmath>
 
 #ifndef RELEASE_MIXERS_H
 #define RELEASE_MIXERS_H
 
-class Mixer : virtual public Graph::Block {
+class Mixer : public Graph::Block {
 };
 
-class MonoToStereo : public Mixer, public InputOutput<3, 2> {
+class MonoToStereo : public Mixer {
 public:
     enum Inputs {
         MONO_IN,
@@ -23,32 +22,33 @@ public:
     };
 
     explicit MonoToStereo(float amp_db = -30.0f, float panning = 0.0f) {
-        _inputs[AMP_DB] = amp_db;
-        _inputs[PANNING] = panning;
+        io.inputs[AMP_DB] = amp_db;
+        io.inputs[PANNING] = panning;
     }
 
+    IMPLEMENT_BLOCK_IO(3, 2);
 
     void process(Graph::AudioContext ctx) override {
-        const float amp_db = _inputs[AMP_DB];
+        const float amp_db = io.inputs[AMP_DB];
         // Clamp panning to [-1, 1]
-        const float panning = fminf(fmaxf(_inputs[PANNING], -1.0f), 1.0f);
+        const float panning = fminf(fmaxf(io.inputs[PANNING], -1.0f), 1.0f);
         const float amp = powf(10.0f, amp_db / 20.0f);
         const float left_amp = amp * (1.0f - panning);
         const float right_amp = amp * panning;
-        _outputs[LEFT] = _inputs[MONO_IN] * left_amp;
-        _outputs[RIGHT] = _inputs[MONO_IN] * right_amp;
+        io.outputs[LEFT] = io.inputs[MONO_IN] * left_amp;
+        io.outputs[RIGHT] = io.inputs[MONO_IN] * right_amp;
     }
 
     std::string name() const override {
-        return "MonoToStereo_" + std::to_string(_id);
+        return "MonoToStereo_" + std::to_string(id());
     }
 
 };
 
-class Affine : public Mixer, public InputOutput<2, 1> {
+class Affine : public Mixer {
     /** Affine mixer
      *  Takes 1 input and 2 parameters
-     *  Outputs the affine combinat_
+     *  Outputs the affine combination
      *  y = a + b * y
      */
 public:
@@ -61,15 +61,16 @@ public:
     };
 
     explicit Affine(float a = 0.0f, float b = 1.0f) {
-        _inputs[A] = a;
-        _inputs[B] = b;
+        io.inputs[A] = a;
+        io.inputs[B] = b;
     }
 
+    IMPLEMENT_BLOCK_IO(2, 1);
 
     void process(Graph::AudioContext ctx) override {
-        const float a = _inputs[A];
-        const float b = _inputs[B];
-        _outputs[OUT] = a + b * _outputs[OUT];
+        const float a = io.inputs[A];
+        const float b = io.inputs[B];
+        io.outputs[OUT] = a + b * io.outputs[OUT];
     }
 
     std::string name() const override {
@@ -78,15 +79,16 @@ public:
 
 };
 
-class StereoMixer : public Mixer, public InputOutput<64, 2> {
+class StereoMixer : public Mixer {
 public:
+    IMPLEMENT_BLOCK_IO(64, 2);
 
     enum Outputs {
         LEFT, RIGHT
     };
 
     StereoMixer() {
-        for (float &input: _inputs) {
+        for (float &input: io.inputs) {
             input = 0.0f;
         }
     };
@@ -95,15 +97,15 @@ public:
         double left = 0.0;
         double right = 0.0;
         for (int i = 0; i < 32; i += 2) {
-            left += _inputs[i];
-            right += _inputs[i + 1];
+            left += io.inputs[i];
+            right += io.inputs[i + 1];
         }
-        _outputs[LEFT] = float(left);
-        _outputs[RIGHT] = float(right);
+        io.outputs[LEFT] = float(left);
+        io.outputs[RIGHT] = float(right);
     }
 
     std::string name() const override {
-        return "StereoMixer_" + std::to_string(_id);
+        return "StereoMixer_" + std::to_string(id());
     }
 
 
