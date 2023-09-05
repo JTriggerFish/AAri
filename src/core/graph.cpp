@@ -181,5 +181,31 @@ namespace Graph {
         return wires_owner;
     }
 
+    std::vector<float> AudioGraph::py_get_block_inputs(size_t block_id) {
+        Block *block;
+        if (get_block(block_id, &block)) {
+            size_t n = block->input_size();
+            lock();
+            std::vector<float> ret = {block->inputs(), block->inputs() + n};
+            unlock();
+            return ret;
+
+        }
+        throw std::runtime_error("Block not found " + std::to_string(block_id));
+    }
+
+    std::vector<float> AudioGraph::py_get_block_outputs(size_t block_id) {
+        Block *block;
+        if (get_block(block_id, &block)) {
+            size_t n = block->output_size();
+            lock();
+            std::vector<float> ret = {block->outputs(), block->outputs() + n};
+            unlock();
+            return ret;
+
+        }
+        throw std::runtime_error("Block not found " + std::to_string(block_id));
+    }
+
 
 }

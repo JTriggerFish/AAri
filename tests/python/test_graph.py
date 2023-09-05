@@ -6,7 +6,7 @@ from AAri.audio_engine import AudioEngine
 from AAri.oscillators import SineOsc
 
 
-class TestAAriPythonBindings(unittest.TestCase):
+class TestBasicGraphs(unittest.TestCase):
     def test_mini_saw(self):
         audio_engine = AudioEngine()
         audio_engine.start()

@@ -4,8 +4,11 @@
 #include <src/core/graph_io.h>
 #include <cmath>
 
+
 #ifndef RELEASE_SINEOSC_H
 #define RELEASE_SINEOSC_H
+
+constexpr float pi = 3.1415927f;
 
 class Oscillator : public Graph::Block {
 };
@@ -31,7 +34,7 @@ public:
         float freq = io.inputs[FREQ];
         float amplitude = io.inputs[AMP];
         float phase_inc = freq / ctx.sample_freq;
-        io.outputs[OUT] = amplitude * sinf(2.0f * std::numbers::pi * phase);
+        io.outputs[OUT] = amplitude * sinf(2.0f * pi * phase);
 
         phase = fmodf(phase + phase_inc, 1.0f);
     }

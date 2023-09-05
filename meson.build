@@ -1,4 +1,5 @@
-project('AAri', 'cpp', version:'0.0.1', default_options: ['cpp_std=c++20'])
+project('AAri', 'cpp', version:'0.0.1',
+default_options: ['cpp_std=c++20'])
 pymod = import('python')
 py = pymod.find_installation('python3')
 

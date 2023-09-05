@@ -19,7 +19,8 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("stopAudio", &AudioEngine::stopAudio)
             .def("get_graph", &AudioEngine::getAudioGraph)
             .def("get_audio_device", &AudioEngine::get_audio_device)
-            .def("set_output_block", &AudioEngine::set_output_block, py::arg("node_index"), py::arg("block_output_index"));
+            .def("set_output_block", &AudioEngine::set_output_block, py::arg("node_index"),
+                 py::arg("block_output_index"));
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
             .def(py::init<uint32_t>())
@@ -27,10 +28,13 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
             .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),
                  py::arg("in_index"), py::arg("width"), py::arg("out_index"))
-            .def("disconnect_wire", &AudioGraph::disconnect_wire, py::arg("wire_id"), py::arg("out_block_id") = py::none())
+            .def("disconnect_wire", &AudioGraph::disconnect_wire, py::arg("wire_id"),
+                 py::arg("out_block_id") = py::none())
             .def("has_block", &AudioGraph::has_block, py::arg("block_id"))
-            .def("get_all_blocks", &AudioGraph::get_all_blocks)
-            .def("get_topological_order", &AudioGraph::get_topological_order);
+            .def("get_all_blocks", &AudioGraph::py_get_all_blocks)
+            .def("get_topological_order", &AudioGraph::py_get_topological_order)
+            .def("get_block_inputs", &AudioGraph::py_get_block_inputs, py::arg("block_id"))
+            .def("get_block_outputs", &AudioGraph::py_get_block_outputs, py::arg("block_id"));
 
     py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
             .def_property_readonly("id", &Graph::Block::id)
