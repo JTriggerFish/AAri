@@ -12,6 +12,7 @@
 #include <optional>
 #include "wire.h"
 #include "block.h"
+#include <pybind11/numpy.h>
 
 
 #define ASSERT(condition) \
@@ -62,9 +63,9 @@ namespace Graph {
             return {_topologicalOrder.begin(), _topologicalOrder.end()};
         }
 
-        std::vector<float> py_get_block_inputs(size_t block_id);
+        pybind11::array_t<float> py_get_block_inputs(size_t block_id, size_t input_index, size_t width);
 
-        std::vector<float> py_get_block_outputs(size_t block_id);
+        pybind11::array_t<float> py_get_block_outputs(size_t block_id, size_t output_index, size_t width);
 
 
         enum NodeState {

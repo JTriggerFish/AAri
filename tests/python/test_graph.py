@@ -1,5 +1,4 @@
 import unittest
-import sys
 from time import sleep
 
 from AAri.audio_engine import AudioEngine
@@ -14,5 +13,6 @@ class TestBasicGraphs(unittest.TestCase):
         for mul in range(1, 32):
             osc = SineOsc(freq=mul*base_freq, amplitude=1.0 / mul)
             audio_engine.out << osc
+            assert osc.freq.value == mul*base_freq
         sleep(3)
         audio_engine.stop()

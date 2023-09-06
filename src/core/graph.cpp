@@ -168,28 +168,30 @@ namespace Graph {
         return wires_owner;
     }
 
-    std::vector<float> AudioGraph::py_get_block_inputs(size_t block_id) {
+    pybind11::array_t<float> AudioGraph::py_get_block_inputs(size_t block_id, size_t input_index, size_t width) {
         Block *block;
         if (get_block(block_id, &block)) {
             size_t n = block->input_size();
+            if (input_index + width > n)
+                throw std::runtime_error("Invalid input index or width");
             lock();
-            std::vector<float> ret = {block->inputs(), block->inputs() + n};
+            std::vector<float> ret = {block->inputs() + input_index, block->inputs() + input_index + width};
             unlock();
-            return ret;
-
+            return pybind11::array_t<float>(ret.size(), ret.data());
         }
         throw std::runtime_error("Block not found " + std::to_string(block_id));
     }
 
-    std::vector<float> AudioGraph::py_get_block_outputs(size_t block_id) {
+    pybind11::array_t<float> AudioGraph::py_get_block_outputs(size_t block_id, size_t output_index, size_t width) {
         Block *block;
         if (get_block(block_id, &block)) {
             size_t n = block->output_size();
+            if (output_index + width > n)
+                throw std::runtime_error("Invalid output index or width");
             lock();
-            std::vector<float> ret = {block->outputs(), block->outputs() + n};
+            std::vector<float> ret = {block->outputs() + output_index, block->outputs() + output_index + width};
             unlock();
-            return ret;
-
+            return pybind11::array_t<float>(ret.size(), ret.data());
         }
         throw std::runtime_error("Block not found " + std::to_string(block_id));
     }

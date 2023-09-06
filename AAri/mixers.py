@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import AAri_cpp  # Import the Pybind11 module
 
-from AAri.audio_engine import Block
+from AAri.block import Block
 
 
 class MonoToStereo(Block):

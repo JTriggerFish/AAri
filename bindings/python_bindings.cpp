@@ -34,8 +34,11 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("has_block", &AudioGraph::has_block, py::arg("block_id"))
             .def("get_all_blocks", &AudioGraph::py_get_all_blocks)
             .def("get_topological_order", &AudioGraph::py_get_topological_order)
-            .def("get_block_inputs", &AudioGraph::py_get_block_inputs, py::arg("block_id"))
-            .def("get_block_outputs", &AudioGraph::py_get_block_outputs, py::arg("block_id"));
+            .def("get_block_inputs", &AudioGraph::py_get_block_inputs, py::arg("block_id"), py::arg("input_index"),
+                 py::arg("width"))
+            .def("get_block_outputs", &AudioGraph::py_get_block_outputs, py::arg("block_id"),
+                 py::arg("output_index"),
+                 py::arg("width"));
 
     py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
             .def_property_readonly("id", &Graph::Block::id)
