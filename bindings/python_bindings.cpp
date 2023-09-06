@@ -60,25 +60,31 @@ PYBIND11_MODULE(AAri_cpp, m) {
                  py::arg("a") = 0.0f,
                  py::arg("b") = 1.0f);
 
-    py::class_<MonoToStereo, Mixer, std::shared_ptr<MonoToStereo>>(m, "MonoToStereo", py::module_local())
+    auto mono_to_stereo_class = py::class_<MonoToStereo, Mixer, std::shared_ptr<MonoToStereo>>(m, "MonoToStereo",
+                                                                                               py::module_local())
             .def(py::init<float, float>(),
                  py::arg("amp_db") = -30.0f,
                  py::arg("panning") = 0.0f);
+    mono_to_stereo_class.attr("INPUT_SIZE") = MonoToStereo::static_input_size();
+    mono_to_stereo_class.attr("OUTPUT_SIZE") = MonoToStereo::static_output_size();
 
-    py::class_<StereoMixer, Mixer, std::shared_ptr<StereoMixer>>(m, "StereoMixer", py::module_local())
+
+    auto stereo_mixer_class = py::class_<StereoMixer, Mixer, std::shared_ptr<StereoMixer>>(m, "StereoMixer",
+                                                                                           py::module_local())
             .def(py::init<>());
+    stereo_mixer_class.attr("INPUT_SIZE") = StereoMixer::static_input_size();
+    stereo_mixer_class.attr("OUTPUT_SIZE") = StereoMixer::static_output_size();
 
     // SineOsc bindings
-    py::enum_<SineOsc::Inputs>(m, "SineOscInputs")
-            .value("FREQ", SineOsc::Inputs::FREQ)
-            .value("AMP", SineOsc::Inputs::AMP);
-    py::enum_<SineOsc::Outputs>(m, "SineOscOutputs")
-            .value("OUT", SineOsc::Outputs::OUT);
-
-    py::class_<SineOsc, Oscillator, std::shared_ptr<SineOsc>>(m, "SineOsc", py::module_local())
+    auto sine_osc_class = py::class_<SineOsc, Oscillator, std::shared_ptr<SineOsc>>(m, "SineOsc", py::module_local())
             .def(py::init<float, float>(),
                  py::arg("freq") = 110.0f,
                  py::arg("amplitude") = 1.0f);
+    sine_osc_class.attr("INPUT_SIZE") = SineOsc::static_input_size();
+    sine_osc_class.attr("OUTPUT_SIZE") = SineOsc::static_output_size();
+    sine_osc_class.attr("FREQ") = static_cast<int>(SineOsc::FREQ);
+    sine_osc_class.attr("AMP") = static_cast<int>(SineOsc::AMP);
+    sine_osc_class.attr("OUT") = static_cast<int>(SineOsc::OUT);
 
 
 }

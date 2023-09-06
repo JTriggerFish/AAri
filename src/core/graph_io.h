@@ -81,5 +81,11 @@ struct InputOutput {
     virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override { \
         io.disconnect(out_index_or_id, is_id); \
     } \
+    static size_t static_input_size() { \
+        return IN; \
+    } \
+    static size_t static_output_size() { \
+        return OUT; \
+    } \
 
 #endif //RELEASE_GRAPH_IO_H

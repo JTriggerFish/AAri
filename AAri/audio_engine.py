@@ -1,6 +1,7 @@
 import sys
 import typing
 from collections import OrderedDict
+
 import numpy as np
 
 sys.path.append(
@@ -37,8 +38,12 @@ class AttachedParam:
 
 class BlockWithParametersMeta(type):
     def __new__(cls, name, bases, dct):
-        params = cls.create_params(dct.get("INPUTS", {}), False)
-        params += cls.create_params(dct.get("OUTPUTS", {}), False)
+        # Fail if INPUTS, OUTPUTS, INPUT_SIZE or OUTPUT_SIZE are not defined
+        if "INPUT_SIZE" not in dct or "OUTPUT_SIZE" not in dct:
+            raise RuntimeError("INPUT_SIZE and OUTPUT_SIZE must be defined as static members of the class")
+
+        params = cls.create_params(dct.get("INPUTS", {}), True, dct.get("INPUT_SIZE", 0))
+        params |= cls.create_params(dct.get("OUTPUTS", {}), False, dct.get("OUTPUT_SIZE", 0))
         for param in params.values():
             # Define getter and setter
             def getter(self: "Block"):
@@ -84,7 +89,8 @@ class BlockWithParametersMeta(type):
 
     @staticmethod
     def create_params(
-        params: typing.OrderedDict[str, int], is_input: bool
+        params: typing.OrderedDict[str, int], is_input: bool,
+        total_size : int,
     ) -> typing.Dict[str, Param]:
         """
         Iterate through the parameters, check their indices are strictly increasing and
@@ -92,22 +98,27 @@ class BlockWithParametersMeta(type):
 
         :param params:
         :param is_input:
+        :param total_size:
         :return:
         """
         ret = {}
-        prev_idx = -1
-        for param, idx in params.items():
-            if idx <= prev_idx:
-                raise RuntimeError(
-                    f"Parameter indices must be strictly increasing, {param} has index {idx} <= {prev_idx}"
-                )
-            width = idx - prev_idx
-            ret[param] = Param(param, idx, width, is_input)
-            prev_idx = idx
+        # Iterate backward through the parameters. The width of the last params
+        # is the difference between its start index and size of the inputs, and then the width of the parameter before
+        # it is the difference between its start index and the start index of the next parameter etc
+        last_idx = total_size
+        for name, idx in reversed(params.items()):
+            if last_idx is None:
+                width = idx
+            else:
+                width = last_idx - idx
+            ret[name] = Param(name, idx, width, is_input)
+            last_idx = idx
         return ret
 
 
 class Block(metaclass=BlockWithParametersMeta):
+    INPUT_SIZE = 0
+    OUTPUT_SIZE = 0
     def __init__(
         self,
         block_ptr: AAri_cpp.Block,
@@ -121,6 +132,9 @@ class Block(metaclass=BlockWithParametersMeta):
 
 
 class MixerBase(Block):
+    INPUT_SIZE = 0
+    OUTPUT_SIZE = 0
+
     def __init__(self, block_ptr):
         super().__init__(block_ptr)
 
@@ -147,6 +161,9 @@ class MixerBase(Block):
 
 class StereoMixerBase(MixerBase):
     """Stereo mixer block"""
+
+    INPUT_SIZE = AAri_cpp.StereoMixer.INPUT_SIZE
+    OUTPUT_SIZE = AAri_cpp.StereoMixer.OUTPUT_SIZE
 
     OUTPUTS = OrderedDict({"left": 0, "right": 1})
 
