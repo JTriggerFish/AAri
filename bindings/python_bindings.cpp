@@ -68,19 +68,11 @@ PYBIND11_MODULE(AAri_cpp, m) {
     py::class_<Mixer, Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
     py::class_<Oscillator, Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
 
-    py::class_<Affine, Mixer, std::shared_ptr<Affine>>(m, "Affine", py::module_local())
-            .def(py::init<float, float>(),
-                 py::arg("a") = 0.0f,
-                 py::arg("b") = 1.0f);
 
-    auto mono_to_stereo_class = py::class_<MonoToStereo, Mixer, std::shared_ptr<MonoToStereo>>(m, "MonoToStereo",
-                                                                                               py::module_local())
-            .def(py::init<float, float>(),
-                 py::arg("amp_db") = -30.0f,
-                 py::arg("panning") = 0.0f);
-    mono_to_stereo_class.attr("INPUT_SIZE") = MonoToStereo::static_input_size();
-    mono_to_stereo_class.attr("OUTPUT_SIZE") = MonoToStereo::static_output_size();
-
+    auto mono_mixer_class = py::class_<MonoMixer, Mixer, std::shared_ptr<MonoMixer>>(m, "MonoMixer", py::module_local())
+            .def(py::init<>());
+    mono_mixer_class.attr("INPUT_SIZE") = MonoMixer::static_input_size();
+    mono_mixer_class.attr("OUTPUT_SIZE") = MonoMixer::static_output_size();
 
     auto stereo_mixer_class = py::class_<StereoMixer, Mixer, std::shared_ptr<StereoMixer>>(m, "StereoMixer",
                                                                                            py::module_local())
