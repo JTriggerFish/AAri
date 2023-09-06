@@ -7,11 +7,11 @@
 #include <memory>
 #include <unordered_map>
 #include <stack>
-#include <algorithm>
 #include <stdexcept>
 
 #include <optional>
-#include <mutex>
+#include "wire.h"
+#include "block.h"
 
 
 #define ASSERT(condition) \
@@ -20,77 +20,6 @@
     }
 
 namespace Graph {
-    struct AudioContext {
-        float sample_freq;
-        double clock; // Current elapsed time in seconds
-    };
-
-    class Block;
-
-    struct Wire {
-        Block *in;
-        Block *out;
-        size_t in_index;
-        size_t width;
-        size_t out_index;
-        size_t id;
-
-        Wire(Block *in, Block *out,
-             size_t in_index, size_t width,
-             size_t out_index) : in(in), out(out), in_index(in_index), width(width), out_index(out_index) {
-            id = ++_latest_id;
-        }
-
-        Wire() : in(nullptr), out(nullptr), in_index(0), width(0), out_index(0), id(0) {}
-
-
-        Wire(const Wire &) = default;               // Copy constructor
-        Wire &operator=(const Wire &) = default;
-
-    private:
-        static size_t _latest_id;
-    };
-
-    class Block {
-    public:
-        friend class AudioGraph;
-
-        double last_processed_time;
-
-        virtual size_t input_size() const = 0;
-
-        virtual size_t output_size() const = 0;
-
-        virtual float *inputs() = 0;
-
-        virtual const float *outputs() const = 0;
-
-        virtual std::string name() const = 0;
-
-        size_t id() const { return _id; }
-
-        virtual ~Block() = default;
-
-        std::vector<Wire> py_get_input_wires() const;
-
-    protected:
-        size_t _id;
-
-        Block() : last_processed_time(-1.0) { _id = ++_latest_id; }
-
-        virtual void process(AudioContext) = 0;
-
-        virtual const Wire *get_input_wires(size_t &size) const = 0;
-
-        virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
-
-        virtual void disconnect_wire(size_t out_index_or_id, bool is_id) = 0;
-
-    private:
-        static size_t _latest_id;
-    };
-
-
     class AudioGraph {
 
     public:

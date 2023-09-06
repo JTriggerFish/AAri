@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 
 #include <../../src/core/graph.h>
+#include <../../src/core/wire.h>
 #include <../../src/core/graph_io.h>
 #include <../../src/core/audio_engine.h>
 #include <../../src/blocks/oscillators.h>
@@ -44,12 +45,12 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
             .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
 
-    py::class_<Graph::Wire>(m, "Wire", py::module_local())
-            .def_readonly("input", &Graph::Wire::in)
-            .def_readonly("output", &Graph::Wire::out)
-            .def_readonly("in_index", &Graph::Wire::in_index)
-            .def_readonly("width", &Graph::Wire::width)
-            .def_readonly("out_index", &Graph::Wire::out_index);
+    py::class_<Wire>(m, "Wire", py::module_local())
+            .def_readonly("input", &Wire::in)
+            .def_readonly("output", &Wire::out)
+            .def_readonly("in_index", &Wire::in_index)
+            .def_readonly("width", &Wire::width)
+            .def_readonly("out_index", &Wire::out_index);
 
     py::class_<Mixer, Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
     py::class_<Oscillator, Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");

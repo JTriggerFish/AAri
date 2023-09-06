@@ -3,6 +3,7 @@
 #define RELEASE_GRAPH_IO_H
 
 #include "graph.h"
+#include "wire.h"
 
 template<size_t IN, size_t OUT>
 struct InputOutput {
