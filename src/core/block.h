@@ -46,7 +46,11 @@ namespace Graph {
 
         virtual const Wire *get_input_wires(size_t &size) const = 0;
 
-        virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index) = 0;
+        virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index,
+                                    float gain = 1.0f,
+                                    float offset = 0.0f,
+                                    WireTransform transform = WireTransform::NONE,
+                                    float wire_transform_param = 0.0f) = 0;
 
         virtual void disconnect_wire(size_t out_index_or_id, bool is_id) = 0;
 

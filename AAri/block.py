@@ -9,6 +9,14 @@ import AAri_cpp  # Import the Pybind11 module
 import numpy as np
 
 
+def dB(db_val: float) -> float:
+    """
+    Convert a decibel value to a linear value
+    :param db_val:
+    :return:
+    """
+    return 10 ** (db_val / 20)
+
 class Param:
     def __init__(self, name: str, idx: int, width: bool, is_input: bool):
         self.name = name
@@ -169,15 +177,17 @@ class StereoMixerBase(MixerBase):
         super().__init__(AAri_cpp.StereoMixer())
 
     def __lshift__(self, block: Block):
+        # Default to -30db
+        gain = dB(-30.0)
+        panning = 0.0
         self._graph.add_block(block)
         if block.block_ptr.output_size > 2:
             raise RuntimeError("Cannot connect block with more than 2 outputs")
-        if block.block_ptr.output_size == 1:
-            # TODO just replace by an expanding wire
-            stereo = Block(AAri_cpp.MonoToStereo(amp_db=-30.0, panning=0.5))
-            self._graph.add_block(stereo)
-            self._graph.connect(block, stereo, 0, 1, 0)
-            block = stereo
         free_slot = self._find_free_slot(2)
-        self._graph.connect(block, self, 0, 2, free_slot)
+        if block.block_ptr.output_size == 1:
+            # Use a stereo wire:
+            self._graph.connect(block, self, 0, 2, free_slot,
+                                gain, 0.0, AAri_cpp.WireTransform.STEREO_PAN, panning)
+        else:
+            self._graph.connect(block, self, 0, 2, free_slot)
 

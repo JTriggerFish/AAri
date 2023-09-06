@@ -35,7 +35,20 @@ namespace Graph {
 
         void remove_block(size_t block_id);
 
-        size_t connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index);
+        size_t connect_wire(size_t in_block_id, size_t out_block_id,
+                            size_t in_index,
+                            size_t width,
+                            size_t out_index,
+                            float gain = 1.0f,
+                            float offset = 0.0f,
+                            WireTransform transform = WireTransform::NONE,
+                            float wire_transform_param = 0.0f);
+
+        void tweak_wire_gain(size_t wire_id, float gain);
+
+        void tweak_wire_offset(size_t wire_id, float offset);
+
+        void tweak_wire_param(size_t wire_id, float param);
 
         void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id = std::nullopt);
 
@@ -87,6 +100,8 @@ namespace Graph {
 
         Block *find_wire_owner(size_t wire_id);
 
+        Wire *find_wire(size_t wire_id);
+
         void lock() {
             if (_audioDevice >= 0) {
                 SDL_LockAudioDevice(_audioDevice);
@@ -100,6 +115,7 @@ namespace Graph {
         }
 
     private:
+        std::unordered_map<size_t, Wire *> _wires_by_id;
         // Temp memory
         std::unordered_map<Block *, bool> _visited;
         std::unordered_multimap<Block *, Wire> _outgoingWires;

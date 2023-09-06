@@ -14,40 +14,6 @@ using namespace Graph;
 PYBIND11_MODULE(AAri_cpp, m) {
     m.doc() = "AAri_cpp: Real-time audio engine backend"; // Module documentation
 
-    py::class_<AudioEngine>(m, "AudioEngine", py::module_local())
-            .def(py::init<>())
-            .def("startAudio", &AudioEngine::startAudio)
-            .def("stopAudio", &AudioEngine::stopAudio)
-            .def("get_graph", &AudioEngine::getAudioGraph)
-            .def("get_audio_device", &AudioEngine::get_audio_device)
-            .def("set_output_block", &AudioEngine::set_output_block, py::arg("node_index"),
-                 py::arg("block_output_index"));
-
-    py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
-            .def(py::init<uint32_t>())
-            .def("add_block", &AudioGraph::add_block, py::arg("block"))
-            .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
-            .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),
-                 py::arg("in_index"), py::arg("width"), py::arg("out_index"))
-            .def("disconnect_wire", &AudioGraph::disconnect_wire, py::arg("wire_id"),
-                 py::arg("out_block_id") = py::none())
-            .def("has_block", &AudioGraph::has_block, py::arg("block_id"))
-            .def("get_all_blocks", &AudioGraph::py_get_all_blocks)
-            .def("get_topological_order", &AudioGraph::py_get_topological_order)
-            .def("get_block_inputs", &AudioGraph::py_get_block_inputs, py::arg("block_id"), py::arg("input_index"),
-                 py::arg("width"))
-            .def("get_block_outputs", &AudioGraph::py_get_block_outputs, py::arg("block_id"),
-                 py::arg("output_index"),
-                 py::arg("width"));
-
-    py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
-            .def_property_readonly("id", &Graph::Block::id)
-            .def_property_readonly("name", &Graph::Block::name)
-            .def_property_readonly("input_size", &Graph::Block::input_size)
-            .def_property_readonly("output_size", &Graph::Block::output_size)
-            .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
-            .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
-
     py::enum_<WireTransform>(m, "WireTransform")
             .value("NONE", WireTransform::NONE)
             .value("EXPAND", WireTransform::EXPAND)
@@ -64,6 +30,49 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readonly("offset", &Wire::offset)
             .def_readonly("transform", &Wire::transform)
             .def_readonly("wire_transform_param", &Wire::wire_transform_param);
+
+    py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
+            .def_property_readonly("id", &Graph::Block::id)
+            .def_property_readonly("name", &Graph::Block::name)
+            .def_property_readonly("input_size", &Graph::Block::input_size)
+            .def_property_readonly("output_size", &Graph::Block::output_size)
+            .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
+            .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
+
+
+    py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
+            .def(py::init<uint32_t>())
+            .def("add_block", &AudioGraph::add_block, py::arg("block"))
+            .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
+            .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),
+                 py::arg("in_index"), py::arg("width"), py::arg("out_index"),
+                 py::arg("gain") = 1.0f,
+                 py::arg("offset") = 0.0f,
+                 py::arg("transform") = WireTransform::NONE,
+                 py::arg("wire_transform_param") = 0.0f)
+            .def("disconnect_wire", &AudioGraph::disconnect_wire, py::arg("wire_id"),
+                 py::arg("out_block_id") = py::none())
+            .def("has_block", &AudioGraph::has_block, py::arg("block_id"))
+            .def("get_all_blocks", &AudioGraph::py_get_all_blocks)
+            .def("get_topological_order", &AudioGraph::py_get_topological_order)
+            .def("get_block_inputs", &AudioGraph::py_get_block_inputs, py::arg("block_id"), py::arg("input_index"),
+                 py::arg("width"))
+            .def("get_block_outputs", &AudioGraph::py_get_block_outputs, py::arg("block_id"),
+                 py::arg("output_index"),
+                 py::arg("width"))
+            .def("tweak_wire_gain", &AudioGraph::tweak_wire_gain, py::arg("wire_id"), py::arg("gain"))
+            .def("tweak_wire_offset", &AudioGraph::tweak_wire_offset, py::arg("wire_id"), py::arg("offset"))
+            .def("tweak_wire_param", &AudioGraph::tweak_wire_param, py::arg("wire_id"), py::arg("param"));
+
+    py::class_<AudioEngine>(m, "AudioEngine", py::module_local())
+            .def(py::init<>())
+            .def("startAudio", &AudioEngine::startAudio)
+            .def("stopAudio", &AudioEngine::stopAudio)
+            .def("get_graph", &AudioEngine::getAudioGraph)
+            .def("get_audio_device", &AudioEngine::get_audio_device)
+            .def("set_output_block", &AudioEngine::set_output_block, py::arg("node_index"),
+                 py::arg("block_output_index"));
+
 
     py::class_<Mixer, Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
     py::class_<Oscillator, Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");

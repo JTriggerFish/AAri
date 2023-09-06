@@ -31,9 +31,14 @@ namespace Graph {
         WireTransform transform = WireTransform::NONE;
         float wire_transform_param = 0.0f;
 
-        Wire(Graph::Block *in, Graph::Block *out,
-             size_t in_index, size_t width, size_t out_index,
-             float gain = 1.0f, float offset = 0.0f, WireTransform transform = WireTransform::NONE,
+        Wire(Graph::Block *in,
+             Graph::Block *out,
+             size_t in_index,
+             size_t width,
+             size_t out_index,
+             float gain = 1.0f,
+             float offset = 0.0f,
+             WireTransform transform = WireTransform::NONE,
              float wire_transform_param = 0.0f) :
                 id(++_latest_id),
                 in(in), out(out),

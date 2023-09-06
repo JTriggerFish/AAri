@@ -39,6 +39,7 @@ namespace Graph {
         _topologicalOrder.clear();
         _outgoingWires.clear();
         _nodeState.clear();
+        _wires_by_id.clear();
 
         for (auto &pair: _blocks) {
             _nodeState[pair.second.get()] = UNVISITED;
@@ -53,6 +54,7 @@ namespace Graph {
                 const Wire &wire = inputs[i];
                 if (wire.in != nullptr) {
                     _outgoingWires.insert(std::make_pair(wire.in, wire));
+                    _wires_by_id[wire.id] = const_cast<Wire *>(&wire);
                 }
             }
         }
@@ -92,6 +94,7 @@ namespace Graph {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _nodeState.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _outgoingWires.reserve(256);
+        _wires_by_id.reserve(512);
     }
 
 
@@ -128,12 +131,18 @@ namespace Graph {
         unlock();
     }
 
-    size_t
-    AudioGraph::connect_wire(size_t in_block_id, size_t out_block_id, size_t in_index, size_t width, size_t out_index) {
+    size_t AudioGraph::connect_wire(size_t in_block_id, size_t out_block_id,
+                                    size_t in_index,
+                                    size_t width,
+                                    size_t out_index,
+                                    float gain,
+                                    float offset,
+                                    WireTransform transform,
+                                    float wire_transform_param) {
         lock();
         auto out = _blocks[out_block_id].get();
         auto in = _blocks[in_block_id].get();
-        auto id = out->connect_wire(in, in_index, width, out_index);
+        auto id = out->connect_wire(in, in_index, width, out_index, gain, offset, transform, wire_transform_param);
 
         update_ordering();
         unlock();
@@ -167,6 +176,13 @@ namespace Graph {
         return wires_owner;
     }
 
+    Wire *AudioGraph::find_wire(size_t wire_id) {
+        auto it = _wires_by_id.find(wire_id);
+        if (it == _wires_by_id.end())
+            return nullptr;
+        return it->second;
+    }
+
     pybind11::array_t<float> AudioGraph::py_get_block_inputs(size_t block_id, size_t input_index, size_t width) {
         Block *block;
         if (get_block(block_id, &block)) {
@@ -193,6 +209,34 @@ namespace Graph {
             return pybind11::array_t<float>(ret.size(), ret.data());
         }
         throw std::runtime_error("Block not found " + std::to_string(block_id));
+    }
+
+    void AudioGraph::tweak_wire_gain(size_t wire_id, float gain) {
+        auto wire = find_wire(wire_id);
+        if (wire == nullptr)
+            throw std::runtime_error("Wire not found");
+        lock();
+        wire->gain = gain;
+        unlock();
+    }
+
+    void AudioGraph::tweak_wire_offset(size_t wire_id, float offset) {
+        auto wire = find_wire(wire_id);
+        if (wire == nullptr)
+            throw std::runtime_error("Wire not found");
+        lock();
+        wire->offset = offset;
+        unlock();
+
+    }
+
+    void AudioGraph::tweak_wire_param(size_t wire_id, float param) {
+        auto wire = find_wire(wire_id);
+        if (wire == nullptr)
+            throw std::runtime_error("Wire not found");
+        lock();
+        wire->wire_transform_param = param;
+        unlock();
     }
 
 
