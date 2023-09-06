@@ -73,14 +73,13 @@ namespace Graph {
             }
 
             size_t n;
-            const Wire *inputs = block->get_input_wires(n);
+            const Wire *in_conections = block->get_input_wires(n);
             // Copy inputs
             for (size_t i = 0; i < n; ++i) {
-                const Wire &wire = inputs[i];
+                const Wire &wire = in_conections[i];
                 if (wire.in == nullptr) continue;
                 //ASSERT(wire.out_index + wire.width <= block->input_size());
-                memcpy(block->inputs() + wire.out_index, wire.in->outputs() + wire.in_index,
-                       wire.width * sizeof(float));
+                wire.transmit(wire.in->outputs(), block->inputs());
             }
 
             // Process the block

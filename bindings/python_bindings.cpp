@@ -48,12 +48,22 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
             .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
 
+    py::enum_<WireTransform>(m, "WireTransform")
+            .value("NONE", WireTransform::NONE)
+            .value("EXPAND", WireTransform::EXPAND)
+            .value("STEREO_PAN", WireTransform::STEREO_PAN)
+            .export_values();
+
     py::class_<Wire>(m, "Wire", py::module_local())
             .def_readonly("input", &Wire::in)
             .def_readonly("output", &Wire::out)
             .def_readonly("in_index", &Wire::in_index)
             .def_readonly("width", &Wire::width)
-            .def_readonly("out_index", &Wire::out_index);
+            .def_readonly("out_index", &Wire::out_index)
+            .def_readonly("gain", &Wire::gain)
+            .def_readonly("offset", &Wire::offset)
+            .def_readonly("transform", &Wire::transform)
+            .def_readonly("wire_transform_param", &Wire::wire_transform_param);
 
     py::class_<Mixer, Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
     py::class_<Oscillator, Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
