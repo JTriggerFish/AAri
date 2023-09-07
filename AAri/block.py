@@ -1,6 +1,7 @@
 import sys
 import typing
 from collections import OrderedDict
+from enum import Enum
 
 sys.path.append(
     "../../release/"
@@ -26,7 +27,12 @@ class Param:
         self.is_input = is_input
 
 
-class AttachedParam:
+class ParamExpression:
+    def connect(self, input_param: "AttachedParam"):
+        pass
+
+
+class AttachedParam(ParamExpression):
     def __init__(self, block: "Block", param: Param):
         self.block = block
         self.param = param
@@ -43,6 +49,154 @@ class AttachedParam:
                 self.block.block_ptr.id, self.param.idx, self.param.width
             )
         return ret[0] if self.param.width == 1 else ret
+
+    def __add__(self, other: typing.Union[float, int, "AttachedParam", "ScaledParam"]):
+        match other:
+            case float(other):
+                return ScaledParam(self, 1.0, other)
+            case int(other):
+                return ScaledParam(self, 1.0, float(other))
+            case AttachedParam(other):
+                if self.param.width != other.param.width:
+                    raise RuntimeError("Cannot add parameters with different widths")
+                return ScaledParam(self, 1.0, 0.0) + ScaledParam(other, 1.0, 0.0)
+            case ScaledParam(other):
+                if self.param.width != other.attached_param.param.width:
+                    raise RuntimeError("Cannot add parameters with different widths")
+                return ScaledParam(self, 1.0, 0.0) + other
+
+    def __radd__(self, other):
+        return self + other
+
+    def __mul__(self, other: float | int):
+        return ScaledParam(self, float(other), 0.0)
+
+    def __rmul__(self, other: float):
+        return self * other
+
+    def connect(self, input_param: "AttachedParam"):
+        return ScaledParam(self, 1.0, 0.0).connect(input_param)
+
+
+class ScaledParam(ParamExpression):
+    def __init__(self, attached_param: AttachedParam, gain: float, offset: float):
+        self.attached_param = attached_param
+        self.gain = gain
+        self.offset = offset
+
+    def __add__(self, other: typing.Union[float, int, AttachedParam, "ScaledParam"]):
+        match other:
+            case float(other):
+                return ScaledParam(self.attached_param, self.gain, self.offset + other)
+            case int(other):
+                return ScaledParam(
+                    self.attached_param, self.gain, self.offset + float(other)
+                )
+            case AttachedParam(other):
+                if self.attached_param.param.width != other.param.width:
+                    raise RuntimeError("Cannot add parameters with different widths")
+                return AddedParams(self, ScaledParam(other, 1.0, 0.0))
+            case ScaledParam(other):
+                if self.attached_param.param.width != other.attached_param.param.width:
+                    raise RuntimeError("Cannot add parameters with different widths")
+                return AddedParams(self, other)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __mul__(self, other: float | int):
+        return ScaledParam(
+            self.attached_param, self.gain * float(other), self.offset * float(other)
+        )
+
+    def __rmul__(self, other: float):
+        return self * other
+
+    def connect(self, input_param: AttachedParam):
+        """
+        Connect this output parameter to another input parameter
+        :param input_param:
+        :return:
+        """
+        if self.attached_param.param.is_input:
+            raise RuntimeError("Cannot connect inputs to inputs")
+        if not input_param.param.is_input:
+            raise RuntimeError("Cannot connect to outputs")
+
+        if input_param.param.width != self.attached_param.param.width:
+            raise RuntimeError(
+                "Cannot connect block parameters with different input and output size"
+            )
+        self.attached_param.block._graph.connect(
+            self.attached_param.block,
+            input_param.block,
+            self.attached_param.param.idx,
+            self.attached_param.param.width,
+            input_param.param.idx,
+            self.gain,
+            self.offset,
+        )
+
+
+class AddedParams(ParamExpression):
+    def __init__(
+        self, param1: ScaledParam | "AddedParams", param2: ScaledParam | "AddedParams"
+    ):
+        params_list = []
+        if isinstance(param1, ScaledParam):
+            params_list.append(param1)
+        else:
+            params_list += param1.params_list
+        if isinstance(param2, ScaledParam):
+            params_list.append(param2)
+        else:
+            params_list += param2.params_list
+        self.params_list = params_list
+
+    def connect(self, input_param: AttachedParam):
+        """
+        First create a mono or stereo mixer after checking all the blocks outputs are of width 1 or 2,
+        and then connect that to the input_param
+        :param input_param:
+        :return:
+        """
+        # Check all the blocks are of the same width =  1 or 2
+        width = self.params_list[0].attached_param.param.width
+        for param in self.params_list:
+            if param.attached_param.param.width != width:
+                raise RuntimeError(
+                    "Cannot connect parameters with different widths to a single input"
+                )
+        if width > 2:
+            raise RuntimeError(
+                "Cannot connect more than 2 parameters to a single input"
+            )
+        if width != input_param.param.width:
+            raise RuntimeError(
+                "Cannot connect block parameters with different input and output size"
+            )
+        mixer = MonoMixerBase() if width == 1 else StereoMixerBase()
+        if len(self.params_list) > mixer.INPUT_SIZE / width:
+            raise RuntimeError(
+                f"Cannot connect more than {mixer.INPUT_SIZE / width} parameters to a single input"
+            )
+        for i, param in enumerate(self.params_list):
+            input_param._graph.connect(
+                param.attached_param.block,
+                mixer,
+                param.attached_param.param.idx,
+                param.attached_param.param.width,
+                i * param.attached_param.param.width,
+                param.gain,
+                param.offset,
+            )
+        mixer._graph.connect(
+            mixer,
+            input_param.block,
+            0,
+            mixer.OUTPUT_SIZE,
+            input_param.param.idx,
+        )
 
 
 class BlockWithParametersMeta(type):
@@ -78,21 +232,8 @@ class BlockWithParametersMeta(type):
                 :return:
                 """
                 if parameter.is_input:
-                    if isinstance(value, AttachedParam):
-                        # TODO deal with gain and offset
-                        if value.param.is_input:
-                            raise RuntimeError("Cannot connect inputs to inputs")
-                        if value.param.width != parameter.width:
-                            raise RuntimeError(
-                                "Cannot connect block parameters with different input and output size"
-                            )
-                        self._graph.connect(
-                            value.block,
-                            self,
-                            value.parameter.idx,
-                            parameter.width,
-                            parameter.idx,
-                        )
+                    if isinstance(value, ParamExpression):
+                        value.connect(AttachedParam(self, parameter))
                     else:
                         value = np.array(value)
                         self._graph.cpp_graph.set_block_inputs(
@@ -183,6 +324,17 @@ class MixerBase(Block):
             ):
                 return free_inputs[i]
         raise RuntimeError("No free slot found")
+
+
+class MonoMixerBase(MixerBase):
+    """Mono mixer block"""
+
+    INPUT_SIZE = AAri_cpp.MonoMixer.INPUT_SIZE
+    OUTPUT_SIZE = AAri_cpp.MonoMixer.OUTPUT_SIZE
+    OUTPUTS = OrderedDict({"out": AAri_cpp.MonoMixer.OUT})
+
+    def __init__(self):
+        super().__init__(AAri_cpp.MonoMixer())
 
 
 class StereoMixerBase(MixerBase):
