@@ -17,12 +17,14 @@ def dB(db_val: float) -> float:
     """
     return 10 ** (db_val / 20)
 
+
 class Param:
     def __init__(self, name: str, idx: int, width: bool, is_input: bool):
         self.name = name
         self.idx = idx
         self.width = width
         self.is_input = is_input
+
 
 class AttachedParam:
     def __init__(self, block: "Block", param: Param):
@@ -33,7 +35,8 @@ class AttachedParam:
     def value(self) -> typing.Union[float, np.ndarray]:
         if self.param.is_input:
             ret = self.block._graph.cpp_graph.get_block_inputs(
-                self.block.block_ptr.id, self.param.idx, self.param.width)
+                self.block.block_ptr.id, self.param.idx, self.param.width
+            )
 
         else:
             ret = self.block._graph.cpp_graph.get_block_outputs(
@@ -46,10 +49,16 @@ class BlockWithParametersMeta(type):
     def __new__(cls, name, bases, dct):
         # Fail if INPUTS, OUTPUTS, INPUT_SIZE or OUTPUT_SIZE are not defined
         if "INPUT_SIZE" not in dct or "OUTPUT_SIZE" not in dct:
-            raise RuntimeError("INPUT_SIZE and OUTPUT_SIZE must be defined as static members of the class")
+            raise RuntimeError(
+                "INPUT_SIZE and OUTPUT_SIZE must be defined as static members of the class"
+            )
 
-        params = cls.create_params(dct.get("INPUTS", {}), True, dct.get("INPUT_SIZE", 0))
-        params |= cls.create_params(dct.get("OUTPUTS", {}), False, dct.get("OUTPUT_SIZE", 0))
+        params = cls.create_params(
+            dct.get("INPUTS", {}), True, dct.get("INPUT_SIZE", 0)
+        )
+        params |= cls.create_params(
+            dct.get("OUTPUTS", {}), False, dct.get("OUTPUT_SIZE", 0)
+        )
         for name, parameter in params.items():
             # Define getter and setter
             def getter(self: "Block", parameter=parameter):
@@ -57,7 +66,9 @@ class BlockWithParametersMeta(type):
 
             # Define setter
             def setter(
-                self: "Block", value: typing.Union[float, np.ndarray, AttachedParam], parameter=parameter
+                self: "Block",
+                value: typing.Union[float, np.ndarray, AttachedParam],
+                parameter=parameter,
             ):
                 """
                 Set the value of a parameter to either a numerical
@@ -66,8 +77,9 @@ class BlockWithParametersMeta(type):
                 :param value:
                 :return:
                 """
-                if param.is_input:
+                if parameter.is_input:
                     if isinstance(value, AttachedParam):
+                        # TODO deal with gain and offset
                         if value.param.is_input:
                             raise RuntimeError("Cannot connect inputs to inputs")
                         if value.param.width != parameter.width:
@@ -75,12 +87,16 @@ class BlockWithParametersMeta(type):
                                 "Cannot connect block parameters with different input and output size"
                             )
                         self._graph.connect(
-                            value.block, self, value.param.idx, parameter.width, parameter.idx
+                            value.block,
+                            self,
+                            value.parameter.idx,
+                            parameter.width,
+                            parameter.idx,
                         )
                     else:
-                        # TODO IMPLEMENT THIS ON CPP SIDE
+                        value = np.array(value)
                         self._graph.cpp_graph.set_block_inputs(
-                            self.block_ptr.id, parameter.width, value
+                            self.block_ptr.id, parameter.idx, value
                         )
                 else:
                     raise RuntimeError("Cannot set output")
@@ -95,8 +111,9 @@ class BlockWithParametersMeta(type):
 
     @staticmethod
     def create_params(
-        params: typing.OrderedDict[str, int], is_input: bool,
-        total_size : int,
+        params: typing.OrderedDict[str, int],
+        is_input: bool,
+        total_size: int,
     ) -> typing.Dict[str, Param]:
         """
         Iterate through the parameters, check their indices are strictly increasing and
@@ -125,17 +142,20 @@ class BlockWithParametersMeta(type):
 class Block(metaclass=BlockWithParametersMeta):
     INPUT_SIZE = 0
     OUTPUT_SIZE = 0
+
     def __init__(
-            self,
-            block_ptr: AAri_cpp.Block,
+        self,
+        block_ptr: AAri_cpp.Block,
     ):
-        from AAri.audio_engine import AudioEngine # Avoid circular import
+        from AAri.audio_engine import AudioEngine  # Avoid circular import
+
         """Base class for all blocks, wrapping cpp block"""
         self.block_ptr = block_ptr
         self._graph = AudioEngine().graph
 
     def __lshift__(self, block: "Block"):
         pass
+
 
 class MixerBase(Block):
     INPUT_SIZE = 0
@@ -158,8 +178,8 @@ class MixerBase(Block):
         free_inputs = np.where(free_inputs == 0)[0]
         for i in range(len(free_inputs - width)):
             if np.array_equal(
-                    free_inputs[i : i + width],
-                    np.arange(free_inputs[i], free_inputs[i] + width),
+                free_inputs[i : i + width],
+                np.arange(free_inputs[i], free_inputs[i] + width),
             ):
                 return free_inputs[i]
         raise RuntimeError("No free slot found")
@@ -186,8 +206,16 @@ class StereoMixerBase(MixerBase):
         free_slot = self._find_free_slot(2)
         if block.block_ptr.output_size == 1:
             # Use a stereo wire:
-            self._graph.connect(block, self, 0, 2, free_slot,
-                                gain, 0.0, AAri_cpp.WireTransform.STEREO_PAN, panning)
+            self._graph.connect(
+                block,
+                self,
+                0,
+                2,
+                free_slot,
+                gain,
+                0.0,
+                AAri_cpp.WireTransform.STEREO_PAN,
+                panning,
+            )
         else:
             self._graph.connect(block, self, 0, 2, free_slot)
-

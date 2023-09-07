@@ -57,6 +57,8 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("get_topological_order", &AudioGraph::py_get_topological_order)
             .def("get_block_inputs", &AudioGraph::py_get_block_inputs, py::arg("block_id"), py::arg("input_index"),
                  py::arg("width"))
+            .def("set_block_inputs", &AudioGraph::py_set_block_inputs, py::arg("block_id"), py::arg("input_index"),
+                 py::arg("input"))
             .def("get_block_outputs", &AudioGraph::py_get_block_outputs, py::arg("block_id"),
                  py::arg("output_index"),
                  py::arg("width"))

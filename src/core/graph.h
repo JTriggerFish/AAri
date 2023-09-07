@@ -78,6 +78,8 @@ namespace Graph {
 
         pybind11::array_t<float> py_get_block_inputs(size_t block_id, size_t input_index, size_t width);
 
+        void py_set_block_inputs(size_t block_id, size_t input_index, pybind11::array_t<float> input);
+
         pybind11::array_t<float> py_get_block_outputs(size_t block_id, size_t output_index, size_t width);
 
 

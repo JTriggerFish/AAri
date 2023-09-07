@@ -197,6 +197,18 @@ namespace Graph {
         throw std::runtime_error("Block not found " + std::to_string(block_id));
     }
 
+    void AudioGraph::py_set_block_inputs(size_t block_id, size_t input_index, pybind11::array_t<float> input) {
+        Block *block;
+        if (!get_block(block_id, &block))
+            throw std::runtime_error("Block not found " + std::to_string(block_id));
+        size_t n = block->input_size();
+        if (input_index + input.size() > n)
+            throw std::runtime_error("Invalid input index or width");
+        lock();
+        std::memcpy(block->inputs() + input_index, input.data(), input.size() * sizeof(float));
+        unlock();
+    }
+
     pybind11::array_t<float> AudioGraph::py_get_block_outputs(size_t block_id, size_t output_index, size_t width) {
         Block *block;
         if (get_block(block_id, &block)) {
