@@ -114,6 +114,7 @@ namespace Graph {
             throw std::runtime_error("Block not found");
         auto chopping_block = it->second.get();
         lock();
+        chopping_block->clear_wires();
         // The block owns its wires to other blocks so these are going automatically, but
         // we also need to
         // remove wires connecting to this block

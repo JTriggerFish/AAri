@@ -31,6 +31,8 @@ namespace Graph {
 
         virtual std::string name() const = 0;
 
+        virtual void clear_wires() = 0;
+
         size_t id() const { return _id; }
 
         virtual ~Block() = default;

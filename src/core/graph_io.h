@@ -55,6 +55,12 @@ struct InputOutput {
         throw std::runtime_error("No matching wire found to disconnect_wire.");
     }
 
+    void clear_wires() {
+        for (size_t i = 0; i < IN; ++i) {
+            inputs_wires[i] = Graph::Wire();
+        }
+    }
+
 };
 
 #define IMPLEMENT_BLOCK_IO(IN, OUT) \
@@ -89,7 +95,10 @@ struct InputOutput {
     \
     virtual void disconnect_wire(size_t out_index_or_id, bool is_id) override { \
         io.disconnect(out_index_or_id, is_id); \
-    } \
+    }                               \
+    void clear_wires() {\
+        io.clear_wires();\
+    }\
     static size_t static_input_size() { \
         return IN; \
     } \
