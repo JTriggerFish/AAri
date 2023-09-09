@@ -7,6 +7,7 @@
 #include <../../src/core/audio_engine.h>
 #include <../../src/blocks/oscillators.h>
 #include <../../src/blocks/mixers.h>
+#include <../../src/blocks/envelopes.h>
 
 namespace py = pybind11;
 using namespace Graph;
@@ -90,6 +91,19 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def(py::init<>());
     stereo_mixer_class.attr("INPUT_SIZE") = StereoMixer::static_input_size();
     stereo_mixer_class.attr("OUTPUT_SIZE") = StereoMixer::static_output_size();
+
+    py::enum_<Product::ProductType>(m, "ProductType")
+            .value("DUAL_CHANNELS", Product::ProductType::DUAL_CHANNELS)
+            .value("CASCADE", Product::ProductType::CASCADE)
+            .export_values();
+
+    auto product_class = py::class_<Product, Graph::Block, std::shared_ptr<Product>>(m, "Product", py::module_local())
+            .def(py::init<Product::ProductType>(),
+                 py::arg("product_type") = Product::ProductType::DUAL_CHANNELS);
+    product_class.attr("INPUT_SIZE") = Product::static_input_size();
+    product_class.attr("OUTPUT_SIZE") = Product::static_output_size();
+    product_class.attr("OUT1") = static_cast<int>(Product::OUT1);
+    product_class.attr("OUT2") = static_cast<int>(Product::OUT2);
 
     // SineOsc bindings
     auto sine_osc_class = py::class_<SineOsc, Oscillator, std::shared_ptr<SineOsc>>(m, "SineOsc", py::module_local())

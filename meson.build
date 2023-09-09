@@ -19,6 +19,7 @@ core_files = ['src/core/utils/FieldMap.cpp',
    'src/core/graph.cpp',
    'src/core/audio_engine.cpp',
    'src/blocks/oscillators.cpp',
+   'src/blocks/envelopes.cpp',
    'src/blocks/mixers.cpp',
    ]
 

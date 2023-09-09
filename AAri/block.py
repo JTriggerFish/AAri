@@ -199,6 +199,24 @@ class AddedParams(ParamExpression):
         )
 
 
+class MultipliedParams(ParamExpression):
+    def __int__(
+        self,
+        param1: ScaledParam | "MultipliedParams",
+        param2: ScaledParam | "MultipliedParams",
+    ):
+        self.params1 = param1
+        self.params2 = param2
+
+    def connect(self, input_param: "AttachedParam"):
+        """
+        First create a Product block then connect it to the input_param
+        :param input_param:
+        :return:
+        """
+        # TODO
+
+
 class BlockWithParametersMeta(type):
     def __new__(cls, name, bases, dct):
         # Fail if INPUTS, OUTPUTS, INPUT_SIZE or OUTPUT_SIZE are not defined
@@ -324,6 +342,17 @@ class MixerBase(Block):
             ):
                 return free_inputs[i]
         raise RuntimeError("No free slot found")
+
+
+class ProductBase(Block):
+    INPUT_SIZE = AAri_cpp.Product.INPUT_SIZE
+    OUTPUT_SIZE = AAri_cpp.Product.OUTPUT_SIZE
+    OUTPUTS = OrderedDict(
+        {"out1": AAri_cpp.Product.OUT1, "out2": AAri_cpp.Product.OUT2}
+    )
+
+    def __init__(self, product_type=AAri_cpp.ProductType.DUAL_CHANNELS):
+        super().__init__(AAri_cpp.Product(product_type))
 
 
 class MonoMixerBase(MixerBase):
