@@ -7,7 +7,7 @@ py = pymod.find_installation('python3')
 dependencies_core = [
     subproject('pybind11').get_variable('pybind11_dep'),
     dependency('python3'),
-    subproject('SDL2').get_variable('SDL2_dep')
+    subproject('sdl2').get_variable('sdl2_dep')
 ]
 dependencies_python = [
     subproject('pybind11').get_variable('pybind11_dep'),
@@ -37,7 +37,7 @@ py.extension_module('AAri_cpp', ['bindings/python_bindings.cpp'],
 
 # Tests
 test_deps = [
-    dependency('catch2')
+    subproject('catch2').get_variable('catch2_dep')
 ] + dependencies_core
 
 utils_tests = executable('utils_tests',  ['tests/cpp/utils_tests.cpp'], dependencies: test_deps, link_with:core_lib)
@@ -45,3 +45,5 @@ graph_tests = executable('graph_tests',  [ 'tests/cpp/graph_tests.cpp'], depende
 
 test('Utils tests', utils_tests)
 test('Graph tests', graph_tests)
+pytest = find_program('pytest')
+test('python tests', pytest, args : ['python_tests'])
