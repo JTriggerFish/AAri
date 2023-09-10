@@ -1,15 +1,16 @@
 project('AAri', 'cpp', version:'0.0.1',
-default_options: ['cpp_std=c++20'])
+       default_options : ['cpp_std=c++20', 'b_staticpic=true'],
+              license : 'MIT')
 pymod = import('python')
 py = pymod.find_installation('python3')
 
 dependencies_core = [
-    dependency('pybind11'),
+    subproject('pybind11').get_variable('pybind11_dep'),
     dependency('python3'),
-    dependency('SDL2')
+    subproject('SDL2').get_variable('SDL2_dep')
 ]
 dependencies_python = [
-    dependency('pybind11'),
+    subproject('pybind11').get_variable('pybind11_dep'),
     dependency('python3'),
 ]
 

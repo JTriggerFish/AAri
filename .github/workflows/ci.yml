@@ -1,0 +1,46 @@
+
+name: Build and Test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+
+    - name: Set up Python virtual environment
+      run: python -m venv venv
+
+    - name: Activate virtual environment and install dependencies
+      run: |
+        . venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build
+      run: |
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          .\venv\Scripts\activate
+          meson setup debug --buildtype=debug --backend=vs
+          meson setup release --buildtype=release --backend=vs
+        else
+          . venv/bin/activate
+          meson setup debug --buildtype=debug --backend=ninja
+          meson setup release --buildtype=release --backend=ninja
+        fi
+        meson compile -C debug
+        meson compile -C release
+
+    - name: Test
+      run: meson test -C debug
