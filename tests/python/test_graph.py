@@ -28,3 +28,13 @@ class TestBasicGraphs(unittest.TestCase):
             assert osc.freq.value == mul * base_freq
             sleep(0.1)
         audio_engine.stop()
+
+    def test_set_param_fm(self):
+        audio_engine = AudioEngine()
+        audio_engine.start()
+        base_freq = 110
+        osc1 = SineOsc(freq=base_freq, amplitude=1.0)
+        osc2 = SineOsc(freq=40, amplitude=1.0)
+        audio_engine.out << osc1
+        osc1.freq = 220 + 110 * osc2.out
+        sleep(3)

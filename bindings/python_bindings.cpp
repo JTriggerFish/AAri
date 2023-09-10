@@ -85,6 +85,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def(py::init<>());
     mono_mixer_class.attr("INPUT_SIZE") = MonoMixer::static_input_size();
     mono_mixer_class.attr("OUTPUT_SIZE") = MonoMixer::static_output_size();
+    mono_mixer_class.attr("OUT") = static_cast<int>(MonoMixer::OUT);
 
     auto stereo_mixer_class = py::class_<StereoMixer, Mixer, std::shared_ptr<StereoMixer>>(m, "StereoMixer",
                                                                                            py::module_local())

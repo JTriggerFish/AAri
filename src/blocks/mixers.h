@@ -13,6 +13,9 @@ class Mixer : public Graph::Block {
 class MonoMixer : public Mixer {
 public:
     IMPLEMENT_BLOCK_IO(32, 1);
+    enum Outputs {
+        OUT
+    };
 
     MonoMixer() {
         for (float &input: io.inputs) {

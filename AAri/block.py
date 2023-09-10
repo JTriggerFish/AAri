@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import sys
 import typing
 from collections import OrderedDict
-from enum import Enum
 
 sys.path.append(
     "../../release/"
@@ -127,7 +128,10 @@ class ScaledParam(ParamExpression):
             raise RuntimeError(
                 "Cannot connect block parameters with different input and output size"
             )
-        self.attached_param.block._graph.connect(
+        graph = self.attached_param.block._graph
+        if not graph.cpp_graph.has_block(self.attached_param.block.block_ptr.id):
+            graph.cpp_graph.add_block(self.attached_param.block.block_ptr)
+        graph.connect(
             self.attached_param.block,
             input_param.block,
             self.attached_param.param.idx,
@@ -140,7 +144,7 @@ class ScaledParam(ParamExpression):
 
 class AddedParams(ParamExpression):
     def __init__(
-        self, param1: ScaledParam | "AddedParams", param2: ScaledParam | "AddedParams"
+        self, param1: ScaledParam | AddedParams, param2: ScaledParam | AddedParams
     ):
         params_list = []
         if isinstance(param1, ScaledParam):
