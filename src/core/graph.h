@@ -1,7 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <list>
 #include <vector>
 #include <memory>

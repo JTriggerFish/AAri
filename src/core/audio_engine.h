@@ -3,7 +3,7 @@
 #define AUDIO_ENGINE_H
 #define SDL_MAIN_HANDLED
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <mutex>
 #include "graph.h"
 #include <memory>
