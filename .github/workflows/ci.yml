@@ -36,16 +36,25 @@ jobs:
     - name: Set up Python virtual environment
       run: python -m venv venv
 
-    - name: Activate virtual environment and install dependencies
+    - name: Activate virtual environment and install dependencies (Ubuntu)
       run: |
-        . venv/bin/activate
+        source venv/bin/activate
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+      if: matrix.os == 'ubuntu-latest'
+      
+    - name: Activate virtual environment and install dependencies (Windows)
+      run: |
+        .\\venv\\Scripts\\activate
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      if: matrix.os == 'windows-latest'
+
 
     - name: Build
       run: |
         if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          .\\venv\\Scripts\\activate.bat
+          .\\venv\\Scripts\\activate
           meson setup debug --buildtype=debug --backend=vs
           meson setup release --buildtype=release --backend=vs
         else
