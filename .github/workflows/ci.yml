@@ -1,4 +1,3 @@
-
 name: Build and Test
 
 on: [push, pull_request]
@@ -19,6 +18,21 @@ jobs:
       with:
         python-version: 3.11
 
+    - name: Install dependencies (Ubuntu)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
+        python -m pip install --upgrade pip
+        pip install meson
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Install dependencies (Windows)
+      run: |
+        choco install ninja
+        python -m pip install --upgrade pip
+        pip install meson
+      if: matrix.os == 'windows-latest'
+      
     - name: Set up Python virtual environment
       run: python -m venv venv
 
@@ -31,7 +45,7 @@ jobs:
     - name: Build
       run: |
         if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          .\venv\Scripts\activate
+          .\\venv\\Scripts\\activate
           meson setup debug --buildtype=debug --backend=vs
           meson setup release --buildtype=release --backend=vs
         else
