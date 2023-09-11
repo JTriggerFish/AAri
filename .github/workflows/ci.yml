@@ -45,7 +45,7 @@ jobs:
     - name: Build
       run: |
         if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          .\\venv\\Scripts\\activate
+          .\\venv\\Scripts\\activate.bat
           meson setup debug --buildtype=debug --backend=vs
           meson setup release --buildtype=release --backend=vs
         else
