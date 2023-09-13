@@ -1,0 +1,521 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-fe3b511ebbb9edf2ab84.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.14"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						36,
+						37,
+						40
+					]
+				},
+				{
+					"build" : "_deps/sdl2-build",
+					"jsonFile" : "directory-_deps.sdl2-build-Debug-de8ea07be62f128be5b6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.4"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "cmake-build-debug/_deps/sdl2-src",
+					"targetIndexes" : 
+					[
+						32,
+						33,
+						34,
+						35,
+						38,
+						39
+					]
+				},
+				{
+					"build" : "_deps/pybind11-build",
+					"jsonFile" : "directory-_deps.pybind11-build-Debug-f78b953a221ebb7b9cdb.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.4"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "cmake-build-debug/_deps/pybind11-src"
+				},
+				{
+					"build" : "_deps/catch2-build",
+					"childIndexes" : 
+					[
+						4
+					],
+					"jsonFile" : "directory-_deps.catch2-build-Debug-ea81eb543f047642a52c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 3,
+					"source" : "cmake-build-debug/_deps/catch2-src",
+					"targetIndexes" : 
+					[
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						29,
+						30,
+						31
+					]
+				},
+				{
+					"build" : "_deps/catch2-build/src",
+					"jsonFile" : "directory-_deps.catch2-build.src-Debug-87c182f3bbe193347c72.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 3,
+					"source" : "cmake-build-debug/_deps/catch2-src/src",
+					"targetIndexes" : 
+					[
+						2,
+						3
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "AAri",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						36,
+						37,
+						40
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "SDL2",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						32,
+						33,
+						34,
+						35,
+						38,
+						39
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "pybind11",
+					"parentIndex" : 0
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3,
+						4
+					],
+					"name" : "Catch2",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25,
+						26,
+						27,
+						28,
+						29,
+						30,
+						31
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "AAri::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-AAri-Debug-f6033768098674c65de4.json",
+					"name" : "AAri",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "AAri_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-AAri_cpp-Debug-d1b07581a5b216768005.json",
+					"name" : "AAri_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Catch2::@fa92aa50e9bf5e1a7206",
+					"jsonFile" : "target-Catch2-Debug-c4195ca045c97564a835.json",
+					"name" : "Catch2",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Catch2WithMain::@fa92aa50e9bf5e1a7206",
+					"jsonFile" : "target-Catch2WithMain-Debug-531e6e185beaf68a1799.json",
+					"name" : "Catch2WithMain",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "Continuous::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-Continuous-Debug-b990055de78d81332504.json",
+					"name" : "Continuous",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousBuild::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousBuild-Debug-6b4cb1428e89a361ae0a.json",
+					"name" : "ContinuousBuild",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousConfigure::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousConfigure-Debug-ee0e9e40f86d3882aaa4.json",
+					"name" : "ContinuousConfigure",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousCoverage::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousCoverage-Debug-e9a5736be0da3da501e0.json",
+					"name" : "ContinuousCoverage",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousMemCheck::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousMemCheck-Debug-1543a624749e92af9554.json",
+					"name" : "ContinuousMemCheck",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousStart::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousStart-Debug-1d25ae462413f123a35e.json",
+					"name" : "ContinuousStart",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousSubmit::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousSubmit-Debug-d5c30ccb188a5954241c.json",
+					"name" : "ContinuousSubmit",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousTest::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousTest-Debug-082e098e3051c60a3634.json",
+					"name" : "ContinuousTest",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ContinuousUpdate::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ContinuousUpdate-Debug-24d1a8dff620c4d709b5.json",
+					"name" : "ContinuousUpdate",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "Experimental::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-Experimental-Debug-b2496d7df4c295ae8581.json",
+					"name" : "Experimental",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalBuild::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalBuild-Debug-593013588615c95e59c9.json",
+					"name" : "ExperimentalBuild",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalConfigure::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalConfigure-Debug-bc13d268c605fdfc022e.json",
+					"name" : "ExperimentalConfigure",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalCoverage::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalCoverage-Debug-385f26cd920fdeab39a8.json",
+					"name" : "ExperimentalCoverage",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalMemCheck::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalMemCheck-Debug-4ee23ca51cda5a026528.json",
+					"name" : "ExperimentalMemCheck",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalStart::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalStart-Debug-a26270196700aa366f6a.json",
+					"name" : "ExperimentalStart",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalSubmit::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalSubmit-Debug-65474357a29bd36e78e3.json",
+					"name" : "ExperimentalSubmit",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalTest::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalTest-Debug-cdba770082aabffa1fbf.json",
+					"name" : "ExperimentalTest",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ExperimentalUpdate::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-ExperimentalUpdate-Debug-f05ba8595e1c4acae358.json",
+					"name" : "ExperimentalUpdate",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "Nightly::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-Nightly-Debug-95bdea3de15cdb6d7eed.json",
+					"name" : "Nightly",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyBuild::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyBuild-Debug-16ab47c42b793ed12a00.json",
+					"name" : "NightlyBuild",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyConfigure::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyConfigure-Debug-39b9f4fbbae1a97f81c2.json",
+					"name" : "NightlyConfigure",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyCoverage::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyCoverage-Debug-dc8eeadbcd45e14b1508.json",
+					"name" : "NightlyCoverage",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyMemCheck::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyMemCheck-Debug-b9628d3987647ba403eb.json",
+					"name" : "NightlyMemCheck",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyMemoryCheck::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyMemoryCheck-Debug-2c03e51bd99ab4379258.json",
+					"name" : "NightlyMemoryCheck",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyStart::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyStart-Debug-8714902351540394aa46.json",
+					"name" : "NightlyStart",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlySubmit::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlySubmit-Debug-917e19a1170d4fc3bcc7.json",
+					"name" : "NightlySubmit",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyTest::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyTest-Debug-be1de275f7ae3b051333.json",
+					"name" : "NightlyTest",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "NightlyUpdate::@3e93893dc0618e684ae7",
+					"jsonFile" : "target-NightlyUpdate-Debug-e5eaa54fae50c6e402de.json",
+					"name" : "NightlyUpdate",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "SDL2::@45bd952f1071c035638d",
+					"jsonFile" : "target-SDL2-Debug-61a5a613c377cdf642a5.json",
+					"name" : "SDL2",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "SDL2-static::@45bd952f1071c035638d",
+					"jsonFile" : "target-SDL2-static-Debug-cb1346c663fabb47dbc6.json",
+					"name" : "SDL2-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "SDL2_test::@45bd952f1071c035638d",
+					"jsonFile" : "target-SDL2_test-Debug-3f0086942209b87b57c3.json",
+					"name" : "SDL2_test",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "SDL2main::@45bd952f1071c035638d",
+					"jsonFile" : "target-SDL2main-Debug-ed2c4a27a75d7f4e8ffd.json",
+					"name" : "SDL2main",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "core::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-core-Debug-0abe2359cf4d28ffe4c2.json",
+					"name" : "core",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "graph_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-graph_tests-Debug-bf4c98ba9f1d50b0eb52.json",
+					"name" : "graph_tests",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "sdl_headers_copy::@45bd952f1071c035638d",
+					"jsonFile" : "target-sdl_headers_copy-Debug-514d444187a9dc461b48.json",
+					"name" : "sdl_headers_copy",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "uninstall::@45bd952f1071c035638d",
+					"jsonFile" : "target-uninstall-Debug-b1b6f04c390ea3e382ee.json",
+					"name" : "uninstall",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "utils_tests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-utils_tests-Debug-7160c6ed5922ae2d4112.json",
+					"name" : "utils_tests",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/Dev/AAri/cmake-build-debug",
+		"source" : "D:/Dev/AAri"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}

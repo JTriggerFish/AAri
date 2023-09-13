@@ -1,0 +1,21 @@
+# ninja log v5
+0	32	7163477736969737	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-mkdir	1dfbbda3fc282532
+0	32	7163477736969737	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-mkdir	1dfbbda3fc282532
+32	5774	7163477794393806	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-download	48a02fa008c66f68
+32	5774	7163477794393806	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-download	48a02fa008c66f68
+5774	5849	0	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-update	98a16a76b05514df
+5774	5849	0	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-update	98a16a76b05514df
+5850	5880	7163477795453946	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-patch	c306c75719d6ce20
+5850	5880	7163477795453946	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-patch	c306c75719d6ce20
+5880	5911	7163477795758937	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-configure	17cc1a62122c0b9e
+5880	5911	7163477795758937	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-configure	17cc1a62122c0b9e
+5911	5941	7163477796058936	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-build	c77a3ab285ebee71
+5911	5941	7163477796058936	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-build	c77a3ab285ebee71
+5941	5972	7163477796368963	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-install	c1a44cff4f91b2ab
+5941	5972	7163477796368963	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-install	c1a44cff4f91b2ab
+5972	6003	7163477796674017	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-test	da851c27d065e8d1
+5972	6003	7163477796674017	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-test	da851c27d065e8d1
+6003	6046	7163477797114024	CMakeFiles/catch2-populate-complete	85ddc026dd91860a
+6003	6046	7163477797114024	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-done	85ddc026dd91860a
+6003	6046	7163477797114024	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/CMakeFiles/catch2-populate-complete	85ddc026dd91860a
+6003	6046	7163477797114024	D:/Dev/AAri/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-done	85ddc026dd91860a
