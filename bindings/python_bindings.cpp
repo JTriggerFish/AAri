@@ -1,13 +1,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <../../src/core/graph.h>
-#include <../../src/core/wire.h>
-#include <../../src/core/graph_io.h>
-#include <../../src/core/audio_engine.h>
-#include <../../src/blocks/oscillators.h>
-#include <../../src/blocks/mixers.h>
-#include <../../src/blocks/envelopes.h>
+#include <../src/core/graph.h>
+#include <../src/core/wire.h>
+#include <../src/core/graph_io.h>
+#include <../src/core/audio_engine.h>
+#include <../src/blocks/oscillators.h>
+#include <../src/blocks/mixers.h>
+#include <../src/blocks/envelopes.h>
 
 namespace py = pybind11;
 using namespace Graph;

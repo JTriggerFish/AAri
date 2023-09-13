@@ -2,8 +2,8 @@
 #define CATCH_CONFIG_RUNNER
 
 #include <catch2/catch_all.hpp>
-#include <../../src/core/graph.h>
-#include <../../src/core/graph_io.h>
+#include <../src/core/graph.h>
+#include <../src/core/graph_io.h>
 
 using namespace Graph;
 
