@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "graph_io.h"
+#include "audio_engine.h"
 
 namespace Graph {
 
@@ -90,7 +91,7 @@ namespace Graph {
         }
     }
 
-    AudioGraph::AudioGraph(ma_device audioDevice) : _audioDevice(audioDevice), _locked(false) {
+    AudioGraph::AudioGraph(AudioEngine *audioEngine) : _audioEngine(audioEngine) {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _nodeState.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _outgoingWires.reserve(256);
@@ -103,9 +104,8 @@ namespace Graph {
         _blocks[id] = block;
         // Note even though the blocks are not connected, blocks on the graph are expected
         // to be processed so we need to update the ordering
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         update_ordering();
-        unlock();
     }
 
     void AudioGraph::remove_block(const size_t block_id) {
@@ -113,7 +113,7 @@ namespace Graph {
         if (it == _blocks.end())
             throw std::runtime_error("Block not found");
         auto chopping_block = it->second.get();
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         chopping_block->clear_wires();
         // The block owns its wires to other blocks so these are going automatically, but
         // we also need to
@@ -129,7 +129,6 @@ namespace Graph {
             }
         }
         update_ordering();
-        unlock();
     }
 
     size_t AudioGraph::connect_wire(size_t in_block_id, size_t out_block_id,
@@ -140,13 +139,12 @@ namespace Graph {
                                     float offset,
                                     WireTransform transform,
                                     float wire_transform_param) {
-        lock();
         auto out = _blocks[out_block_id].get();
         auto in = _blocks[in_block_id].get();
+        auto guard = _audioEngine->lock_till_function_returns();
         auto id = out->connect_wire(in, in_index, width, out_index, gain, offset, transform, wire_transform_param);
 
         update_ordering();
-        unlock();
         return id;
     }
 
@@ -155,10 +153,9 @@ namespace Graph {
         auto wires_owner = out_block_id.has_value() ? _blocks[out_block_id.value()].get() : find_wire_owner(wire_id);
         if (wires_owner == nullptr)
             throw std::runtime_error("Wire is not connected to any block");
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         wires_owner->disconnect_wire(wire_id, true);
         update_ordering();
-        unlock();
     }
 
     Block *AudioGraph::find_wire_owner(size_t wire_id) {
@@ -190,9 +187,8 @@ namespace Graph {
             size_t n = block->input_size();
             if (input_index + width > n)
                 throw std::runtime_error("Invalid input index or width");
-            lock();
+            auto guard = _audioEngine->lock_till_function_returns();
             std::vector<float> ret = {block->inputs() + input_index, block->inputs() + input_index + width};
-            unlock();
             return pybind11::array_t<float>(ret.size(), ret.data());
         }
         throw std::runtime_error("Block not found " + std::to_string(block_id));
@@ -205,9 +201,8 @@ namespace Graph {
         size_t n = block->input_size();
         if (input_index + input.size() > n)
             throw std::runtime_error("Invalid input index or width");
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         std::memcpy(block->inputs() + input_index, input.data(), input.size() * sizeof(float));
-        unlock();
     }
 
     pybind11::array_t<float> AudioGraph::py_get_block_outputs(size_t block_id, size_t output_index, size_t width) {
@@ -216,9 +211,8 @@ namespace Graph {
             size_t n = block->output_size();
             if (output_index + width > n)
                 throw std::runtime_error("Invalid output index or width");
-            lock();
+            auto guard = _audioEngine->lock_till_function_returns();
             std::vector<float> ret = {block->outputs() + output_index, block->outputs() + output_index + width};
-            unlock();
             return pybind11::array_t<float>(ret.size(), ret.data());
         }
         throw std::runtime_error("Block not found " + std::to_string(block_id));
@@ -228,18 +222,16 @@ namespace Graph {
         auto wire = find_wire(wire_id);
         if (wire == nullptr)
             throw std::runtime_error("Wire not found");
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         wire->gain = gain;
-        unlock();
     }
 
     void AudioGraph::tweak_wire_offset(size_t wire_id, float offset) {
         auto wire = find_wire(wire_id);
         if (wire == nullptr)
             throw std::runtime_error("Wire not found");
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         wire->offset = offset;
-        unlock();
 
     }
 
@@ -247,9 +239,11 @@ namespace Graph {
         auto wire = find_wire(wire_id);
         if (wire == nullptr)
             throw std::runtime_error("Wire not found");
-        lock();
+        auto guard = _audioEngine->lock_till_function_returns();
         wire->wire_transform_param = param;
-        unlock();
+    }
+
+    AudioGraph::~AudioGraph() {
     }
 
 

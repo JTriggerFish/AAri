@@ -40,10 +40,11 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
             .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
 
-    py::class_<ma_device>(m, "MaDevice");
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
-            .def(py::init<ma_device>())
+            .def(py::init([](std::shared_ptr<AudioEngine> engine) {
+                return new AudioGraph(engine.get());
+            }))
             .def("add_block", &AudioGraph::add_block, py::arg("block"))
             .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
             .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),

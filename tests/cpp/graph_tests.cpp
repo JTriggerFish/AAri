@@ -4,6 +4,7 @@
 #include <catch2/catch_all.hpp>
 #include "../../src/core/graph.h"
 #include "../../src/core/graph_io.h"
+#include "../../src/core/audio_engine.h"
 
 using namespace Graph;
 
@@ -41,9 +42,22 @@ public:
 
 };
 
+TEST_CASE("Testing audio start stop with graph callback") {
+    AudioEngine engine;
+    AudioGraph graph(&engine);
+
+    SECTION("Testing start and stop") {
+        engine.startAudio();
+        auto blocks = graph.py_get_all_blocks();
+        engine.stopAudio();
+        REQUIRE(blocks.size() == 0);
+    }
+}
+
 // Unit tests
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
-    AudioGraph graph(ma_device{});
+    AudioEngine engine;
+    AudioGraph graph(&engine);
 
     auto block1 = std::make_shared<DummyBlock2>();
     auto block2 = std::make_shared<DummyBlock1>();
@@ -123,7 +137,8 @@ public:
 };
 
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
-    AudioGraph graph(ma_device{});
+    AudioEngine engine;
+    AudioGraph graph(&engine);
 
     auto block1 = std::make_shared<DummyBlock1>();
     auto block2 = std::make_shared<DummyBlock2>();

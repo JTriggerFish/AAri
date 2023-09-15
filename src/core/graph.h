@@ -1,7 +1,6 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "../miniaudio.h"
 #include <list>
 #include <vector>
 #include <memory>
@@ -14,16 +13,15 @@
 #include "wire.h"
 #include "block.h"
 
+class AudioEngine;
 
 namespace Graph {
     class AudioGraph {
 
     public:
-        AudioGraph(ma_device audioDevice);
+        AudioGraph(AudioEngine *audioEngine);
 
-        ~AudioGraph() {
-            /* unlock function removed as it is not needed with miniaudio */
-        }
+        ~AudioGraph();
 
         // Topology modifying functions:
         void add_block(const std::shared_ptr<Block> &block);
@@ -87,9 +85,6 @@ namespace Graph {
     private:
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
-        ma_device _audioDevice;
-        bool _locked;
-
 
         void dfs(Block *vertex);
 
@@ -99,21 +94,8 @@ namespace Graph {
 
         Wire *find_wire(size_t wire_id);
 
-        void lock() {
-            if (_audioDevice.playback.channels > 0) {
-                //TODO LOCKING !
-                _locked = true;
-            }
-        }
-
-        void unlock()  {
-            if (_locked) {
-                //TODO UNLOCKING !
-                _locked = false;
-            }
-        }
-
     private:
+        AudioEngine *_audioEngine;
         std::unordered_map<size_t, Wire *> _wires_by_id;
         // Temp memory
         std::unordered_map<Block *, bool> _visited;
