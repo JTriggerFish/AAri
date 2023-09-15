@@ -4,12 +4,25 @@
 
 #include "graph.h"
 #include "wire.h"
+#include "utils/assert.h"
 
-template<size_t IN, size_t OUT>
+template<size_t I, size_t O>
 struct InputOutput {
-    float inputs[IN] = {0};
-    float outputs[OUT] = {0};
-    Graph::Wire inputs_wires[IN];
+    float inputs[I];
+    float outputs[O];
+    Graph::Wire inputs_wires[I];
+
+    InputOutput() {
+        for (float &input: inputs) {
+            input = 0.0f;
+        }
+        for (float &output: outputs) {
+            output = 0.0f;
+        }
+        for (Graph::Wire &wire: inputs_wires) {
+            wire = Graph::Wire();
+        }
+    }
 
     size_t connect(Graph::Block *in, Graph::Block *out, size_t in_index, size_t width, size_t out_index,
                    float gain = 1.0f,
@@ -21,10 +34,10 @@ struct InputOutput {
         if (!(transform == Graph::WireTransform::STEREO_PAN || transform == Graph::WireTransform::EXPAND)) {
             ASSERT(in_index + width <= in->output_size());
         }
-        ASSERT(out_index + width <= IN);
+        ASSERT(out_index + width <= I);
 
         int free_idx = -1;
-        for (size_t i = 0; i < IN; ++i) {
+        for (size_t i = 0; i < I; ++i) {
             const Graph::Wire &wire = inputs_wires[i];
             if (wire.in == nullptr && free_idx == -1) {
                 free_idx = (int) i;
@@ -40,7 +53,7 @@ struct InputOutput {
     }
 
     void disconnect(size_t out_index_or_id, bool is_id) {
-        for (size_t i = 0; i < IN; ++i) {
+        for (size_t i = 0; i < I; ++i) {
             Graph::Wire &wire = inputs_wires[i];
             if ((is_id && wire.id == out_index_or_id) || (!is_id && wire.out_index == out_index_or_id)) {
                 wire.in = nullptr;
@@ -56,23 +69,23 @@ struct InputOutput {
     }
 
     void clear_wires() {
-        for (size_t i = 0; i < IN; ++i) {
+        for (size_t i = 0; i < I; ++i) {
             inputs_wires[i] = Graph::Wire();
         }
     }
 
 };
 
-#define IMPLEMENT_BLOCK_IO(IN, OUT) \
+#define IMPLEMENT_BLOCK_IO(I, O) \
                                     \
-    InputOutput<IN, OUT> io;         \
+    InputOutput<I, O> io;         \
                                     \
     virtual size_t input_size() const override { \
-        return IN; \
+        return I; \
     } \
     \
     virtual size_t output_size() const override { \
-        return OUT; \
+        return O; \
     } \
     \
     virtual float *inputs() override { \
@@ -84,7 +97,7 @@ struct InputOutput {
     } \
     \
     virtual const Graph::Wire * get_input_wires(size_t &size) const override { \
-        size = IN; \
+        size = I; \
         return io.inputs_wires; \
     } \
     \
@@ -100,10 +113,10 @@ struct InputOutput {
         io.clear_wires();\
     }\
     static size_t static_input_size() { \
-        return IN; \
+        return I; \
     } \
     static size_t static_output_size() { \
-        return OUT; \
+        return O; \
     } \
 
 #endif //RELEASE_GRAPH_IO_H

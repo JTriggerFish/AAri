@@ -8,17 +8,12 @@
 #include <unordered_map>
 #include <stack>
 #include <stdexcept>
-
 #include <optional>
-#include "wire.h"
-#include "block.h"
 #include <pybind11/numpy.h>
 
+#include "wire.h"
+#include "block.h"
 
-#define ASSERT(condition) \
-    if (!(condition)) { \
-        throw std::runtime_error("Assertion failed: " #condition); \
-    }
 
 namespace Graph {
     class AudioGraph {

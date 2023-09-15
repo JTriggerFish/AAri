@@ -47,7 +47,7 @@ add_library(core STATIC
 )
 
 # Get SDL2 include directories and link libraries
-get_target_property(SDL2_INCLUDE_DIRS SDL2-static INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(SDL2_INCLUDE_DIRS SDL2 INTERFACE_INCLUDE_DIRECTORIES)
 
 target_include_directories(core
         PUBLIC
@@ -55,7 +55,7 @@ target_include_directories(core
         ${SDL2_INCLUDE_DIRS}
 )
 
-target_link_libraries(core PRIVATE SDL2-static Python3::Python pybind11::pybind11)
+target_link_libraries(core PRIVATE SDL2 SDL2main Python3::Python pybind11::pybind11)
 
 # Define the main executable
 add_executable(AAri src/main.cpp)
