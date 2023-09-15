@@ -1,13 +1,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <../src/core/graph.h>
-#include <../src/core/wire.h>
-#include <../src/core/graph_io.h>
-#include <../src/core/audio_engine.h>
-#include <../src/blocks/oscillators.h>
-#include <../src/blocks/mixers.h>
-#include <../src/blocks/envelopes.h>
+#include "../src/core/graph.h"
+#include "../src/core/wire.h"
+#include "../src/core/graph_io.h"
+#include "../src/core/audio_engine.h"
+#include "../src/blocks/oscillators.h"
+#include "../src/blocks/mixers.h"
+#include "../src/blocks/envelopes.h"
 
 namespace py = pybind11;
 using namespace Graph;
@@ -40,9 +40,10 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
             .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
 
+    py::class_<ma_device>(m, "MaDevice");
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
-            .def(py::init<uint32_t>())
+            .def(py::init<ma_device>())
             .def("add_block", &AudioGraph::add_block, py::arg("block"))
             .def("remove_block", &AudioGraph::remove_block, py::arg("block_id"))
             .def("connect_wire", &AudioGraph::connect_wire, py::arg("in_block_id"), py::arg("out_block_id"),

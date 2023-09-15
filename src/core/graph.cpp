@@ -90,7 +90,7 @@ namespace Graph {
         }
     }
 
-    AudioGraph::AudioGraph(int audioDevice) : _audioDevice(audioDevice), _locked(false) {
+    AudioGraph::AudioGraph(ma_device audioDevice) : _audioDevice(audioDevice), _locked(false) {
         _visited.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _nodeState.reserve(256); // Arbitrary number, you can adjust based on your expectations.
         _outgoingWires.reserve(256);

@@ -1,7 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include <SDL.h>
+#include "../miniaudio.h"
 #include <list>
 #include <vector>
 #include <memory>
@@ -19,10 +19,10 @@ namespace Graph {
     class AudioGraph {
 
     public:
-        AudioGraph(int audioDevice);
+        AudioGraph(ma_device audioDevice);
 
         ~AudioGraph() {
-            unlock();
+            /* unlock function removed as it is not needed with miniaudio */
         }
 
         // Topology modifying functions:
@@ -87,7 +87,7 @@ namespace Graph {
     private:
         std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
         std::list<Block *> _topologicalOrder;
-        int _audioDevice;
+        ma_device _audioDevice;
         bool _locked;
 
 
@@ -100,15 +100,17 @@ namespace Graph {
         Wire *find_wire(size_t wire_id);
 
         void lock() {
-            if (_audioDevice >= 0) {
-                SDL_LockAudioDevice(_audioDevice);
+            if (_audioDevice.playback.channels > 0) {
+                //TODO LOCKING !
                 _locked = true;
             }
         }
 
-        void unlock() const {
-            if (_locked)
-                SDL_UnlockAudioDevice(_audioDevice);
+        void unlock()  {
+            if (_locked) {
+                //TODO UNLOCKING !
+                _locked = false;
+            }
         }
 
     private:

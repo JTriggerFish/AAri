@@ -1,16 +1,16 @@
 
 #ifndef AUDIO_ENGINE_H
 #define AUDIO_ENGINE_H
-#define SDL_MAIN_HANDLED
 
-#include <SDL.h>
+
+#include "../miniaudio.h"
 #include <mutex>
 #include "graph.h"
 #include <memory>
 
 class AudioEngine {
 public:
-    AudioEngine();
+    AudioEngine(size_t sample_rate = 48000, size_t buffer_size = 512);
 
     ~AudioEngine();
 
@@ -24,17 +24,17 @@ public:
 
     void set_output_block(size_t node_index, size_t block_output_index);
 
-    SDL_AudioDeviceID get_audio_device() const {
-        return audioDevice;
+    ma_device get_audio_device() {
+        return device;
     }
 
 private:
-    static void audioCallback(void *userdata, Uint8 *stream, int len);
+    static void audio_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 
     double clock_seconds;
 
-    SDL_AudioDeviceID audioDevice;
-    SDL_AudioSpec audioSpec;
+    ma_device device;
+    ma_device_config deviceConfig;
     std::shared_ptr<Graph::AudioGraph> audioGraph;
     size_t outputNodeIndex;
     size_t outputChannelStart;

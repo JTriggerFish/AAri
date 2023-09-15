@@ -2,8 +2,8 @@
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 
 #include <catch2/catch_all.hpp>
-#include <../src/core/graph.h>
-#include <../src/core/graph_io.h>
+#include "../../src/core/graph.h"
+#include "../../src/core/graph_io.h"
 
 using namespace Graph;
 
@@ -43,7 +43,7 @@ public:
 
 // Unit tests
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
-    AudioGraph graph(-1);
+    AudioGraph graph(ma_device{});
 
     auto block1 = std::make_shared<DummyBlock2>();
     auto block2 = std::make_shared<DummyBlock1>();
@@ -123,7 +123,7 @@ public:
 };
 
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
-    AudioGraph graph(-1);
+    AudioGraph graph(ma_device{});
 
     auto block1 = std::make_shared<DummyBlock1>();
     auto block2 = std::make_shared<DummyBlock2>();

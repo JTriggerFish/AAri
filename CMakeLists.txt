@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(AAri VERSION 0.0.1 LANGUAGES CXX)
+add_definitions(-DNOMINMAX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,12 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
 
 # Fetch SDL2 source code and set it up for building
-FetchContent_Declare(
-        SDL2
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-        GIT_TAG release-2.28.1
-)
-FetchContent_MakeAvailable(SDL2)
+
 
 # Fetch pybind11 source code and set it up for building
 FetchContent_Declare(
@@ -47,15 +43,7 @@ add_library(core STATIC
 )
 
 # Get SDL2 include directories and link libraries
-get_target_property(SDL2_INCLUDE_DIRS SDL2 INTERFACE_INCLUDE_DIRECTORIES)
-
-target_include_directories(core
-        PUBLIC
-        src
-        ${SDL2_INCLUDE_DIRS}
-)
-
-target_link_libraries(core PRIVATE SDL2 SDL2main Python3::Python pybind11::pybind11)
+target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11)
 
 # Define the main executable
 add_executable(AAri src/main.cpp)

@@ -11,4 +11,6 @@ platformdirs==3.10.0
 pycodestyle==2.11.0
 pyflakes==3.1.0
 scipy==1.11.2
+isort
 pytest
+rtmidi
