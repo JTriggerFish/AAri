@@ -1,8 +1,11 @@
 import unittest
 from time import sleep
+import sys
 
 from AAri.audio_engine import AudioEngine
 from AAri.oscillators import SineOsc
+
+sys.path.append(r"../../AAri")
 
 
 class TestBasicGraphs(unittest.TestCase):

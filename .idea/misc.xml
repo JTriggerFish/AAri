@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="sdkName" value="Python 3.11 (AAri)" />
+    <option name="enabledOnReformat" value="true" />
+    <option name="enabledOnSave" value="true" />
+    <option name="pathToExecutable" value="C:\Users\jeant\AppData\Local\Programs\Python\Python311\Scripts\black.exe" />
+    <option name="sdkName" value="Python 3.11 (venv)" />
   </component>
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/AAri" />
+      <file path="$PROJECT_DIR$/src" />
+    </sourceRoots>
+  </component>
 </project>

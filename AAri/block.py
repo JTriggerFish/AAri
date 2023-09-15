@@ -4,9 +4,6 @@ import sys
 import typing
 from collections import OrderedDict
 
-sys.path.append(
-    "../../release/"
-)  # Add the parent directory to the path so we can import the module
 import AAri_cpp  # Import the Pybind11 module
 import numpy as np
 

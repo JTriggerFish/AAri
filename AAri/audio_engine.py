@@ -1,12 +1,8 @@
 import sys
 
-from AAri.block import Block, StereoMixerBase
-
-sys.path.append(
-    "../../release/"
-)  # Add the parent directory to the path so we can import the module
-
 import AAri_cpp  # Import the Pybind11 module
+
+from AAri.block import Block, StereoMixerBase
 
 
 class AudioGraph:
@@ -34,7 +30,7 @@ class AudioGraph:
         gain: float = 1.0,
         offset: float = 0.0,
         wire_transform: AAri_cpp.WireTransform = AAri_cpp.WireTransform.NONE,
-        wire_transform_param: float = 0.0
+        wire_transform_param: float = 0.0,
     ) -> int:
         """
         Connects two blocks and returns wired id
@@ -58,7 +54,7 @@ class AudioGraph:
             gain,
             offset,
             wire_transform,
-            wire_transform_param
+            wire_transform_param,
         )
 
     def disconnect_wire(self, wire_id: int):

@@ -13,6 +13,10 @@ AudioEngine::AudioEngine(size_t sample_rate, size_t buffer_size) : clock_seconds
     deviceConfig.dataCallback      = audio_callback;
     deviceConfig.pUserData         = this;
     deviceConfig.periodSizeInFrames = buffer_size;
+
+    if(ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
+        throw std::runtime_error("Failed to open playback device.");
+    }
     audioGraph = std::make_shared<Graph::AudioGraph>(get_audio_device());
 
 }

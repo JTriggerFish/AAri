@@ -60,7 +60,14 @@ target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::
 # Define Python extension
 pybind11_add_module(AAri_cpp bindings/python_bindings.cpp)
 target_link_libraries(AAri_cpp PRIVATE core)
-set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "tests/python")
+
+set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "../AAri")
+
+# TODO Fis this , it is broken
+#add_custom_command(TARGET AAri_cpp POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        $<TARGET_FILE:AAri_cpp>
+#        ../../tests/python)
 
 # Install rules
 install(TARGETS AAri RUNTIME DESTINATION bin)
