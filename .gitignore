@@ -56,4 +56,4 @@ bin/*
 test/test_runner
 
 venv/*
-cmake-build-debug/*
+cmake-build-*/*

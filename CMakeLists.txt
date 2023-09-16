@@ -30,6 +30,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+FetchContent_Declare(
+        flecs
+        GIT_REPOSITORY https://github.com/SanderMertens/flecs.git
+        GIT_TAG v3.2.7
+)
+
+FetchContent_MakeAvailable(flecs)
+
 # Define the core library
 add_library(core STATIC
         src/core/utils/FieldMap.cpp
@@ -43,7 +51,7 @@ add_library(core STATIC
 )
 
 # Get SDL2 include directories and link libraries
-target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11)
+target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11 flecs)
 
 # Define the main executable
 add_executable(AAri src/main.cpp)
@@ -56,6 +64,9 @@ target_link_libraries(utils_tests PRIVATE core Catch2::Catch2WithMain pybind11::
 
 add_executable(graph_tests tests/cpp/graph_tests.cpp)
 target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11)
+
+add_executable(flecs_tests tests/cpp/flecs_tests.cpp)
+target_link_libraries(flecs_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 flecs)
 
 # Define Python extension
 pybind11_add_module(AAri_cpp bindings/python_bindings.cpp)
