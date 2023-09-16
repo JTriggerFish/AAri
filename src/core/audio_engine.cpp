@@ -25,6 +25,8 @@ AudioEngine::AudioEngine(ma_uint32 sample_rate, ma_uint32 buffer_size) : clock_s
 
 AudioEngine::~AudioEngine() {
     ma_device_uninit(&_device);
+    ma_device_stop(&_device);
+    //printf("Audio engine destroyed\n");
 }
 
 void AudioEngine::startAudio() {

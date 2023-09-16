@@ -1,5 +1,3 @@
-import sys
-
 import AAri_cpp  # Import the Pybind11 module
 
 from AAri.block import Block, StereoMixerBase
@@ -96,6 +94,11 @@ class AudioEngine:
 
     def stop(self):
         self.engine.stopAudio()
+
+    def reset(self):
+        self.stop()
+        cls = type(self)
+        cls._instance = None
 
     @property
     def graph(self) -> AudioGraph:

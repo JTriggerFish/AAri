@@ -6,22 +6,58 @@
 #include <flecs.h>
 #include <catch2/catch_all.hpp>
 
+struct Frequency {
+    float value;
+};
+struct Amplitude {
+    float value;
+};
+struct Phase {
+    float value;
+};
+struct Output {
+    float value;
+};
 
-TEST_CASE("Test flecs graph", "[flecs]") {
+TEST_CASE("Test flecs graph") {
     flecs::world ecs;
 
-    // Define a few ids, a few components, pairs between ids and components:
-    auto id1 = ecs.entity();
-    auto id2 = ecs.entity();
-    auto id3 = ecs.entity();
+    SECTION("Testing can define wires") {
+        // Define a few ids, a few components, pairs between ids and components:
+        auto Osc = ecs.entity();
+        auto Output = ecs.entity();
+        auto Wire = ecs.entity();
 
-    auto comp1 = ecs.component<int>();
-    auto comp2 = ecs.component<float>();
-    auto comp3 = ecs.component<double>();
+        //Attach freq to osc:
+        Osc.set<Frequency>({440.0f});
+        // Create graph edge from osc to output entity
+        Output.add(Wire, Osc);
 
-    id1.set(comp1, 1);
-    id2.set(comp2, 2.0f);
-    id3.set(comp3, 3.0);
+        REQUIRE(ecs_has_pair(ecs.c_ptr(), Output.id(), Wire.id(), Osc.id()));
+
+    }
 
 
+}
+
+int main(int argc, char *argv[]) {
+    Catch::Session session; // There must be exactly one instance
+
+    // writing to session.configData() here sets defaults
+    // this is the preferred way to set them
+
+    int returnCode = session.applyCommandLine(argc, argv);
+    if (returnCode != 0) // Indicates a command line error
+        return returnCode;
+
+    // writing to session.configData() or session.Config() here
+    // overrides command line args
+    // only do this if you know you need to
+
+    int numFailed = session.run();
+
+    // numFailed is clamped to 255 as some unices only use the lower 8 bits.
+    // This clamping has already been applied, so just return it here
+    // You can also do any post run clean-up here
+    return numFailed;
 }

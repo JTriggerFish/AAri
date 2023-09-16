@@ -18,7 +18,7 @@ class TestBasicGraphs(unittest.TestCase):
             audio_engine.out << osc
             assert osc.freq.value == mul * base_freq
         sleep(3)
-        audio_engine.stop()
+        audio_engine.reset()
 
     def test_set_input(self):
         audio_engine = AudioEngine()
@@ -30,7 +30,7 @@ class TestBasicGraphs(unittest.TestCase):
             osc.freq = mul * base_freq
             assert osc.freq.value == mul * base_freq
             sleep(0.1)
-        audio_engine.stop()
+        audio_engine.reset()
 
     def test_set_param_fm(self):
         audio_engine = AudioEngine()
@@ -41,4 +41,4 @@ class TestBasicGraphs(unittest.TestCase):
         audio_engine.out << osc1
         osc1.freq = 220 + 110 * osc2.out
         sleep(3)
-        audio_engine.stop()
+        audio_engine.reset()
