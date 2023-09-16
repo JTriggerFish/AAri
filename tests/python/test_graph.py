@@ -1,6 +1,6 @@
+import sys
 import unittest
 from time import sleep
-import sys
 
 from AAri.audio_engine import AudioEngine
 from AAri.oscillators import SineOsc
@@ -41,3 +41,4 @@ class TestBasicGraphs(unittest.TestCase):
         audio_engine.out << osc1
         osc1.freq = 220 + 110 * osc2.out
         sleep(3)
+        audio_engine.stop()
