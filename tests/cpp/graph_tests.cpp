@@ -42,7 +42,7 @@ public:
 
 };
 
-TEST_CASE("Testing audio start stop with graph callback") {
+TEST_CASE("Testing audio start stop with graph callback", "[AudioEngine]") {
     AudioEngine engine;
     AudioGraph graph(&engine);
 

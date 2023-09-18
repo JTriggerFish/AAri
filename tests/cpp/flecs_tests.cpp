@@ -33,7 +33,7 @@ TEST_CASE("Test flecs graph") {
         // Create graph edge from osc to output entity
         Output.add(Wire, Osc);
 
-        REQUIRE(ecs_has_pair(ecs.c_ptr(), Output.id(), Wire.id(), Osc.id()));
+        REQUIRE(Output.has(Wire, Osc));
 
     }
 
