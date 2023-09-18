@@ -37,6 +37,15 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(flecs)
+FetchContent_GetProperties(flecs)
+if (NOT flecs_POPULATED)
+    FetchContent_Populate(flecs)
+
+    # Set the option to build Flecs as a static library
+    set(FLECS_STATIC_LIBS ON CACHE BOOL "Build flecs as a static library" FORCE)
+
+    add_subdirectory(${flecs_SOURCE_DIR} ${flecs_BINARY_DIR})
+endif ()
 
 # Define the core library
 add_library(core STATIC
@@ -51,7 +60,7 @@ add_library(core STATIC
 )
 
 # Get SDL2 include directories and link libraries
-target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11 flecs)
+target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11 flecs_static)
 
 # Define the main executable
 add_executable(AAri src/main.cpp)
@@ -66,7 +75,7 @@ add_executable(graph_tests tests/cpp/graph_tests.cpp)
 target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11)
 
 add_executable(flecs_tests tests/cpp/flecs_tests.cpp)
-target_link_libraries(flecs_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 flecs)
+target_link_libraries(flecs_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 flecs_static)
 
 # Define Python extension
 pybind11_add_module(AAri_cpp bindings/python_bindings.cpp)

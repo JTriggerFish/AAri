@@ -5,8 +5,12 @@
 
 #include <flecs.h>
 #include <catch2/catch_all.hpp>
+#include <iostream>
 
 struct Frequency {
+    float value;
+};
+struct Out {
     float value;
 };
 struct Amplitude {
@@ -18,26 +22,58 @@ struct Phase {
 struct Output {
     float value;
 };
+struct StereoOutput {
+    float left_right[2];
+};
+
+struct NamedToNamed {
+    flecs::entity from_component;
+    flecs::entity to_component;
+};
+struct NamedToNamedNumbered {
+    flecs::entity from_component;
+    flecs::entity to_component;
+    size_t to_component_index;
+};
 
 TEST_CASE("Test flecs graph") {
     flecs::world ecs;
 
+    ecs.component<Frequency>();
+    ecs.component<Out>();
+    ecs.component<StereoOutput>();
+    ecs.component<NamedToNamed>();
+    ecs.component<NamedToNamedNumbered>();
+
     SECTION("Testing can define wires") {
-        // Define a few ids, a few components, pairs between ids and components:
-        auto Osc = ecs.entity();
+        auto Osc1 = ecs.entity();
+        auto Osc2 = ecs.entity();
         auto Output = ecs.entity();
-        auto Wire = ecs.entity();
+        auto WireTo = ecs.entity();
 
-        //Attach freq to osc:
-        Osc.set<Frequency>({440.0f});
-        // Create graph edge from osc to output entity
-        Output.add(Wire, Osc);
+        // Attach initial values to components
+        Osc1.set<Frequency>({440.0f});
+        Osc1.set<Out>({0.0f});
+        Osc2.set<Frequency>({220.0f});
+        Osc2.set<Out>({0.0f});
+        Output.set<StereoOutput>({{0.0f, 0.0f}});
 
-        REQUIRE(Output.has(Wire, Osc));
+        Osc1.set<NamedToNamedNumbered>(Output, {ecs.entity<Out>(),
+                                                ecs.entity<StereoOutput>(),
+                                                0});
+
+        // Check the relationships and associated mappings
+        Osc1.each([](flecs::id id) {
+            std::cout << id.str() << std::endl;
+            if (id.is_pair()) {
+                std::cout << id.str() << std::endl;
+                flecs::entity first = id.first();
+                flecs::entity second = id.second();
+                std::cout << "Pair: " << first << " -> " << second << std::endl;
+            }
+        });
 
     }
-
-
 }
 
 int main(int argc, char *argv[]) {
