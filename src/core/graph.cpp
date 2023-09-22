@@ -81,7 +81,7 @@ namespace Graph {
             for (size_t i = 0; i < n; ++i) {
                 const Wire &wire = in_conections[i];
                 if (wire.in == nullptr) continue;
-                //ASSERT(wire.out_index + wire.width <= block->input_size());
+                ASSERT(wire.out_index + wire.width <= block->input_size());
                 wire.transmit(wire.in->outputs(), block->inputs());
             }
 
