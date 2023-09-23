@@ -1,6 +1,6 @@
 //
 //
-#include "../core/graph.h"
+#include "../core/graph_deprecated.h"
 #include "../core/graph_io.h"
 #include <cmath>
 
@@ -10,7 +10,7 @@
 
 constexpr float pi = 3.1415927f;
 
-class Oscillator : public Graph::Block {
+class Oscillator : public deprecated_Graph::Block {
 };
 
 class SineOsc : public Oscillator {
@@ -30,7 +30,7 @@ public:
 
     IMPLEMENT_BLOCK_IO(2, 1);
 
-    void process(Graph::AudioContext ctx) override {
+    void process(deprecated_Graph::AudioContext ctx) override {
         float freq = io.inputs[FREQ];
         float amplitude = io.inputs[AMP];
         float phase_inc = freq / ctx.sample_freq;

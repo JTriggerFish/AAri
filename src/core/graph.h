@@ -1,110 +1,85 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+//
+//
 
-#include <list>
+#ifndef AARI_GRAPH_H
+#define AARI_GRAPH_H
+
+#include <entt/entt.hpp>
 #include <vector>
-#include <memory>
-#include <unordered_map>
-#include <stack>
-#include <stdexcept>
-#include <optional>
-#include <pybind11/numpy.h>
-
-#include "wire.h"
-#include "block.h"
-
-class AudioEngine;
+#include <string>
+#include "parameters.h"
+#include "blocks.h"
 
 namespace Graph {
-    class AudioGraph {
+    struct AudioContext {
+        float sample_freq;
+        float dt;
+        double clock; // Current elapsed time in seconds
+    };
+    struct ClockLink {
+        float speed_multiplier = 1.0;
+    };
 
-    public:
-        AudioGraph(AudioEngine *audioEngine);
-
-        ~AudioGraph();
-
-        // Topology modifying functions:
-        void add_block(const std::shared_ptr<Block> &block);
-
-        void remove_block(size_t block_id);
-
-        size_t connect_wire(size_t in_block_id, size_t out_block_id,
-                            size_t in_index,
-                            size_t width,
-                            size_t out_index,
-                            float gain = 1.0f,
-                            float offset = 0.0f,
-                            WireTransform transform = WireTransform::NONE,
-                            float wire_transform_param = 0.0f);
-
-        void tweak_wire_gain(size_t wire_id, float gain);
-
-        void tweak_wire_offset(size_t wire_id, float offset);
-
-        void tweak_wire_param(size_t wire_id, float param);
-
-        void disconnect_wire(size_t wire_id, std::optional<size_t> out_block_id = std::nullopt);
-
-        // Processing functions:
-        void process(AudioContext ctx);
-
-        bool has_block(size_t block_id) {
-            return _blocks.find(block_id) != _blocks.end();
-        }
-
-        bool get_block(size_t block_id, Block **block) {
-            auto it = _blocks.find(block_id);
-            if (it != _blocks.end()) {
-                *block = it->second.get();
-                return true;
-            }
-            return false;
-        }
-
-        std::unordered_map<size_t, std::shared_ptr<Block> > py_get_all_blocks() {
-            return _blocks;
-        }
-
-        std::vector<Block *> py_get_topological_order() {
-            return {_topologicalOrder.begin(), _topologicalOrder.end()};
-        }
-
-        pybind11::array_t<float> py_get_block_inputs(size_t block_id, size_t input_index, size_t width);
-
-        void py_set_block_inputs(size_t block_id, size_t input_index, pybind11::array_t<float> input);
-
-        pybind11::array_t<float> py_get_block_outputs(size_t block_id, size_t output_index, size_t width);
-
-
-        enum NodeState {
-            UNVISITED,
-            VISITING,
-            VISITED
-        };
-
-    private:
-        std::unordered_map<size_t, std::shared_ptr<Block> > _blocks;
-        std::list<Block *> _topologicalOrder;
-
-        void dfs(Block *vertex);
-
-        void update_ordering();
-
-        Block *find_wire_owner(size_t wire_id);
-
-        Wire *find_wire(size_t wire_id);
-
-    private:
-        AudioEngine *_audioEngine;
-        std::unordered_map<size_t, Wire *> _wires_by_id;
-        // Temp memory
-        std::unordered_map<Block *, bool> _visited;
-        std::unordered_multimap<Block *, Wire> _outgoingWires;
-        std::unordered_map<Block *, NodeState> _nodeState;
-
+    //Wires
+    struct Wire {
+        entt::entity from = entt::null;
+        entt::entity to = entt::null;
+        float gain = 1.0f;
+        float offset = 0.0f;
     };
 
 
+    //Specific blocks:
+    struct Phase {
+        static void process(entt::registry &registry, entt::entity entity, AudioContext ctx) {
+            auto phase = registry.get<Input1D>(entity);
+            auto clock = registry.get<ClockLink>(entity);
+            phase.value = fmodf(phase.value + clock.speed_multiplier * ctx.dt, 1.0f);
+        }
+
+        static entt::entity create(entt::registry &registry, float sample_freq, float init_phase = 0.0f) {
+            auto entity = registry.create();
+            registry.emplace<Input1D>(entity, init_phase - 1.0f / sample_freq, ParamName::Phase);
+            registry.emplace<ClockLink>(entity);
+            return entity;
+        }
+    };
+
+    struct SineOsc {
+        static void process(entt::registry &registry, entt::entity entity, AudioContext ctx) {
+            constexpr float pi = 3.14159265358979323846f;
+            auto block = registry.get<Block>(entity);
+            //Presumably here we don't need to check that this is a SineOsc
+            auto &phase = registry.get<Input1D>(block.inputIds[0]);
+            auto &freq = registry.get<Input1D>(block.inputIds[1]);
+            auto &amp = registry.get<Input1D>(block.inputIds[2]);
+
+            auto &out = registry.get<Output1D>(block.outputIds[0]);
+
+            out.value = amp.value * sinf(2.0f * pi * freq.value * phase.value);
+        }
+
+        static entt::entity create(entt::registry &registry, float sample_freq, float init_phase = 0.0f,
+                                   float init_freq = 440.0f, float init_amp = 1.0f) {
+            auto entity = registry.create();
+            auto phase = Phase::create(registry, sample_freq, init_phase);
+            auto freq = registry.create();
+            registry.emplace<Input1D>(freq, init_freq, ParamName::Freq);
+            auto amp = registry.create();
+            registry.emplace<Input1D>(amp, init_amp, ParamName::Amp);
+            auto out = registry.create();
+            registry.emplace<Output1D>(out, 0.0f, ParamName::Out);
+
+            auto block = registry.create();
+            registry.emplace<Block>(block, std::vector<entt::entity>{phase, freq, amp},
+                                    std::vector<entt::entity>{out}, BlockType::SineOsc);
+            return entity;
+        }
+    };
+
+    // Setting up the registry
+    entt::registry graph_registry;
 }
 
-#endif //GRAPH_H
+
+#endif //AARI_GRAPH_H

@@ -1,6 +1,6 @@
 //
 //
-#include "../core/graph.h"
+#include "../core/graph_deprecated.h"
 #include "../core/graph_io.h"
 #include <cmath>
 
@@ -10,7 +10,7 @@
 #endif //RELEASE_ENVELOPES_H
 
 
-class Product : public Graph::Block {
+class Product : public deprecated_Graph::Block {
 public:
     enum ProductType {
         DUAL_CHANNELS, // 2 independent channels doing one product each
@@ -28,7 +28,7 @@ public:
         }
     };
 
-    void process(Graph::AudioContext ctx) override {
+    void process(deprecated_Graph::AudioContext ctx) override {
         for (int i = 0; i < 2; i += 2) {
             io.outputs[i] = io.inputs[2 * i] * io.inputs[2 * i + 1];
         }

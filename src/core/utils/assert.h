@@ -10,10 +10,12 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-#ifndef NDEBUG
+#ifdef NDEBUG // Assert only enabled in debug builds
 #define ASSERT(expr) \
     if (!(expr)) \
         throw AssertException("Assertion failed: " #expr, __FILE__, __LINE__);
+#else
+#define ASSERT(expr)
 #endif
 
 class AssertException : public std::exception {

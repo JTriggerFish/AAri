@@ -8,7 +8,7 @@
 #include <cmath>
 
 
-namespace Graph {
+namespace deprecated_Graph {
     class Block;
 
     enum class WireTransform {
@@ -20,8 +20,8 @@ namespace Graph {
     struct Wire {
         size_t id = 0;
 
-        Graph::Block *in = nullptr;
-        Graph::Block *out = nullptr;
+        deprecated_Graph::Block *in = nullptr;
+        deprecated_Graph::Block *out = nullptr;
         size_t in_index = 0;
         size_t width = 0;
         size_t out_index = 0;
@@ -31,8 +31,8 @@ namespace Graph {
         WireTransform transform = WireTransform::NONE;
         float wire_transform_param = 0.0f;
 
-        Wire(Graph::Block *in,
-             Graph::Block *out,
+        Wire(deprecated_Graph::Block *in,
+             deprecated_Graph::Block *out,
              size_t in_index,
              size_t width,
              size_t out_index,

@@ -5,9 +5,9 @@
 #define RELEASE_BLOCK_H
 
 #include <string>
-#include "wire.h"
+#include "wire_deprecated.h"
 
-namespace Graph {
+namespace deprecated_Graph {
 
     struct AudioContext {
         float sample_freq;

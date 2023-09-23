@@ -31,36 +31,30 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 FetchContent_Declare(
-        flecs
-        GIT_REPOSITORY https://github.com/SanderMertens/flecs.git
-        GIT_TAG v3.2.7
+        entt
+        GIT_REPOSITORY https://github.com/skypjack/entt
+        GIT_TAG v3.12.2  # Specify the version you want to use
 )
 
-FetchContent_MakeAvailable(flecs)
-FetchContent_GetProperties(flecs)
-if (NOT flecs_POPULATED)
-    FetchContent_Populate(flecs)
-
-    # Set the option to build Flecs as a static library
-    set(FLECS_STATIC_LIBS ON CACHE BOOL "Build flecs as a static library" FORCE)
-
-    add_subdirectory(${flecs_SOURCE_DIR} ${flecs_BINARY_DIR})
-endif ()
+FetchContent_MakeAvailable(entt)
 
 # Define the core library
 add_library(core STATIC
         src/core/utils/FieldMap.cpp
-        src/core/wire.cpp
-        src/core/block.cpp
-        src/core/graph.cpp
+        src/core/wire_deprecated.cpp
+        src/core/block_deprecated.cpp
+        src/core/graph_deprecated.cpp
         src/core/audio_engine.cpp
         src/blocks/oscillators.cpp
         src/blocks/envelopes.cpp
         src/blocks/mixers.cpp
+        src/core/graph.cpp
+        src/core/graph.h
+        src/core/blocks.h
 )
 
 # Get SDL2 include directories and link libraries
-target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11 flecs_static)
+target_link_libraries(core PRIVATE Python3::Python pybind11::pybind11 EnTT::EnTT)
 
 # Define the main executable
 add_executable(AAri src/main.cpp)
@@ -74,8 +68,10 @@ target_link_libraries(utils_tests PRIVATE core Catch2::Catch2WithMain pybind11::
 add_executable(graph_tests tests/cpp/graph_tests.cpp)
 target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11)
 
-add_executable(flecs_tests tests/cpp/flecs_tests.cpp)
-target_link_libraries(flecs_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 flecs_static)
+add_executable(graph_tests2 tests/cpp/graph_tests2.cpp
+        src/core/graph.cpp
+        src/core/graph.h)
+target_link_libraries(graph_tests2 PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 EnTT::EnTT)
 
 # Define Python extension
 pybind11_add_module(AAri_cpp bindings/python_bindings.cpp)
@@ -95,3 +91,4 @@ install(TARGETS AAri RUNTIME DESTINATION bin)
 # Set up tests
 add_test(NAME UtilsTests COMMAND utils_tests)
 add_test(NAME GraphTests COMMAND graph_tests)
+add_test(NAME GraphTests2 COMMAND graph_tests2)

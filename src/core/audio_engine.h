@@ -5,7 +5,7 @@
 
 #include "../miniaudio.h"
 #include <mutex>
-#include "graph.h"
+#include "graph_deprecated.h"
 #include <memory>
 
 class SpinLockGuard {
@@ -32,7 +32,7 @@ public:
 
     void stopAudio();
 
-    std::shared_ptr<Graph::AudioGraph> getAudioGraph() {
+    std::shared_ptr<deprecated_Graph::AudioGraph> getAudioGraph() {
         return _audioGraph;
     }
 
@@ -55,7 +55,7 @@ private:
     ma_device_config _deviceConfig;
     ma_spinlock _callback_lock = 0;
 
-    std::shared_ptr<Graph::AudioGraph> _audioGraph;
+    std::shared_ptr<deprecated_Graph::AudioGraph> _audioGraph;
     size_t _outputNodeIndex;
     size_t _outputChannelStart;
 };

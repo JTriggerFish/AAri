@@ -2,15 +2,15 @@
 #ifndef RELEASE_GRAPH_IO_H
 #define RELEASE_GRAPH_IO_H
 
-#include "graph.h"
-#include "wire.h"
+#include "graph_deprecated.h"
+#include "wire_deprecated.h"
 #include "utils/assert.h"
 
 template<size_t I, size_t O>
 struct InputOutput {
     float inputs[I];
     float outputs[O];
-    Graph::Wire inputs_wires[I];
+    deprecated_Graph::Wire inputs_wires[I];
 
     InputOutput() {
         for (float &input: inputs) {
@@ -19,26 +19,28 @@ struct InputOutput {
         for (float &output: outputs) {
             output = 0.0f;
         }
-        for (Graph::Wire &wire: inputs_wires) {
-            wire = Graph::Wire();
+        for (deprecated_Graph::Wire &wire: inputs_wires) {
+            wire = deprecated_Graph::Wire();
         }
     }
 
-    size_t connect(Graph::Block *in, Graph::Block *out, size_t in_index, size_t width, size_t out_index,
-                   float gain = 1.0f,
-                   float offset = 0.0f,
-                   Graph::WireTransform transform = Graph::WireTransform::NONE,
-                   float wire_transform_param = 0.0f) {
+    size_t
+    connect(deprecated_Graph::Block *in, deprecated_Graph::Block *out, size_t in_index, size_t width, size_t out_index,
+            float gain = 1.0f,
+            float offset = 0.0f,
+            deprecated_Graph::WireTransform transform = deprecated_Graph::WireTransform::NONE,
+            float wire_transform_param = 0.0f) {
         ASSERT(in != nullptr);
 
-        if (!(transform == Graph::WireTransform::STEREO_PAN || transform == Graph::WireTransform::EXPAND)) {
+        if (!(transform == deprecated_Graph::WireTransform::STEREO_PAN ||
+              transform == deprecated_Graph::WireTransform::EXPAND)) {
             ASSERT(in_index + width <= in->output_size());
         }
         ASSERT(out_index + width <= I);
 
         int free_idx = -1;
         for (size_t i = 0; i < I; ++i) {
-            const Graph::Wire &wire = inputs_wires[i];
+            const deprecated_Graph::Wire &wire = inputs_wires[i];
             if (wire.in == nullptr && free_idx == -1) {
                 free_idx = (int) i;
             }
@@ -47,14 +49,14 @@ struct InputOutput {
         }
         if (free_idx == -1)
             throw std::runtime_error("No free wire");
-        inputs_wires[free_idx] = Graph::Wire(in, out, in_index, width, out_index, gain, offset, transform,
-                                             wire_transform_param);
+        inputs_wires[free_idx] = deprecated_Graph::Wire(in, out, in_index, width, out_index, gain, offset, transform,
+                                                        wire_transform_param);
         return inputs_wires[free_idx].id;
     }
 
     void disconnect(size_t out_index_or_id, bool is_id) {
         for (size_t i = 0; i < I; ++i) {
-            Graph::Wire &wire = inputs_wires[i];
+            deprecated_Graph::Wire &wire = inputs_wires[i];
             if ((is_id && wire.id == out_index_or_id) || (!is_id && wire.out_index == out_index_or_id)) {
                 wire.in = nullptr;
                 wire.in_index = 0;
@@ -70,7 +72,7 @@ struct InputOutput {
 
     void clear_wires() {
         for (size_t i = 0; i < I; ++i) {
-            inputs_wires[i] = Graph::Wire();
+            inputs_wires[i] = deprecated_Graph::Wire();
         }
     }
 
@@ -96,13 +98,13 @@ struct InputOutput {
         return io.outputs; \
     } \
     \
-    virtual const Graph::Wire * get_input_wires(size_t &size) const override { \
+    virtual const deprecated_Graph::Wire * get_input_wires(size_t &size) const override { \
         size = I; \
         return io.inputs_wires; \
     } \
     \
     virtual size_t connect_wire(Block *in, size_t in_index, size_t width, size_t out_index, \
-        float gain=1.0, float offset=0.0, Graph::WireTransform transform = Graph::WireTransform::NONE, float wire_transform_param=0.0) override { \
+        float gain=1.0, float offset=0.0, deprecated_Graph::WireTransform transform = deprecated_Graph::WireTransform::NONE, float wire_transform_param=0.0) override { \
         return io.connect(in, this, in_index, width, out_index, gain, offset, transform, wire_transform_param); \
     } \
     \

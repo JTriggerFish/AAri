@@ -2,10 +2,10 @@
 //
 
 #include <vector>
-#include "block.h"
+#include "block_deprecated.h"
 #include <algorithm>
 
-namespace Graph {
+namespace deprecated_Graph {
     size_t Block::_latest_id = 0;
 
     std::vector<Wire> Block::py_get_input_wires() const {

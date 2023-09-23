@@ -1,13 +1,13 @@
 //
 //
-#include "../core/graph.h"
+#include "../core/graph_deprecated.h"
 #include "../core/graph_io.h"
 #include <cmath>
 
 #ifndef RELEASE_MIXERS_H
 #define RELEASE_MIXERS_H
 
-class Mixer : public Graph::Block {
+class Mixer : public deprecated_Graph::Block {
 };
 
 class MonoMixer : public Mixer {
@@ -23,7 +23,7 @@ public:
         }
     };
 
-    void process(Graph::AudioContext ctx) override {
+    void process(deprecated_Graph::AudioContext ctx) override {
         double sum = 0.0;
         for (float input: io.inputs) {
             sum += input;
@@ -51,7 +51,7 @@ public:
         }
     };
 
-    void process(Graph::AudioContext ctx) override {
+    void process(deprecated_Graph::AudioContext ctx) override {
         double left = 0.0;
         double right = 0.0;
         for (int i = 0; i < 32; i += 2) {

@@ -19,7 +19,7 @@ AudioEngine::AudioEngine(ma_uint32 sample_rate, ma_uint32 buffer_size) : clock_s
     if (ma_device_init(NULL, &_deviceConfig, &_device) != MA_SUCCESS) {
         throw std::runtime_error("Failed to open playback device.");
     }
-    _audioGraph = std::make_shared<Graph::AudioGraph>(this);
+    _audioGraph = std::make_shared<deprecated_Graph::AudioGraph>(this);
 
 }
 
@@ -45,7 +45,7 @@ void AudioEngine::audio_callback(ma_device *pDevice, void *pOutput, const void *
     if (engine->_audioGraph == nullptr || engine->_outputNodeIndex == 0) {
         return;
     }
-    Graph::Block *outputBlock;
+    deprecated_Graph::Block *outputBlock;
     if (!engine->_audioGraph->get_block(engine->_outputNodeIndex, &outputBlock)) {
         return;
     }
@@ -66,7 +66,7 @@ void AudioEngine::audio_callback(ma_device *pDevice, void *pOutput, const void *
 }
 
 void AudioEngine::set_output_block(size_t node_index, size_t block_output_index) {
-    Graph::Block *outputBlock = nullptr;
+    deprecated_Graph::Block *outputBlock = nullptr;
     if (!_audioGraph->get_block(node_index, &outputBlock)) {
         throw std::runtime_error("Invalid output node index : node doesn't exist on the graph");
     }

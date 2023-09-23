@@ -1,8 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "../src/core/graph.h"
-#include "../src/core/wire.h"
+#include "../src/core/graph_deprecated.h"
+#include "../src/core/wire_deprecated.h"
 #include "../src/core/graph_io.h"
 #include "../src/core/audio_engine.h"
 #include "../src/blocks/oscillators.h"
@@ -10,7 +10,7 @@
 #include "../src/blocks/envelopes.h"
 
 namespace py = pybind11;
-using namespace Graph;
+using namespace deprecated_Graph;
 
 PYBIND11_MODULE(AAri_cpp, m) {
     m.doc() = "AAri_cpp: Real-time audio engine backend"; // Module documentation
@@ -32,13 +32,13 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readonly("transform", &Wire::transform)
             .def_readonly("wire_transform_param", &Wire::wire_transform_param);
 
-    py::class_<Graph::Block, std::shared_ptr<Graph::Block>>(m, "Block", py::module_local())
-            .def_property_readonly("id", &Graph::Block::id)
-            .def_property_readonly("name", &Graph::Block::name)
-            .def_property_readonly("input_size", &Graph::Block::input_size)
-            .def_property_readonly("output_size", &Graph::Block::output_size)
-            .def_readonly("last_processed_time", &Graph::Block::last_processed_time)
-            .def_property_readonly("wires", &Graph::Block::py_get_input_wires);
+    py::class_<deprecated_Graph::Block, std::shared_ptr<deprecated_Graph::Block>>(m, "Block", py::module_local())
+            .def_property_readonly("id", &deprecated_Graph::Block::id)
+            .def_property_readonly("name", &deprecated_Graph::Block::name)
+            .def_property_readonly("input_size", &deprecated_Graph::Block::input_size)
+            .def_property_readonly("output_size", &deprecated_Graph::Block::output_size)
+            .def_readonly("last_processed_time", &deprecated_Graph::Block::last_processed_time)
+            .def_property_readonly("wires", &deprecated_Graph::Block::py_get_input_wires);
 
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
@@ -79,8 +79,8 @@ PYBIND11_MODULE(AAri_cpp, m) {
                  py::arg("block_output_index"));
 
 
-    py::class_<Mixer, Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
-    py::class_<Oscillator, Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
+    py::class_<Mixer, deprecated_Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
+    py::class_<Oscillator, deprecated_Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
 
 
     auto mono_mixer_class = py::class_<MonoMixer, Mixer, std::shared_ptr<MonoMixer>>(m, "MonoMixer", py::module_local())
@@ -100,7 +100,8 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .value("CASCADE", Product::ProductType::CASCADE)
             .export_values();
 
-    auto product_class = py::class_<Product, Graph::Block, std::shared_ptr<Product>>(m, "Product", py::module_local())
+    auto product_class = py::class_<Product, deprecated_Graph::Block, std::shared_ptr<Product>>(m, "Product",
+                                                                                                py::module_local())
             .def(py::init<Product::ProductType>(),
                  py::arg("product_type") = Product::ProductType::DUAL_CHANNELS);
     product_class.attr("INPUT_SIZE") = Product::static_input_size();
