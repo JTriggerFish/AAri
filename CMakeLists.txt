@@ -49,8 +49,6 @@ add_library(core STATIC
         src/blocks/envelopes.cpp
         src/blocks/mixers.cpp
         src/core/graph.cpp
-        src/core/graph.h
-        src/core/blocks.h
 )
 
 # Get SDL2 include directories and link libraries

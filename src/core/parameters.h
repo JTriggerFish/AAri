@@ -8,7 +8,7 @@
 #include <vector>
 #include <entt/entt.hpp>
 
-namespace Graph {
+namespace AAri {
 // Paramaters
     enum class ParamName {
         NONE,

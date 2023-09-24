@@ -1,52 +1,30 @@
 //
 //
-#include "../core/graph_deprecated.h"
-#include "../core/graph_io.h"
-#include <cmath>
-
-
 #ifndef RELEASE_SINEOSC_H
 #define RELEASE_SINEOSC_H
 
-constexpr float pi = 3.1415927f;
+#include "../core/graph.h"
+#include <entt/entt.hpp>
+#include <cmath>
 
-class Oscillator : public deprecated_Graph::Block {
-};
 
-class SineOsc : public Oscillator {
-public:
-    enum Inputs {
-        FREQ,
-        AMP
+constexpr float PI = 3.1415927f;
+
+namespace AAri {
+
+    struct Phase {
+        static void process(entt::registry &registry, entt::entity entity, AudioContext ctx);
+
+        static entt::entity create(entt::registry &registry, float sample_freq, float init_phase = 0.0f);
     };
-    enum Outputs {
-        OUT
+
+    struct SineOsc {
+        static void process(entt::registry &registry, entt::entity entity, AudioContext ctx);
+
+        static entt::entity create(entt::registry &registry, float sample_freq, float init_phase = 0.0f,
+                                   float init_freq = 440.0f, float init_amp = 1.0f);
     };
-
-    explicit SineOsc(float freq = 110.0f, float amplitude = 1.0f) : phase(0.0f) {
-        io.inputs[FREQ] = freq;
-        io.inputs[AMP] = amplitude;
-    }
-
-    IMPLEMENT_BLOCK_IO(2, 1);
-
-    void process(deprecated_Graph::AudioContext ctx) override {
-        float freq = io.inputs[FREQ];
-        float amplitude = io.inputs[AMP];
-        float phase_inc = freq / ctx.sample_freq;
-        io.outputs[OUT] = amplitude * sinf(2.0f * pi * phase);
-
-        phase = fmodf(phase + phase_inc, 1.0f);
-    }
-
-    std::string name() const override {
-        return "SineOsc_" + std::to_string(id());
-    }
-
-private:
-    float phase;
-
-};
+}
 
 
 #endif //RELEASE_SINEOSC_H
