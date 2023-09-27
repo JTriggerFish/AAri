@@ -26,7 +26,8 @@ there is broken
 
 - Install CMake (version 3.14 or higher)
 - Install Python (version 3.11) including development headers
-- Ensure that C++ compiler supporting C++20 is available
+- Ensure that a C++ compiler supporting C++20 is available
+- ALSA development libraries on linux ( for not yet implemented midi support using python rtmidi )
 
 ### Build Instructions
 

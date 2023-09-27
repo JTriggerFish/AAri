@@ -1,38 +1,41 @@
-
 name: CI
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: [3.11]
+        os: [ ubuntu-latest, windows-latest ]
+        python-version: [ 3.11 ]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install ALSA libraries (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
-    - name: Configure CMake
-      run: cmake -B build
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Build
-      run: cmake --build build --config Release
+      - name: Configure CMake
+        run: cmake -B build
 
-    - name: Run tests (Windows)
-      if: runner.os == 'Windows'
-      run: ctest --test-dir build --schedule-random --config Release
+      - name: Build
+        run: cmake --build build --config Release
 
-    - name: Run tests (Linux)
-      if: runner.os == 'Linux'
-      run: ctest --test-dir build --schedule-random
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        run: ctest --test-dir build --schedule-random --config Release
+
+      - name: Run tests (Linux)
+        if: runner.os == 'Linux'
+        run: ctest --test-dir build --schedule-random
