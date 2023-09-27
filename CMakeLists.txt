@@ -26,14 +26,14 @@ find_package(Python3 COMPONENTS Development REQUIRED)
 FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.0.0-preview3
+        GIT_TAG v3.4.0
 )
 FetchContent_MakeAvailable(Catch2)
 
 FetchContent_Declare(
         entt
         GIT_REPOSITORY https://github.com/skypjack/entt
-        GIT_TAG v3.12.2  # Specify the version you want to use
+        GIT_TAG v3.12.2
 )
 
 FetchContent_MakeAvailable(entt)
