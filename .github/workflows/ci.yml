@@ -1,4 +1,5 @@
-name: Build and Test
+
+name: CI
 
 on: [push, pull_request]
 
@@ -7,63 +8,31 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
+        python-version: [3.11]
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python 3.11
+    - name: Setup Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.11
+        python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies (Ubuntu)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build
-        python -m pip install --upgrade pip
-        pip install meson
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install dependencies
+      run: pip install -r requirements.txt
 
-    - name: Install dependencies (Windows)
-      run: |
-        choco install ninja
-        python -m pip install --upgrade pip
-        pip install meson
-      if: matrix.os == 'windows-latest'
-      
-    - name: Set up Python virtual environment
-      run: python -m venv venv
-
-    - name: Activate virtual environment and install dependencies (Ubuntu)
-      run: |
-        source venv/bin/activate
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-      if: matrix.os == 'ubuntu-latest'
-      
-    - name: Activate virtual environment and install dependencies (Windows)
-      run: |
-        .\\venv\\Scripts\\activate
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-      if: matrix.os == 'windows-latest'
-
+    - name: Configure CMake
+      run: cmake -B build
 
     - name: Build
-      run: |
-        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          .\\venv\\Scripts\\activate
-          meson setup debug --buildtype=debug --backend=vs
-          meson setup release --buildtype=release --backend=vs
-        else
-          . venv/bin/activate
-          meson setup debug --buildtype=debug --backend=ninja
-          meson setup release --buildtype=release --backend=ninja
-        fi
-        meson compile -C debug
-        meson compile -C release
+      run: cmake --build build --config Release
 
-    - name: Test
-      run: meson test -C debug
+    - name: Run tests (Windows)
+      if: runner.os == 'Windows'
+      run: ctest --test-dir build --schedule-random --config Release
+
+    - name: Run tests (Linux)
+      if: runner.os == 'Linux'
+      run: ctest --test-dir build --schedule-random
