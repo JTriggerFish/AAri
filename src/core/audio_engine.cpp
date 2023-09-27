@@ -2,10 +2,15 @@
 #define MA_IMPLEMENTATION
 
 #include "audio_engine.h"
+#include "graph.h"
+#include "blocks.h"
+#include "parameters.h"
 #include <iostream>
 
-AudioEngine::AudioEngine(ma_uint32 sample_rate, ma_uint32 buffer_size) : clock_seconds(0), _outputNodeIndex(0),
-                                                                         _outputChannelStart(0) {
+using namespace AAri;
+
+AudioEngine::AudioEngine(ma_uint32 sample_rate, ma_uint32 buffer_size) : clock_seconds(0),
+                                                                         _output_id(entt::null) {
 
     // Open audio device
     _deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -16,11 +21,9 @@ AudioEngine::AudioEngine(ma_uint32 sample_rate, ma_uint32 buffer_size) : clock_s
     _deviceConfig.pUserData = this;
     _deviceConfig.periodSizeInFrames = buffer_size;
 
-    if (ma_device_init(NULL, &_deviceConfig, &_device) != MA_SUCCESS) {
+    if (ma_device_init(nullptr, &_deviceConfig, &_device) != MA_SUCCESS) {
         throw std::runtime_error("Failed to open playback device.");
     }
-    _audioGraph = std::make_shared<deprecated_Graph::AudioGraph>(this);
-
 }
 
 AudioEngine::~AudioEngine() {
@@ -39,42 +42,34 @@ void AudioEngine::stopAudio() {
 }
 
 void AudioEngine::audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount) {
-    AudioEngine *engine = static_cast<AudioEngine *>(pDevice->pUserData);
-    auto guard = engine->lock_till_function_returns();
+    auto *engine = static_cast<AudioEngine *>(pDevice->pUserData);
+    entt::registry *registry;
+    SpinLockGuard guard = engine->get_graph_registry(&registry);
 
-    if (engine->_audioGraph == nullptr || engine->_outputNodeIndex == 0) {
-        return;
-    }
-    deprecated_Graph::Block *outputBlock;
-    if (!engine->_audioGraph->get_block(engine->_outputNodeIndex, &outputBlock)) {
-        return;
-    }
     auto *buffer = (float *) pOutput;
-    const float sample_freq = (float) pDevice->sampleRate;
-    const double seconds_per_sample = 1.0 / sample_freq;
-    auto block_output = outputBlock->outputs();
-    const auto output_size = (size_t) outputBlock->output_size();
-    const auto offset = engine->_outputChannelStart;
+    const auto sample_freq = (float) pDevice->sampleRate;
+    const float seconds_per_sample = 1.0f / sample_freq;
+
+    float *output;
+    const size_t width = engine->_output_width;
+    if (width == 1)
+        output = &(registry->get<Output1D>(engine->_output_id).value);
+    else if (width == 2)
+        output = &(registry->get<Output2D>(engine->_output_id).value[0]);
+    else
+        throw std::runtime_error("Output width not supported");
 
     for (size_t i = 0; i < 2 * frameCount; i += 2) {
         engine->clock_seconds += seconds_per_sample;
-        engine->_audioGraph->process({sample_freq, engine->clock_seconds});
-        buffer[i] = block_output[offset];
-        buffer[i + 1] = offset + 1 < output_size ? block_output[offset + 1] : buffer[i];
+        engine->_graph.process({sample_freq, seconds_per_sample, engine->clock_seconds});
 
+        buffer[i] = output[0];
+        buffer[i + 1] = width == 2 ? output[1] : output[0];
     }
 }
 
-void AudioEngine::set_output_block(size_t node_index, size_t block_output_index) {
-    deprecated_Graph::Block *outputBlock = nullptr;
-    if (!_audioGraph->get_block(node_index, &outputBlock)) {
-        throw std::runtime_error("Invalid output node index : node doesn't exist on the graph");
-    }
-    if (block_output_index >= outputBlock->output_size()) {
-        throw std::runtime_error("Invalid output channel start : block doesn't have enough outputs");
-    }
+void AudioEngine::set_output(entt::entity output_id, size_t output_width) {
     auto guard = lock_till_function_returns();
-    _outputNodeIndex = node_index;
-    _outputChannelStart = block_output_index;
-
+    _output_id = output_id;
+    _output_width = output_width;
 }

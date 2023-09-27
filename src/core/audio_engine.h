@@ -5,59 +5,68 @@
 
 #include "../miniaudio.h"
 #include <mutex>
-#include "graph_deprecated.h"
+#include "graph.h"
 #include <memory>
 
-class SpinLockGuard {
-public:
-    SpinLockGuard(ma_spinlock &spinlock) : spinlock(spinlock) {
-        ma_spinlock_lock(&spinlock);
-    }
+namespace AAri {
+    class SpinLockGuard {
+    public:
+        SpinLockGuard(ma_spinlock &spinlock) : spinlock(spinlock) {
+            ma_spinlock_lock(&spinlock);
+        }
 
-    ~SpinLockGuard() {
-        ma_spinlock_unlock(&spinlock);
-    }
+        ~SpinLockGuard() {
+            ma_spinlock_unlock(&spinlock);
+        }
 
-private:
-    ma_spinlock &spinlock;
-};
+    private:
+        ma_spinlock &spinlock;
+    };
 
-class AudioEngine {
-public:
-    AudioEngine(ma_uint32 sample_rate = 48000, ma_uint32 buffer_size = 512);
+    class AudioEngine {
+    public:
+        AudioEngine(ma_uint32 sample_rate = 48000, ma_uint32 buffer_size = 512);
 
-    ~AudioEngine();
+        ~AudioEngine();
 
-    void startAudio();
+        void startAudio();
 
-    void stopAudio();
+        void stopAudio();
 
-    std::shared_ptr<deprecated_Graph::AudioGraph> getAudioGraph() {
-        return _audioGraph;
-    }
+        void set_output(entt::entity output_id, size_t output_width);
 
-    void set_output_block(size_t node_index, size_t block_output_index);
+        /**
+         * Any access to the regitry is most likely not thread-safe with the callback
+         * so we need to lock it
+         * @param registry
+         * @return
+         */
+        SpinLockGuard get_graph_registry(entt::registry **registry) {
+            *registry = &_graph.registry;
+            return SpinLockGuard(_callback_lock);
+        }
 
-    ma_device get_audio_device() {
-        return _device;
-    }
+        ma_device get_audio_device() {
+            return _device;
+        }
 
-    SpinLockGuard lock_till_function_returns() {
-        return SpinLockGuard(_callback_lock);
-    }
+        SpinLockGuard lock_till_function_returns() {
+            return {_callback_lock};
+        }
 
-private:
-    static void audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);
+    private:
+        static void audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);
 
-    double clock_seconds;
+        double clock_seconds;
 
-    ma_device _device;
-    ma_device_config _deviceConfig;
-    ma_spinlock _callback_lock = 0;
+        ma_device _device;
+        ma_device_config _deviceConfig;
+        ma_spinlock _callback_lock = 0;
 
-    std::shared_ptr<deprecated_Graph::AudioGraph> _audioGraph;
-    size_t _outputNodeIndex;
-    size_t _outputChannelStart;
-};
+        Graph _graph;
+        entt::entity _output_id;
+        size_t _output_width;
+    };
+}
 
 #endif // AUDIO_ENGINE_H

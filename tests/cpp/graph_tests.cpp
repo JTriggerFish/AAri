@@ -2,11 +2,9 @@
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 
 #include <catch2/catch_all.hpp>
-#include "../../src/core/graph_deprecated.h"
-#include "../../src/core/graph_io.h"
+#include "../../src/core/graph.h"
 #include "../../src/core/audio_engine.h"
 
-using namespace deprecated_Graph;
 
 // Define a couple of dummy blocks for testing purposes
 class DummyBlock1 : public Block {

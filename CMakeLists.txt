@@ -42,14 +42,12 @@ FetchContent_MakeAvailable(entt)
 # Define the core library
 add_library(core STATIC
         src/core/utils/FieldMap.cpp
-        src/core/wire_deprecated.cpp
-        src/core/block_deprecated.cpp
-        src/core/graph_deprecated.cpp
         src/core/audio_engine.cpp
         src/blocks/oscillators.cpp
         src/blocks/envelopes.cpp
         src/blocks/mixers.cpp
         src/core/graph.cpp
+        src/core/wires.cpp
 )
 
 # Get SDL2 include directories and link libraries
@@ -65,12 +63,8 @@ add_executable(utils_tests tests/cpp/utils_tests.cpp)
 target_link_libraries(utils_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11)
 
 add_executable(graph_tests tests/cpp/graph_tests.cpp)
-target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11)
+target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 EnTT::EnTT)
 
-add_executable(graph_tests2 tests/cpp/graph_tests2.cpp
-        src/core/graph.cpp
-        src/core/graph.h)
-target_link_libraries(graph_tests2 PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 EnTT::EnTT)
 
 # Define Python extension
 pybind11_add_module(AAri_cpp bindings/python_bindings.cpp)
@@ -90,4 +84,3 @@ install(TARGETS AAri RUNTIME DESTINATION bin)
 # Set up tests
 add_test(NAME UtilsTests COMMAND utils_tests)
 add_test(NAME GraphTests COMMAND graph_tests)
-add_test(NAME GraphTests2 COMMAND graph_tests2)
