@@ -11,6 +11,7 @@
 
 namespace py = pybind11;
 using namespace deprecated_Graph;
+using namespace AAri;
 
 PYBIND11_MODULE(AAri_cpp, m) {
     m.doc() = "AAri_cpp: Real-time audio engine backend"; // Module documentation
@@ -21,24 +22,24 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .value("STEREO_PAN", WireTransform::STEREO_PAN)
             .export_values();
 
-    py::class_<Wire>(m, "Wire", py::module_local())
-            .def_readonly("input", &Wire::in)
-            .def_readonly("output", &Wire::out)
-            .def_readonly("in_index", &Wire::in_index)
-            .def_readonly("width", &Wire::width)
-            .def_readonly("out_index", &Wire::out_index)
-            .def_readonly("gain", &Wire::gain)
-            .def_readonly("offset", &Wire::offset)
-            .def_readonly("transform", &Wire::transform)
-            .def_readonly("wire_transform_param", &Wire::wire_transform_param);
-
-    py::class_<deprecated_Graph::Block, std::shared_ptr<deprecated_Graph::Block>>(m, "Block", py::module_local())
-            .def_property_readonly("id", &deprecated_Graph::Block::id)
-            .def_property_readonly("name", &deprecated_Graph::Block::name)
-            .def_property_readonly("input_size", &deprecated_Graph::Block::input_size)
-            .def_property_readonly("output_size", &deprecated_Graph::Block::output_size)
-            .def_readonly("last_processed_time", &deprecated_Graph::Block::last_processed_time)
-            .def_property_readonly("wires", &deprecated_Graph::Block::py_get_input_wires);
+//    py::class_<Wire>(m, "Wire", py::module_local())
+//            .def_readonly("input", &Wire::in)
+//            .def_readonly("output", &Wire::out)
+//            .def_readonly("in_index", &Wire::in_index)
+//            .def_readonly("width", &Wire::width)
+//            .def_readonly("out_index", &Wire::out_index)
+//            .def_readonly("gain", &Wire::gain)
+//            .def_readonly("offset", &Wire::offset)
+//            .def_readonly("transform", &Wire::transform)
+//            .def_readonly("wire_transform_param", &Wire::wire_transform_param);
+//
+//    py::class_<deprecated_Graph::Block, std::shared_ptr<deprecated_Graph::Block>>(m, "Block", py::module_local())
+//            .def_property_readonly("id", &deprecated_Graph::Block::id)
+//            .def_property_readonly("name", &deprecated_Graph::Block::name)
+//            .def_property_readonly("input_size", &deprecated_Graph::Block::input_size)
+//            .def_property_readonly("output_size", &deprecated_Graph::Block::output_size)
+//            .def_readonly("last_processed_time", &deprecated_Graph::Block::last_processed_time)
+//            .def_property_readonly("wires", &deprecated_Graph::Block::py_get_input_wires);
 
 
     py::class_<AudioGraph>(m, "AudioGraph", py::module_local())
@@ -80,7 +81,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
 
 
     py::class_<Mixer, deprecated_Graph::Block, std::shared_ptr<Mixer>>(m, "Mixer");
-    py::class_<Oscillator, deprecated_Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
+    //py::class_<Oscillator, deprecated_Graph::Block, std::shared_ptr<Oscillator>>(m, "Oscillator");
 
 
     auto mono_mixer_class = py::class_<MonoMixer, Mixer, std::shared_ptr<MonoMixer>>(m, "MonoMixer", py::module_local())
@@ -110,15 +111,15 @@ PYBIND11_MODULE(AAri_cpp, m) {
     product_class.attr("OUT2") = static_cast<int>(Product::OUT2);
 
     // SineOsc bindings
-    auto sine_osc_class = py::class_<SineOsc, Oscillator, std::shared_ptr<SineOsc>>(m, "SineOsc", py::module_local())
-            .def(py::init<float, float>(),
-                 py::arg("freq") = 110.0f,
-                 py::arg("amplitude") = 1.0f);
-    sine_osc_class.attr("INPUT_SIZE") = SineOsc::static_input_size();
-    sine_osc_class.attr("OUTPUT_SIZE") = SineOsc::static_output_size();
-    sine_osc_class.attr("FREQ") = static_cast<int>(SineOsc::FREQ);
-    sine_osc_class.attr("AMP") = static_cast<int>(SineOsc::AMP);
-    sine_osc_class.attr("OUT") = static_cast<int>(SineOsc::OUT);
+//    auto sine_osc_class = py::class_<SineOsc, Oscillator, std::shared_ptr<SineOsc>>(m, "SineOsc", py::module_local())
+//            .def(py::init<float, float>(),
+//                 py::arg("freq") = 110.0f,
+//                 py::arg("amplitude") = 1.0f);
+//    sine_osc_class.attr("INPUT_SIZE") = SineOsc::static_input_size();
+//    sine_osc_class.attr("OUTPUT_SIZE") = SineOsc::static_output_size();
+//    sine_osc_class.attr("FREQ") = static_cast<int>(SineOsc::FREQ);
+//    sine_osc_class.attr("AMP") = static_cast<int>(SineOsc::AMP);
+//    sine_osc_class.attr("OUT") = static_cast<int>(SineOsc::OUT);
 
 
 }

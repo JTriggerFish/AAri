@@ -18,7 +18,11 @@ namespace AAri {
         static entt::entity create(entt::registry &registry, float sample_freq, float init_phase = 0.0f);
     };
 
-    struct SineOsc {
+    struct Oscillator {
+
+    };
+
+    struct SineOsc : public Oscillator {
         static void process(entt::registry &registry, entt::entity entity, AudioContext ctx);
 
         static entt::entity create(entt::registry &registry, float sample_freq, float init_phase = 0.0f,
