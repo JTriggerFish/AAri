@@ -19,6 +19,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Setup GCC 13 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-13
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 60 --slave /usr/bin/g++ g++ /usr/bin/g++-13
+
       - name: Install ALSA libraries (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
