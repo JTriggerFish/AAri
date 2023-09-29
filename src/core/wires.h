@@ -33,6 +33,17 @@ namespace AAri {
                                    entt::entity to_input,
                                    TransmitFunc transmitFunc,
                                    float gain = 1.0f, float offset = 0.0f) {
+
+            //First check there isn't already a wire to this same input
+            auto view = registry.view<Wire>();
+            for (auto entity: view) {
+                auto &wire = view.get<Wire>(entity);
+                if (wire.to_input == to_input) {
+                    throw std::runtime_error("Cannot create wire, input already connected");
+                }
+            }
+
+
             auto entity = registry.create();
             registry.emplace<Wire>(entity, from_block, to_block, from_output,
                                    to_input, gain, offset, transmitFunc);

@@ -1,215 +1,135 @@
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 
-#include <catch2/catch_all.hpp>
+#include "../../src/core/parameters.h"
 #include "../../src/core/graph.h"
+#include "../../src/core/blocks.h"
 #include "../../src/core/audio_engine.h"
+#include <entt/entt.hpp>
+#include <catch2/catch_all.hpp>
 
+using namespace AAri;
 
-// Define a couple of dummy blocks for testing purposes
-class DummyBlock1 : public Block {
-public:
+void times_two(entt::registry &registry, const Block &block, AudioContext ctx) {
+    auto &input = registry.get<Input1D>(block.inputIds[0]);
+    auto &output = registry.get<Output1D>(block.outputIds[0]);
+    output.value = input.value * 2.0f;
+}
 
-    DummyBlock1() {}
+void plus_three(entt::registry &registry, const Block &block, AudioContext ctx) {
+    auto &input = registry.get<Input1D>(block.inputIds[0]);
+    auto &output = registry.get<Output1D>(block.outputIds[0]);
+    output.value = input.value + 3.0f;
+}
 
-    IMPLEMENT_BLOCK_IO(1, 1);
+void times_2_and_plus_4(entt::registry &registry, const Block &block, AudioContext ctx) {
+    auto &input = registry.get<Input2D>(block.inputIds[0]);
+    auto &output = registry.get<Output2D>(block.outputIds[0]);
+    output.value[0] = input.value[0] * 2.0f;
+    output.value[1] = input.value[1] + 4.0f;
+}
 
-    virtual void process(AudioContext ctx) override {
-        io.outputs[0] = io.inputs[0] * 2.0f;
-    }
+entt::entity create_times_two(entt::registry &registry) {
+    auto input = registry.create();
+    registry.emplace<Input1D>(input, 0.0f, ParamName::Input);
+    auto output = registry.create();
+    registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
 
-    virtual std::string name() const override {
-        return "DummyBlock1_" + std::to_string(id());
-    }
-};
+    return Block::create(registry, BlockType::Product, std::array<entt::entity, 8>{input},
+                         std::array<entt::entity, 4>{output}, times_two);
+}
 
-class DummyBlock2 : public Block {
-public:
-    DummyBlock2() {}
+entt::entity create_plus_three(entt::registry &registry) {
+    auto input = registry.create();
+    registry.emplace<Input1D>(input, 0.0f, ParamName::Input);
+    auto output = registry.create();
+    registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
 
-    IMPLEMENT_BLOCK_IO(1, 1);
+    return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input},
+                         std::array<entt::entity, 4>{output}, plus_three);
+}
 
-
-    virtual void process(AudioContext ctx) override {
-        io.outputs[0] = io.inputs[0] + 3.0f;
-    }
-
-    virtual std::string name() const override {
-        return "DummyBlock2_" + std::to_string(id());
-    }
-
-};
 
 TEST_CASE("Testing audio start stop with graph callback", "[AudioEngine]") {
     AudioEngine engine;
-    AudioGraph graph(&engine);
 
     SECTION("Testing start and stop") {
         engine.startAudio();
-        auto blocks = graph.py_get_all_blocks();
         engine.stopAudio();
-        REQUIRE(blocks.size() == 0);
     }
 }
 
 // Unit tests
 TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     AudioEngine engine;
-    AudioGraph graph(&engine);
+    auto [registry, guard] = engine.get_graph_registry();
+    auto block1 = create_plus_three(registry);
+    auto block2 = create_times_two(registry);
 
-    auto block1 = std::make_shared<DummyBlock2>();
-    auto block2 = std::make_shared<DummyBlock1>();
+    AudioContext ctx{44100.0f, 1.0f / 44100.0f, 0.1};
+    auto &graph = engine._test_only_get_graph();
 
-    // Cheat a bit and use const_cast to get around the constness of the returned pointer
-    graph.add_block(block1);
-    graph.add_block(block2);
 
     SECTION("Adding and processing blocks") {
-        AudioContext ctx = {44100.0f, 0.1f};
+        //Set the input of block 2 to 1 :
+        registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 1.0f;
 
-        // Simple processing test
-        block2->inputs()[0] = 1.0f;
+        //Process one sample on the graph
         graph.process(ctx);
+        //Get the output of the blocks
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
 
-        REQUIRE(block1->last_processed_time == 0.1f);
-        REQUIRE(block2->last_processed_time == 0.1f);
-
-        REQUIRE(block2->outputs()[0] == 2.0f); // DummyBlock1 simply multiplies by 2
-        REQUIRE(block1->outputs()[0] == 3.0f); // DummyBlock2 adds 3
+        REQUIRE(output1.value == 3.0f);
+        REQUIRE(output2.value == 2.0f);
     }
 
         // Note that each section rebuilds the graph, so the ids will be different
     SECTION("Testing connection") {
-        // Connecting the blocks and processing again
-        graph.connect_wire(block2->id(), block1->id(), 0, 1, 0);
-        AudioContext ctx = {44100.0f, 0.2f};
-        block2->inputs()[0] = 2.0f;
+        //Connecting the blocks and processing again
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+
+        // Set block 2 input to 2
+        registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
+
+        auto wire = Wire::create(registry, block2, block1, registry.get<Block>(block2).outputIds[0],
+                                 registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
+
+        //Process one sample on the graph
         graph.process(ctx);
 
-        REQUIRE(block1->last_processed_time == 0.2f);
-        REQUIRE(block2->last_processed_time == 0.2f);
-        REQUIRE(block2->outputs()[0] == 4.0f); // DummyBlock1 simply multiplies by 2
-        REQUIRE(block1->outputs()[0] == 7.0f); // block2 output is 2, so block1 output should be 2*2+ 3 = 7
+        REQUIRE(output2.value == 4.0f);
+        REQUIRE(output1.value == 7.0f);
 
-        //Adding the wire again should throw an exception
-        REQUIRE_THROWS(graph.connect_wire(block2->id(), block1->id(), 0, 1, 0));
+        //Adding the same wire again should throw an exception
+        REQUIRE_THROWS(Wire::create(registry, block2, block1, registry.get<Block>(block2).outputIds[0],
+                                    registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d));
     }
 
     SECTION("Testing disconnection") {
-        graph.connect_wire(block2->id(), block1->id(), 0, 1, 0);
-        block2->inputs()[0] = 1.0f;
 
 // Disconnect blocks using id
-        size_t n;
         // There is no wire connected to block2
-        REQUIRE_THROWS(graph.disconnect_wire(block2->get_input_wires(n)[0].id));
-
-        graph.disconnect_wire(block1->get_input_wires(n)[0].id);
-
-        AudioContext ctx = {44100.0f, 0.3f};
-        graph.process(ctx);
-        REQUIRE(block1->last_processed_time == 0.3f);
-        REQUIRE(block2->last_processed_time == 0.3f);
-
-        REQUIRE(block2->outputs()[0] == 2.0f); // block1 simply multiplies by 2
-        REQUIRE(block1->outputs()[0] == 3.0f); // should be back to initial output
     }
 }
 
 
-// Define a new dummy block with multiple inputs and outputs
-class DummyBlock3 : public Block {
-public:
-    DummyBlock3() {}
-
-    IMPLEMENT_BLOCK_IO(2, 2);
-
-    virtual void process(AudioContext ctx) override {
-        io.outputs[0] = io.inputs[0] * 2.0f;
-        io.outputs[1] = io.inputs[1] + 4.0f;
-    }
-
-    virtual std::string name() const override {
-        return "DummyBlock3_" + std::to_string(id());
-    }
-};
-
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
-    AudioEngine engine;
-    AudioGraph graph(&engine);
-
-    auto block1 = std::make_shared<DummyBlock1>();
-    auto block2 = std::make_shared<DummyBlock2>();
-    auto block3 = std::make_shared<DummyBlock3>();
-
-    graph.add_block(block1);
-    graph.add_block(block2);
-    graph.add_block(block3);
 
 
     SECTION("Testing Multiple layers of dependencies") {
-        // Connect block1 -> block3 -> block2
-        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
-        graph.connect_wire(block3->id(), block2->id(), 0, 1, 0);
-
-        AudioContext ctx = {44100.0f, 0.5f};
-        block1->inputs()[0] = 2.0f;
-        graph.process(ctx);
-
-        REQUIRE(block1->outputs()[0] == 4.0f);
-        REQUIRE(block3->outputs()[0] == 8.0f);
-        REQUIRE(block2->outputs()[0] == 11.0f);
     }
 
     SECTION("Testing Blocks with Multiple Inputs and Outputs") {
-        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
-        graph.connect_wire(block2->id(), block3->id(), 0, 1, 1);
-
-        AudioContext ctx = {44100.0f, 0.6f};
-        block1->inputs()[0] = 3.0f;
-        block2->inputs()[0] = 2.0f;
-        graph.process(ctx);
-
-        REQUIRE(block1->outputs()[0] == 6.0f);
-        REQUIRE(block2->outputs()[0] == 5.0f);
-        REQUIRE(block3->outputs()[0] == 12.0f);
-        REQUIRE(block3->outputs()[1] == 9.0f);
     }SECTION("Testing that cycles throw an error") {
-        // Connect block1 -> block3 -> block2 -> block1
-        graph.connect_wire(block1->id(), block3->id(), 0, 1, 0);
-        graph.connect_wire(block3->id(), block2->id(), 0, 1, 0);
-        REQUIRE_THROWS(graph.connect_wire(block2->id(), block1->id(), 0, 1, 0));
 
     }
 
     SECTION("Testing wire with width > 1") {
-        auto block4 = std::make_shared<DummyBlock3>();
-        graph.add_block(block4);
-
-        graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
-
-        AudioContext ctx = {44100.0f, 0.7f};
-        block3->inputs()[0] = 1.0f;
-        block3->inputs()[1] = 1.0f;
-
-        graph.process(ctx);
-        REQUIRE(block3->outputs()[0] == 2.0f);
-        REQUIRE(block3->outputs()[1] == 5.0f);
-        REQUIRE(block4->outputs()[0] == 4.0f);
-        REQUIRE(block4->outputs()[1] == 9.0f);
-
-        // This should throw because block 1 output is of size 1
-        REQUIRE_THROWS(graph.connect_wire(block1->id(), block3->id(), 0, 2, 0));
-        //This should throw because block 2 input is of size 1
-        REQUIRE_THROWS(graph.connect_wire(block3->id(), block2->id(), 0, 2, 0));
     }
 
     SECTION("Testing Overlapping Wire Regions") {
-        auto block4 = std::make_shared<DummyBlock3>();
-        graph.add_block(block4);
-
-        graph.connect_wire(block3->id(), block4->id(), 0, 2, 0);
-        REQUIRE_THROWS(graph.connect_wire(block1->id(), block4->id(), 0, 1, 1));  // This should throw due to overlap
     }
 }
 

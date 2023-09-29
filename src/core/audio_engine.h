@@ -7,6 +7,7 @@
 #include <mutex>
 #include "graph.h"
 #include <memory>
+#include <tuple>
 
 namespace AAri {
     class SpinLockGuard {
@@ -41,9 +42,8 @@ namespace AAri {
          * @param registry
          * @return
          */
-        SpinLockGuard get_graph_registry(entt::registry **registry) {
-            *registry = &_graph.registry;
-            return SpinLockGuard(_callback_lock);
+        std::tuple<entt::registry &, SpinLockGuard> get_graph_registry() {
+            return {_graph.registry, SpinLockGuard(_callback_lock)};
         }
 
         ma_device get_audio_device() {
@@ -52,6 +52,10 @@ namespace AAri {
 
         SpinLockGuard lock_till_function_returns() {
             return {_callback_lock};
+        }
+
+        Graph &_test_only_get_graph() {
+            return _graph;
         }
 
     private:

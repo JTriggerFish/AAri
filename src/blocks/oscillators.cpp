@@ -2,8 +2,6 @@
 //
 
 #include "oscillators.h"
-#include "../core/audio_context.h"
-#include <array>
 
 using namespace AAri;
 

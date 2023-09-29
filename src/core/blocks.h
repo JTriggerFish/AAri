@@ -6,6 +6,7 @@
 
 #include <array>
 #include "audio_context.h"
+#include <entt/entt.hpp>
 
 
 namespace AAri {

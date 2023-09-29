@@ -4,9 +4,6 @@
 #ifndef AARI_PARAMETERS_H
 #define AARI_PARAMETERS_H
 
-#include <string>
-#include <vector>
-#include <entt/entt.hpp>
 
 namespace AAri {
 // Paramaters

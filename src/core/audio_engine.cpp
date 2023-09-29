@@ -43,8 +43,7 @@ void AudioEngine::stopAudio() {
 
 void AudioEngine::audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount) {
     auto *engine = static_cast<AudioEngine *>(pDevice->pUserData);
-    entt::registry *registry;
-    SpinLockGuard guard = engine->get_graph_registry(&registry);
+    auto [registry, guard] = engine->get_graph_registry();
 
     auto *buffer = (float *) pOutput;
     const auto sample_freq = (float) pDevice->sampleRate;
@@ -53,9 +52,9 @@ void AudioEngine::audio_callback(ma_device *pDevice, void *pOutput, const void *
     float *output;
     const size_t width = engine->_output_width;
     if (width == 1)
-        output = &(registry->get<Output1D>(engine->_output_id).value);
+        output = &(registry.get<Output1D>(engine->_output_id).value);
     else if (width == 2)
-        output = &(registry->get<Output2D>(engine->_output_id).value[0]);
+        output = &(registry.get<Output2D>(engine->_output_id).value[0]);
     else
         throw std::runtime_error("Output width not supported");
 
