@@ -29,6 +29,9 @@
 *.out
 *.app
 
+# Python compiled
+*.pyd*
+
 **/cmake-build-debug
 **/cmake-build-release
 **/CMakeCache.txt
@@ -40,6 +43,8 @@
 **/*.cbp
 **/CMakeScripts
 **/compile_commands.json
+
+**/__pycache__
 
 include/divisible/*
 
