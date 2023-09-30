@@ -8,6 +8,7 @@
 #include "graph.h"
 #include <memory>
 #include <tuple>
+#include <entt/entt.hpp>
 
 namespace AAri {
     class SpinLockGuard {
@@ -37,7 +38,7 @@ namespace AAri {
         void set_output(entt::entity output_id, size_t output_width);
 
         /**
-         * Any access to the regitry is most likely not thread-safe with the callback
+         * Any access to the registry is most likely not thread-safe with the callback
          * so we need to lock it
          * @param registry
          * @return
@@ -57,6 +58,17 @@ namespace AAri {
         Graph &_test_only_get_graph() {
             return _graph;
         }
+
+        entt::entity add_wire(entt::entity from_block,
+                              entt::entity to_block,
+                              entt::entity from_output,
+                              entt::entity to_input,
+                              TransmitFunc transmitFunc,
+                              float gain = 1.0f, float offset = 0.0f);
+
+        void remove_wire(entt::entity wire_id);
+
+        void remove_block(entt::entity block_id);
 
     private:
         static void audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);

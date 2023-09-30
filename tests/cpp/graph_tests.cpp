@@ -93,8 +93,8 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         // Set block 2 input to 2
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
 
-        auto wire = Wire::create(registry, block2, block1, registry.get<Block>(block2).outputIds[0],
-                                 registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
+        auto wire = engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
+                                    registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
 
         //Process one sample on the graph
         graph.process(ctx);
@@ -103,8 +103,8 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         REQUIRE(output1.value == 7.0f);
 
         //Adding the same wire again should throw an exception
-        REQUIRE_THROWS(Wire::create(registry, block2, block1, registry.get<Block>(block2).outputIds[0],
-                                    registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d));
+        REQUIRE_THROWS(engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
+                                       registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d));
     }
 
     SECTION("Testing disconnection") {

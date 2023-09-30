@@ -72,3 +72,38 @@ void AudioEngine::set_output(entt::entity output_id, size_t output_width) {
     _output_id = output_id;
     _output_width = output_width;
 }
+
+entt::entity
+AudioEngine::add_wire(entt::entity from_block, entt::entity to_block, entt::entity from_output, entt::entity to_input,
+                      TransmitFunc transmitFunc, float gain, float offset) {
+    auto [registry, lock] = get_graph_registry();
+    auto entity = Wire::create(registry, from_block, to_block, from_output, to_input, transmitFunc, gain, offset);
+
+    // Need to do a topological sort of the graph
+    _graph.toposort_blocks();
+    return entity;
+}
+
+void AudioEngine::remove_wire(entt::entity wire_id) {
+    auto [registry, guard] = get_graph_registry();
+    Wire::destroy(registry, wire_id);
+
+    // Need to do a topological sort of the graph
+    _graph.toposort_blocks();
+}
+
+void AudioEngine::remove_block(entt::entity block_id) {
+    auto [registry, guard] = get_graph_registry();
+    //First remove all the wires connected to this block:
+    auto view = registry.view<Wire>();
+    for (auto entity: view) {
+        auto &wire = view.get<Wire>(entity);
+        if (wire.from_block == block_id || wire.to_block == block_id) {
+            Wire::destroy(registry, entity);
+        }
+    }
+    Block::destroy(registry, block_id);
+
+    // Need to do a topological sort of the graph
+    _graph.toposort_blocks();
+}

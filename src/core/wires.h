@@ -16,6 +16,8 @@ namespace AAri {
     typedef void (*TransmitFunc)(entt::registry &registry, const Wire &wire);
 
     struct Wire {
+        friend class AudioEngine;
+
         // Members ----------------------------------------------------------------------
         entt::entity from_block = entt::null;
         entt::entity to_block = entt::null;
@@ -26,6 +28,14 @@ namespace AAri {
         TransmitFunc transmitFunc = nullptr;
         //-------------------------------------------------------------------------------
 
+        static void transmit_1d_to_1d(entt::registry &registry, const Wire &wire);
+
+        static void broadcast_1d_to_2d(entt::registry &registry, const Wire &wire);
+
+    private:
+        // Creation and deletion are private
+        // because they require a new topological sort of the graph
+        // therefore should be done through the AudioEngine class
         static entt::entity create(entt::registry &registry,
                                    entt::entity from_block,
                                    entt::entity to_block,
@@ -54,9 +64,7 @@ namespace AAri {
             registry.destroy(entity);
         }
 
-        static void transmit_1d_to_1d(entt::registry &registry, const Wire &wire);
 
-        static void broadcast_1d_to_2d(entt::registry &registry, const Wire &wire);
     };
 }
 #endif //AARI_WIRES_H

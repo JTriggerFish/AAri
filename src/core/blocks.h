@@ -39,6 +39,8 @@ namespace AAri {
     };
 
     struct Block {
+        friend class AudioEngine;
+
         // Members ----------------------------------------------------------------------
         std::array<entt::entity, 8> inputIds = {
                 entt::null, entt::null, entt::null, entt::null,
@@ -61,6 +63,9 @@ namespace AAri {
             return entity;
         }
 
+    private:
+        // Deletion is private because it requires a new topological sort of the graph
+        // therefore should be done through the AudioEngine class
         static void destroy(entt::registry &registry, entt::entity entity) {
             registry.destroy(entity);
         }
