@@ -8,6 +8,7 @@
 #include "graph.h"
 #include <memory>
 #include <tuple>
+#include <optional>
 #include <entt/entt.hpp>
 
 namespace AAri {
@@ -35,13 +36,13 @@ namespace AAri {
 
         void stopAudio();
 
-        void set_output(entt::entity output_id, size_t output_width);
 
         /**
          * Any access to the registry is most likely not thread-safe with the callback
          * so we need to lock it
-         * @param registry
-         * @return
+         * Outside of this class, this in particular used for block creation
+         * @return a tuple containing the registry and a SpinLockGuard
+         *
          */
         std::tuple<entt::registry &, SpinLockGuard> get_graph_registry() {
             return {_graph.registry, SpinLockGuard(_callback_lock)};
@@ -59,6 +60,9 @@ namespace AAri {
             return _graph;
         }
 
+        //Graph modification functions ----------------------------------------------
+        void set_output(entt::entity output_id, size_t output_width);
+
         entt::entity add_wire(entt::entity from_block,
                               entt::entity to_block,
                               entt::entity from_output,
@@ -69,6 +73,25 @@ namespace AAri {
         void remove_wire(entt::entity wire_id);
 
         void remove_block(entt::entity block_id);
+
+        void tweak_wire_gain(entt::entity wire_id, float gain);
+
+        void tweak_wire_offset(entt::entity wire_id, float offset);
+
+        //"free" inspection functions ----------------------------------------------
+        // these can be called without locking the registry
+        Block get_block(entt::entity block_id);
+
+        Wire get_wire(entt::entity wire_id);
+
+        std::vector<entt::entity> get_wires_to_block(entt::entity block_id);
+
+        std::vector<entt::entity> get_wires_from_block(entt::entity block_id);
+
+        std::optional<entt::entity> get_wire_to_input(entt::entity input_id);
+
+        std::vector<entt::entity> get_wires_from_output(entt::entity output_id);
+
 
     private:
         static void audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);

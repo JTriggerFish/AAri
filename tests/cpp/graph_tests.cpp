@@ -108,9 +108,69 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     }
 
     SECTION("Testing disconnection") {
+        engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
+                        registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
 
-// Disconnect blocks using id
-        // There is no wire connected to block2
+        auto maybe_wire = engine.get_wire_to_input(registry.get<Block>(block1).inputIds[0]);
+        REQUIRE(maybe_wire.has_value());
+        REQUIRE(engine.get_wires_to_block(block1).size() == 1);
+        REQUIRE(engine.get_wires_to_block(block1)[0] == maybe_wire.value());
+        REQUIRE(engine.get_wires_from_block(block2).size() == 1);
+        REQUIRE(engine.get_wires_from_block(block2)[0] == maybe_wire.value());
+
+        // Remove
+        engine.remove_wire(maybe_wire.value());
+        // Wire is now gone
+        REQUIRE(!engine.get_wire_to_input(registry.get<Block>(block1).inputIds[0]).has_value());
+        //No wires on block 1 or two now:
+        REQUIRE(engine.get_wires_from_block(block1).empty());
+        REQUIRE(engine.get_wires_to_block(block1).empty());
+        REQUIRE(engine.get_wires_to_block(block2).empty());
+        REQUIRE(engine.get_wires_from_block(block1).empty());
+
+        //Set the input of block 2 to 1 :
+        registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 1.0f;
+        //Process one sample on the graph
+        graph.process(ctx);
+        //Get the output of the blocks
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+
+        // Back to disconnected expected values
+        REQUIRE(output1.value == 3.0f);
+        REQUIRE(output2.value == 2.0f);
+
+    }SECTION("Testing wire gain and offset") {
+        auto wire = engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
+                                    registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
+
+        // Check gain and offset are as expected:
+        REQUIRE(engine.get_wire(wire).gain == 1.0f);
+        REQUIRE(engine.get_wire(wire).offset == 0.0f);
+
+        // Set wire gain to zero:
+        engine.tweak_wire_gain(wire, 0.0f);
+        REQUIRE(engine.get_wire(wire).gain == 0.0f);
+        REQUIRE(engine.get_wire(wire).offset == 0.0f);
+
+        //Check offset tweaking then set it back
+        engine.tweak_wire_offset(wire, 1.0f);
+        REQUIRE(engine.get_wire(wire).gain == 0.0f);
+        REQUIRE(engine.get_wire(wire).offset == 1.0f);
+        engine.tweak_wire_offset(wire, 0.0f);
+
+        //Set the input of block 2 to 1 :
+        registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 1.0f;
+        //Process one sample on the graph
+        graph.process(ctx);
+        //Get the output of the blocks
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+
+        // Back to disconnected expected values
+        REQUIRE(output1.value == 3.0f);
+        REQUIRE(output2.value == 2.0f);
+
     }
 }
 

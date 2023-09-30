@@ -10,7 +10,7 @@
 using namespace AAri;
 
 AudioEngine::AudioEngine(ma_uint32 sample_rate, ma_uint32 buffer_size) : clock_seconds(0),
-                                                                         _output_id(entt::null) {
+                                                                         _output_id(entt::null), _output_width(0) {
 
     // Open audio device
     _deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -34,7 +34,7 @@ AudioEngine::~AudioEngine() {
 
 void AudioEngine::startAudio() {
     ma_device_start(&_device);
-    clock_seconds = 0;
+    clock_seconds = 0.0;
 }
 
 void AudioEngine::stopAudio() {
@@ -106,4 +106,71 @@ void AudioEngine::remove_block(entt::entity block_id) {
 
     // Need to do a topological sort of the graph
     _graph.toposort_blocks();
+}
+
+Block AudioEngine::get_block(entt::entity block_id) {
+    return _graph.registry.get<Block>(block_id);
+}
+
+std::vector<entt::entity> AudioEngine::get_wires_to_block(entt::entity block_id) {
+    std::vector<entt::entity> wires;
+    auto view = _graph.registry.view<Wire>();
+    for (auto entity: view) {
+        auto &wire = view.get<Wire>(entity);
+        if (wire.to_block == block_id) {
+            wires.push_back(entity);
+        }
+    }
+    return wires;
+}
+
+std::vector<entt::entity> AudioEngine::get_wires_from_block(entt::entity block_id) {
+    std::vector<entt::entity> wires;
+    auto view = _graph.registry.view<Wire>();
+    for (auto entity: view) {
+        auto &wire = view.get<Wire>(entity);
+        if (wire.from_block == block_id) {
+            wires.push_back(entity);
+        }
+    }
+    return wires;
+}
+
+std::optional<entt::entity> AudioEngine::get_wire_to_input(entt::entity input_id) {
+    auto view = _graph.registry.view<Wire>();
+    for (auto entity: view) {
+        auto &wire = view.get<Wire>(entity);
+        if (wire.to_input == input_id) {
+            return entity;
+        }
+    }
+    return std::nullopt;
+}
+
+std::vector<entt::entity> AudioEngine::get_wires_from_output(entt::entity output_id) {
+    std::vector<entt::entity> wires;
+    auto view = _graph.registry.view<Wire>();
+    for (auto entity: view) {
+        auto &wire = view.get<Wire>(entity);
+        if (wire.from_output == output_id) {
+            wires.push_back(entity);
+        }
+    }
+    return wires;
+}
+
+Wire AudioEngine::get_wire(entt::entity wire_id) {
+    return _graph.registry.get<Wire>(wire_id);
+}
+
+void AudioEngine::tweak_wire_gain(entt::entity wire_id, float gain) {
+    auto [registry, guard] = get_graph_registry();
+    auto &wire = registry.get<Wire>(wire_id);
+    wire.gain = gain;
+}
+
+void AudioEngine::tweak_wire_offset(entt::entity wire_id, float offset) {
+    auto [registry, guard] = get_graph_registry();
+    auto &wire = registry.get<Wire>(wire_id);
+    wire.offset = offset;
 }
