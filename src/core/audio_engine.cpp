@@ -74,10 +74,14 @@ void AudioEngine::set_output(entt::entity output_id, size_t output_width) {
 }
 
 entt::entity
-AudioEngine::add_wire(entt::entity from_block, entt::entity to_block, entt::entity from_output, entt::entity to_input,
+AudioEngine::add_wire(entt::entity from_block, entt::entity to_block,
+                      size_t from_output, size_t to_input,
                       TransmitFunc transmitFunc, float gain, float offset) {
     auto [registry, lock] = get_graph_registry();
-    auto entity = Wire::create(registry, from_block, to_block, from_output, to_input, transmitFunc, gain, offset);
+    auto entity = Wire::create(registry, from_block, to_block,
+                               registry.get<Block>(from_block).outputIds[from_output],
+                               registry.get<Block>(to_block).inputIds[to_input],
+                               transmitFunc, gain, offset);
 
     // Need to do a topological sort of the graph
     _graph.toposort_blocks();

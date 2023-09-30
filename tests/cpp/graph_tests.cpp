@@ -23,10 +23,12 @@ void plus_three(entt::registry &registry, const Block &block, AudioContext ctx) 
 }
 
 void times_2_and_plus_4(entt::registry &registry, const Block &block, AudioContext ctx) {
-    auto &input = registry.get<Input2D>(block.inputIds[0]);
-    auto &output = registry.get<Output2D>(block.outputIds[0]);
-    output.value[0] = input.value[0] * 2.0f;
-    output.value[1] = input.value[1] + 4.0f;
+    auto &input1 = registry.get<Input1D>(block.inputIds[0]);
+    auto &input2 = registry.get<Input1D>(block.inputIds[1]);
+    auto &output1 = registry.get<Output1D>(block.outputIds[0]);
+    auto &output2 = registry.get<Output1D>(block.outputIds[1]);
+    output1.value = input1.value * 2.0f;
+    output2.value = input2.value + 4.0f;
 }
 
 entt::entity create_times_two(entt::registry &registry) {
@@ -47,6 +49,20 @@ entt::entity create_plus_three(entt::registry &registry) {
 
     return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input},
                          std::array<entt::entity, 4>{output}, plus_three);
+}
+
+entt::entity create_times_2_and_plus_4(entt::registry &registry) {
+    auto input1 = registry.create();
+    registry.emplace<Input1D>(input1, 0.0f, ParamName::Input);
+    auto input2 = registry.create();
+    registry.emplace<Input1D>(input2, 0.0f, ParamName::Input);
+    auto output1 = registry.create();
+    registry.emplace<Output1D>(output1, 0.0f, ParamName::Out);
+    auto output2 = registry.create();
+    registry.emplace<Output1D>(output2, 0.0f, ParamName::Out);
+
+    return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input1, input2},
+                         std::array<entt::entity, 4>{output1, output2}, times_2_and_plus_4);
 }
 
 
@@ -93,8 +109,7 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         // Set block 2 input to 2
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
 
-        auto wire = engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
-                                    registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
+        auto wire = engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
 
         //Process one sample on the graph
         graph.process(ctx);
@@ -103,13 +118,11 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         REQUIRE(output1.value == 7.0f);
 
         //Adding the same wire again should throw an exception
-        REQUIRE_THROWS(engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
-                                       registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d));
+        REQUIRE_THROWS(engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d));
     }
 
     SECTION("Testing disconnection") {
-        engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
-                        registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
 
         auto maybe_wire = engine.get_wire_to_input(registry.get<Block>(block1).inputIds[0]);
         REQUIRE(maybe_wire.has_value());
@@ -141,8 +154,7 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         REQUIRE(output2.value == 2.0f);
 
     }SECTION("Testing wire gain and offset") {
-        auto wire = engine.add_wire(block2, block1, registry.get<Block>(block2).outputIds[0],
-                                    registry.get<Block>(block1).inputIds[0], Wire::transmit_1d_to_1d);
+        auto wire = engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
 
         // Check gain and offset are as expected:
         REQUIRE(engine.get_wire(wire).gain == 1.0f);
@@ -176,9 +188,40 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
 
 
 TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGraph]") {
+    AudioEngine engine;
+    auto [registry, guard] = engine.get_graph_registry();
+    auto block1 = create_times_two(registry);
+    auto block2 = create_plus_three(registry);
+    auto block3 = create_times_2_and_plus_4(registry);
+
+    AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
+    auto &graph = engine._test_only_get_graph();
 
 
     SECTION("Testing Multiple layers of dependencies") {
+        //Connect block 1's output to block 3's first input
+        //and block 3's second output to block 2's input
+        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block3, block2, 1, 0, Wire::transmit_1d_to_1d);
+
+        //Set block 1 input to 2
+        registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 2.0f;
+        // Process one sample on the graph
+        graph.process(ctx);
+        //Get the output of the blocks
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto &output3_0 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[0]);
+        auto &output3_1 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[1]);
+
+        REQUIRE(output1.value == 4.0f);
+        REQUIRE(output3_0.value == 8.0f);
+        REQUIRE(output3_1.value == 4.0f);
+
+        //TODO : currently wrong, looks like the topology sort is broken
+        REQUIRE(output2.value == 11.0f);
+
+
     }
 
     SECTION("Testing Blocks with Multiple Inputs and Outputs") {
