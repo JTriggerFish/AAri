@@ -112,7 +112,7 @@ void AudioEngine::remove_block(entt::entity block_id) {
     _graph.toposort_blocks();
 }
 
-Block AudioEngine::get_block(entt::entity block_id) {
+Block AudioEngine::view_block(entt::entity block_id) {
     return _graph.registry.get<Block>(block_id);
 }
 
@@ -163,7 +163,7 @@ std::vector<entt::entity> AudioEngine::get_wires_from_output(entt::entity output
     return wires;
 }
 
-Wire AudioEngine::get_wire(entt::entity wire_id) {
+Wire AudioEngine::view_wire(entt::entity wire_id) {
     return _graph.registry.get<Wire>(wire_id);
 }
 

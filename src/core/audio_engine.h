@@ -80,9 +80,9 @@ namespace AAri {
 
         //"free" inspection functions ----------------------------------------------
         // these can be called without locking the registry
-        Block get_block(entt::entity block_id);
+        Block view_block(entt::entity block_id);
 
-        Wire get_wire(entt::entity wire_id);
+        Wire view_wire(entt::entity wire_id);
 
         std::vector<entt::entity> get_wires_to_block(entt::entity block_id);
 

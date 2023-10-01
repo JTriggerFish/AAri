@@ -35,8 +35,6 @@ namespace AAri {
             //we just need to use the entt functions to iterate through them
             auto block_view = registry.view<Block>();
             for (auto entity: block_view) {
-                auto &block = block_view.get<Block>(entity);
-
                 //Find all inbound wires to this block
                 //and transmit the data from upstream blocks
                 auto wire_view = registry.view<Wire>();
@@ -49,6 +47,7 @@ namespace AAri {
 
                 // Now the block's inputs are up-to-date and we can
                 // process it
+                auto &block = block_view.get<Block>(entity);
                 block.processFunc(registry, block, ctx);
             }
         }

@@ -157,18 +157,18 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         auto wire = engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
 
         // Check gain and offset are as expected:
-        REQUIRE(engine.get_wire(wire).gain == 1.0f);
-        REQUIRE(engine.get_wire(wire).offset == 0.0f);
+        REQUIRE(engine.view_wire(wire).gain == 1.0f);
+        REQUIRE(engine.view_wire(wire).offset == 0.0f);
 
         // Set wire gain to zero:
         engine.tweak_wire_gain(wire, 0.0f);
-        REQUIRE(engine.get_wire(wire).gain == 0.0f);
-        REQUIRE(engine.get_wire(wire).offset == 0.0f);
+        REQUIRE(engine.view_wire(wire).gain == 0.0f);
+        REQUIRE(engine.view_wire(wire).offset == 0.0f);
 
         //Check offset tweaking then set it back
         engine.tweak_wire_offset(wire, 1.0f);
-        REQUIRE(engine.get_wire(wire).gain == 0.0f);
-        REQUIRE(engine.get_wire(wire).offset == 1.0f);
+        REQUIRE(engine.view_wire(wire).gain == 0.0f);
+        REQUIRE(engine.view_wire(wire).offset == 1.0f);
         engine.tweak_wire_offset(wire, 0.0f);
 
         //Set the input of block 2 to 1 :
@@ -193,6 +193,7 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     auto block1 = create_times_two(registry);
     auto block2 = create_plus_three(registry);
     auto block3 = create_times_2_and_plus_4(registry);
+    auto block3_vals = registry.get<Block>(block3);
 
     AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
     auto &graph = engine._test_only_get_graph();
@@ -200,9 +201,9 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
 
     SECTION("Testing Multiple layers of dependencies") {
         //Connect block 1's output to block 3's first input
-        //and block 3's second output to block 2's input
+        //and block 3's first output to block 2's input
         engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
-        engine.add_wire(block3, block2, 1, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block3, block2, 0, 0, Wire::transmit_1d_to_1d);
 
         //Set block 1 input to 2
         registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 2.0f;
@@ -218,7 +219,6 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         REQUIRE(output3_0.value == 8.0f);
         REQUIRE(output3_1.value == 4.0f);
 
-        //TODO : currently wrong, looks like the topology sort is broken
         REQUIRE(output2.value == 11.0f);
 
 
