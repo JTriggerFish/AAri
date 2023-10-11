@@ -31,6 +31,13 @@ void times_2_and_plus_4(entt::registry &registry, const Block &block, AudioConte
     output2.value = input2.value + 4.0f;
 }
 
+void times_2_and_plus_4_vectorized(entt::registry &registry, const Block &block, AudioContext ctx) {
+    auto &input = registry.get<Input2D>(block.inputIds[0]);
+    auto &output = registry.get<Output2D>(block.outputIds[0]);
+    output.value[0] = input.value[0] * 2.0f;
+    output.value[1] = input.value[1] + 4.0f;
+}
+
 entt::entity create_times_two(entt::registry &registry) {
     auto input = registry.create();
     registry.emplace<Input1D>(input, 0.0f, ParamName::Input);
@@ -63,6 +70,16 @@ entt::entity create_times_2_and_plus_4(entt::registry &registry) {
 
     return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input1, input2},
                          std::array<entt::entity, 4>{output1, output2}, times_2_and_plus_4);
+}
+
+entt::entity create_times_2_and_plus_4_vectorized(entt::registry &registry) {
+    auto input = registry.create();
+    registry.emplace<Input2D>(input, std::array<float, 2>{0.0f, 0.0f}, ParamName::Input);
+    auto output = registry.create();
+    registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f}, ParamName::Out);
+
+    return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input},
+                         std::array<entt::entity, 4>{output}, times_2_and_plus_4_vectorized);
 }
 
 
@@ -257,14 +274,48 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     }
 
     SECTION("Testing Blocks with Multiple Inputs and Outputs") {
+        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block3, 0, 1, Wire::transmit_1d_to_1d);
+
+        registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
+        registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
+        graph.process(ctx);
+
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto &output3_0 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[0]);
+        auto &output3_1 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[1]);
+
+        REQUIRE(output1.value == 6.0f);
+        REQUIRE(output2.value == 5.0f);
+        REQUIRE(output3_0.value == 12.0f);
+        REQUIRE(output3_1.value == 9.0f);
     }SECTION("Testing that cycles throw an error") {
+        //Connect block1 -> block3 -> block2 -> block1
+        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block3, block2, 0, 0, Wire::transmit_1d_to_1d);
+        REQUIRE_THROWS(engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d));
+
 
     }
 
     SECTION("Testing wire with width > 1") {
-    }
+        auto block4 = create_times_2_and_plus_4_vectorized(registry);
+        engine.add_wire(block1, block4, 0, 0, Wire::broadcast_1d_to_2d);
 
-    SECTION("Testing Overlapping Wire Regions") {
+        //Wiring in other blocks but we're not gonna check those
+        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block3, 0, 1, Wire::transmit_1d_to_1d);
+
+        registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
+        graph.process(ctx);
+
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output4 = registry.get<Output2D>(registry.get<Block>(block4).outputIds[0]);
+
+        REQUIRE(output1.value == 6.0f);
+        REQUIRE(output4.value[0] == 12.0f);
+        REQUIRE(output4.value[1] == 10.0f);
     }
 }
 
