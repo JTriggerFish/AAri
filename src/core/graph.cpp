@@ -33,6 +33,43 @@ void AAri::Graph::toposort_blocks() {
     registry.sort<Block>([](const Block &lhs, const Block &rhs) {
         return lhs.topo_sort_index > rhs.topo_sort_index;
     });
+    //3) Update each block's WiresToBlock struct:
+    registry.view<WiresToBlock>().each([&](auto id, auto &wires_to_block) {
+        //First clear the array:
+        for (auto &input_id: wires_to_block.input_wire_ids) {
+            input_id = entt::null;
+        }
+        //
+        //Now fill it with the wires connected to this block:
+        wires.each([&](auto wire_id, auto &wire) {
+            if (wire.to_block == id) {
+                //Find the first available slot in the array and throw an error if there is
+                //none:
+                bool found = false;
+                for (auto &input_id: wires_to_block.input_wire_ids) {
+                    if (input_id == entt::null) {
+                        input_id = wire_id;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw std::runtime_error("Too many wires. we only support 16 wires to each block at present");
+                }
+            }
+        });
+    });
+    //4) Also sort the wires so that if block i is before block j in the registry,
+    //then all the input wires to block i are before all the input wires to block j
+    //This should significantly improve cache coherence
+    registry.sort<Wire>([this](const Wire &lhs, const Wire &rhs) {
+        //Use the blocks topo sort index
+        auto lhs_block = lhs.to_block;
+        auto rhs_block = rhs.to_block;
+        return registry.get<Block>(lhs_block).topo_sort_index >
+               registry.get<Block>(rhs_block).topo_sort_index;
+    });
+
 
 }
 

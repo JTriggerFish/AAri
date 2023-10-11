@@ -37,6 +37,18 @@ namespace AAri {
         Constant,
         Mixer,
     };
+    struct WiresToBlock {
+        /** Record wires incoming to block in order to avoid to find all wires
+         * connected to a block every time we run the real time loop
+         * Max of 16 input wires per block at present.
+         * Wires ids have to be sequential: a null means the end of the list
+         *
+         */
+        std::array<entt::entity, 16> input_wire_ids = {entt::null, entt::null, entt::null, entt::null,
+                                                       entt::null, entt::null, entt::null, entt::null,
+                                                       entt::null, entt::null, entt::null, entt::null,
+                                                       entt::null, entt::null, entt::null, entt::null};
+    };
 
     struct Block {
         friend class AudioEngine;
@@ -60,6 +72,7 @@ namespace AAri {
             auto entity = registry.create();
             registry.emplace<Block>(entity, inputIds, outputIds, type, 0u, processFunc);
             registry.emplace<Visited>(entity, Visited::UNVISITED);
+            registry.emplace<WiresToBlock>(entity);
             return entity;
         }
 

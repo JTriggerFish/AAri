@@ -66,5 +66,6 @@ namespace AAri {
 
 
     };
+
 }
 #endif //AARI_WIRES_H

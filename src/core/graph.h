@@ -38,11 +38,12 @@ namespace AAri {
                 //Find all inbound wires to this block
                 //and transmit the data from upstream blocks
                 auto wire_view = registry.view<Wire>();
-                for (auto wire_entity: wire_view) {
-                    auto &wire = wire_view.get<Wire>(wire_entity);
-                    if (wire.to_block == entity) {
-                        wire.transmitFunc(registry, wire);
-                    }
+                auto &wires_to_block = registry.get<WiresToBlock>(entity);
+                for (auto wire_id: wires_to_block.input_wire_ids) {
+                    if (wire_id == entt::null)
+                        break;
+                    auto &wire = wire_view.get<Wire>(wire_id);
+                    wire.transmitFunc(registry, wire);
                 }
 
                 // Now the block's inputs are up-to-date and we can

@@ -222,6 +222,38 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         REQUIRE(output2.value == 11.0f);
 
 
+        //Now get the order of all the wires and check that they
+        //are stored in the same order that the blocks are processed:
+        //We do this by putting them in a vector first:
+        std::vector<entt::entity> wires;
+        for (auto wire: registry.view<Wire>()) {
+            wires.push_back(wire);
+        }
+        //Get block order:
+        std::vector<entt::entity> blocks;
+        for (auto block: registry.view<Block>()) {
+            blocks.push_back(block);
+        }
+        //Get the WireToBlock for each block and check that no wire in blocks[i]'WireToBlock is
+        //after any wire in blocks[i+1]'s WireToBlock:
+        for (int i = 0; i < blocks.size() - 1; ++i) {
+            auto &wire_to_block1 = registry.get<WiresToBlock>(blocks[i]);
+            auto &wire_to_block2 = registry.get<WiresToBlock>(blocks[i + 1]);
+            for (auto wire_id1: wire_to_block1.input_wire_ids) {
+                if (wire_id1 == entt::null) {
+                    continue;
+                }
+                for (auto wire_id2: wire_to_block2.input_wire_ids) {
+                    if (wire_id2 == entt::null) {
+                        continue;
+                    }
+                    REQUIRE(std::find(wires.begin(), wires.end(), wire_id1) <
+                            std::find(wires.begin(), wires.end(), wire_id2));
+                }
+            }
+        }
+
+
     }
 
     SECTION("Testing Blocks with Multiple Inputs and Outputs") {
