@@ -7,7 +7,6 @@ using namespace AAri;
 
 
 void SineOsc::process(entt::registry &registry, const Block &block, AudioContext ctx) {
-    //Presumably here we don't need to check that this is a SineOsc
     auto &phase = registry.get<Input1D>(block.inputIds[0]);
     auto &freq = registry.get<Input1D>(block.inputIds[1]);
     auto &amp = registry.get<Input1D>(block.inputIds[2]);

@@ -32,6 +32,18 @@ namespace AAri {
 
         static void broadcast_1d_to_2d(entt::registry &registry, const Wire &wire);
 
+        //Templated function for mono mixers:
+        template<size_t N>
+        static void transmit_to_mono_mixer(entt::registry &registry, const Wire &wire);
+
+        //Similar for stereo mixers:
+        template<size_t N>
+        static void transmit_stereo_to_stereo_mixer(entt::registry &registry, const Wire &wire);
+
+        template<size_t N>
+        static void transmit_mono_to_stereo_mixer(entt::registry &registry, const Wire &wire);
+
+
     private:
         // Creation and deletion are private
         // because they require a new topological sort of the graph

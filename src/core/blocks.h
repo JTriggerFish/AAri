@@ -10,6 +10,9 @@
 
 
 namespace AAri {
+    constexpr int N_INPUTS = 8;
+    constexpr int N_OUTPUTS = 4;
+    constexpr int N_WIRES = 16;
 
     struct Block;
 
@@ -35,7 +38,8 @@ namespace AAri {
         Product,
         Sum,
         Constant,
-        Mixer,
+        MonoMixer,
+        StereoMixer,
     };
     struct WiresToBlock {
         /** Record wires incoming to block in order to avoid to find all wires
@@ -44,20 +48,20 @@ namespace AAri {
          * Wires ids have to be sequential: a null means the end of the list
          *
          */
-        std::array<entt::entity, 16> input_wire_ids = {entt::null, entt::null, entt::null, entt::null,
-                                                       entt::null, entt::null, entt::null, entt::null,
-                                                       entt::null, entt::null, entt::null, entt::null,
-                                                       entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_WIRES> input_wire_ids = {entt::null, entt::null, entt::null, entt::null,
+                                                            entt::null, entt::null, entt::null, entt::null,
+                                                            entt::null, entt::null, entt::null, entt::null,
+                                                            entt::null, entt::null, entt::null, entt::null};
     };
 
     struct Block {
         friend class AudioEngine;
 
         // Members ----------------------------------------------------------------------
-        std::array<entt::entity, 8> inputIds = {
+        std::array<entt::entity, N_INPUTS> inputIds = {
                 entt::null, entt::null, entt::null, entt::null,
                 entt::null, entt::null, entt::null, entt::null};
-        std::array<entt::entity, 4> outputIds = {entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_OUTPUTS> outputIds = {entt::null, entt::null, entt::null, entt::null};
 
         BlockType type = BlockType::NONE;
         uint32_t topo_sort_index = 0;
@@ -67,8 +71,8 @@ namespace AAri {
 
         //Static functions to create and destroy blocks
         static entt::entity
-        create(entt::registry &registry, BlockType type, const std::array<entt::entity, 8> &inputIds,
-               const std::array<entt::entity, 4> &outputIds, ProcessFunc processFunc) {
+        create(entt::registry &registry, BlockType type, const std::array<entt::entity, N_INPUTS> &inputIds,
+               const std::array<entt::entity, N_OUTPUTS> &outputIds, ProcessFunc processFunc) {
             auto entity = registry.create();
             registry.emplace<Block>(entity, inputIds, outputIds, type, 0u, processFunc);
             registry.emplace<Visited>(entity, Visited::UNVISITED);
@@ -85,11 +89,11 @@ namespace AAri {
     };
 
     struct InputExpansion {
-        std::array<entt::entity, 8> inputIds = {entt::null, entt::null, entt::null, entt::null,
-                                                entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_INPUTS> inputIds = {entt::null, entt::null, entt::null, entt::null,
+                                                       entt::null, entt::null, entt::null, entt::null};
     };
     struct OutputExpansion {
-        std::array<entt::entity, 4> outputIds = {entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_OUTPUTS> outputIds = {entt::null, entt::null, entt::null, entt::null};
     };
 }
 
