@@ -1,6 +1,7 @@
 //
 //
 #include "wires.h"
+#include "../blocks/mixers.h"
 
 void AAri::Wire::transmit_1d_to_1d(entt::registry &registry, const AAri::Wire &wire) {
     auto &from_output = registry.get<Output1D>(wire.from_output);
@@ -23,7 +24,8 @@ void AAri::Wire::transmit_to_mono_mixer(entt::registry &registry, const AAri::Wi
     //Note that in mixers we abuse the system a bit by using the wire input ids to store the index of the input
     //using an entt::entity type to represent a simple array index
     auto &from_output = registry.get<Output1D>(wire.from_output);
-    auto &to_input = registry.get<InputND<N> >(wire.to_input);
+    auto &mixer = registry.get<MonoMixer<N> >(wire.to_block);
+    auto &to_input = registry.get<InputND<N> >(mixer.inputIds[0]);
     to_input.value[(size_t) wire.to_input] = from_output.value * wire.gain + wire.offset;
 }
 
@@ -32,7 +34,8 @@ void AAri::Wire::transmit_mono_to_stereo_mixer(entt::registry &registry, const A
     //Note that in mixers we abuse the system a bit by using the wire input ids to store the index of the input
     //using an entt::entity type to represent a simple array index
     auto &from_output = registry.get<Output1D>(wire.from_output);
-    auto &to_input = registry.get<InputNDStereo<N> >(wire.to_input);
+    auto &mixer = registry.get<StereoMixer<N> >(wire.to_block);
+    auto &to_input = registry.get<InputNDStereo<N> >(mixer.inputIds[0]);
     to_input.left[(size_t) wire.to_input] = from_output.value * wire.gain + wire.offset;
     to_input.right[(size_t) wire.to_input] = from_output.value * wire.gain + wire.offset;
 }
@@ -47,5 +50,37 @@ void AAri::Wire::transmit_stereo_to_stereo_mixer(entt::registry &registry, const
     to_input.right[(size_t) wire.to_input] = from_output.value[1] * wire.gain + wire.offset;
 
 }
+
+//Explicit template instantiation of transmit functions for powers of 2
+template void AAri::Wire::transmit_to_mono_mixer<2>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_to_mono_mixer<4>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_to_mono_mixer<8>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_to_mono_mixer<16>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_to_mono_mixer<32>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_mono_to_stereo_mixer<2>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_mono_to_stereo_mixer<4>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_mono_to_stereo_mixer<8>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_mono_to_stereo_mixer<16>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_mono_to_stereo_mixer<32>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_stereo_to_stereo_mixer<2>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_stereo_to_stereo_mixer<4>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_stereo_to_stereo_mixer<8>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_stereo_to_stereo_mixer<16>(entt::registry &registry, const AAri::Wire &wire);
+
+template void AAri::Wire::transmit_stereo_to_stereo_mixer<32>(entt::registry &registry, const AAri::Wire &wire);
+
 
 

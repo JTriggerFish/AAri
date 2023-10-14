@@ -17,7 +17,7 @@ namespace AAri {
     };
 
     //A mixer with a templated input size
-    template<int N>
+    template<size_t N>
     struct MonoMixer : public Mixer {
         static void process(entt::registry &registry, const Block &block, AudioContext ctx);
 
@@ -25,7 +25,7 @@ namespace AAri {
     };
 
 
-    template<int N>
+    template<size_t N>
     struct StereoMixer : public Mixer {
         static void process(entt::registry &registry, const Block &block, AudioContext ctx);
 

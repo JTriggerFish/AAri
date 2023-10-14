@@ -5,19 +5,19 @@
 
 using namespace AAri;
 
-template<int N>
+template<size_t N>
 void MonoMixer<N>::process(entt::registry &registry, const Block &block, AudioContext ctx) {
     auto &input = registry.get<InputND<N> >(block.inputIds[0]);
     auto &out = registry.get<Output1D>(block.outputIds[0]);
 
     out.value = 0.0f;
-    for (int i = 0; i < N; i++) {
+    for (size_t i = 0; i < N; i++) {
         out.value += input.value[i];
     }
 
 }
 
-template<int N>
+template<size_t N>
 entt::entity MonoMixer<N>::create(entt::registry &registry) {
     auto input = registry.create();
     registry.emplace<InputND<N>>(input, std::array<float, N>{0.0f}, ParamName::Input);
@@ -33,21 +33,21 @@ entt::entity MonoMixer<N>::create(entt::registry &registry) {
 }
 
 
-template<int N>
+template<size_t N>
 void StereoMixer<N>::process(entt::registry &registry, const Block &block, AudioContext ctx) {
     auto &input = registry.get<InputNDStereo<N> >(block.inputIds[0]);
     auto &out = registry.get<Output2D>(block.outputIds[0]);
 
     out.value[0] = 0.0f;
     out.value[1] = 0.0f;
-    for (int i = 0; i < N; i++) {
+    for (size_t i = 0; i < N; i++) {
         out.value[0] += input.left[i];
         out.value[1] += input.right[i];
     }
 
 }
 
-template<int N>
+template<size_t N>
 entt::entity StereoMixer<N>::create(entt::registry &registry) {
     auto input = registry.create();
     registry.emplace<InputNDStereo<N> >(input, std::array<float, N>{0.0f}, std::array<float, N>{0.0f},

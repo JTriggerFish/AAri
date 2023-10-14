@@ -5,6 +5,7 @@
 #include "../../src/core/graph.h"
 #include "../../src/core/blocks.h"
 #include "../../src/core/audio_engine.h"
+#include "../../src/blocks/mixers.h"
 #include <entt/entt.hpp>
 #include <catch2/catch_all.hpp>
 
@@ -210,7 +211,6 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     auto block1 = create_times_two(registry);
     auto block2 = create_plus_three(registry);
     auto block3 = create_times_2_and_plus_4(registry);
-    auto block3_vals = registry.get<Block>(block3);
 
     AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
     auto &graph = engine._test_only_get_graph();
@@ -317,6 +317,38 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         REQUIRE(output4.value[0] == 12.0f);
         REQUIRE(output4.value[1] == 10.0f);
     }
+}
+
+TEST_CASE("Test mixers") {
+    AudioEngine engine;
+    auto [registry, guard] = engine.get_graph_registry();
+    auto block1 = create_times_two(registry);
+    auto block2 = create_plus_three(registry);
+    auto block3 = create_times_2_and_plus_4(registry);
+    auto block4 = create_times_2_and_plus_4_vectorized(registry);
+
+    AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
+    auto &graph = engine._test_only_get_graph();
+
+    SECTION("Test mono mixer") {
+        auto mixer = MonoMixer<4>::create(registry);
+        engine.add_wire(block1, mixer, 0, 0, Wire::transmit_to_mono_mixer<4>);
+        engine.add_wire(block2, mixer, 0, 1, Wire::transmit_to_mono_mixer<4>);
+
+        registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
+        registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
+        graph.process(ctx);
+
+        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto &output3 = registry.get<Output1D>(registry.get<Block>(mixer).outputIds[0]);
+
+        REQUIRE(output1.value == 6.0f);
+        REQUIRE(output2.value == 5.0f);
+        REQUIRE(output3.value == 11.0f);
+
+    }
+
 }
 
 

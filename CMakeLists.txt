@@ -48,6 +48,7 @@ add_library(core STATIC
         src/blocks/mixers.cpp
         src/core/graph.cpp
         src/core/wires.cpp
+        src/core/parameters.cpp
 )
 
 # Get SDL2 include directories and link libraries

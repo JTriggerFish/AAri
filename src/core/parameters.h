@@ -39,18 +39,18 @@ namespace AAri {
         std::array<float, 2> value = {0.0, 0.0};
         ParamName name = ParamName::NONE;
     };
-    template<int N>
+    template<size_t N>
     struct InputND {
         std::array<float, N> value = {0.0};
         ParamName name = ParamName::NONE;
     };
-    template<int N>
+    template<size_t N>
     struct InputNDStereo {
         std::array<float, N> left = {0.0};
         std::array<float, N> right = {0.0};
         ParamName name = ParamName::NONE;
     };
-    template<int N>
+    template<size_t N>
     struct OutputND {
         std::array<float, N> value = {0.0};
         ParamName name = ParamName::NONE;
