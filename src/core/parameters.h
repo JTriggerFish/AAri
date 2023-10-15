@@ -4,6 +4,7 @@
 #ifndef AARI_PARAMETERS_H
 #define AARI_PARAMETERS_H
 
+#include <cstddef>
 #include <array>
 
 
