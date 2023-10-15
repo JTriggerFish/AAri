@@ -65,8 +65,15 @@ namespace AAri {
 
         entt::entity add_wire(entt::entity from_block,
                               entt::entity to_block,
-                              size_t from_output_num,
-                              size_t to_input_num,
+                              entt::entity from_output,
+                              entt::entity to_input,
+                              TransmitFunc transmitFunc,
+                              float gain = 1.0f, float offset = 0.0f);
+
+        entt::entity add_wire(entt::entity from_block,
+                              entt::entity to_block,
+                              entt::entity from_output,
+                              size_t to_mixer_input_index,
                               TransmitFunc transmitFunc,
                               float gain = 1.0f, float offset = 0.0f);
 

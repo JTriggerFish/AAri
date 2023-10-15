@@ -25,9 +25,8 @@ entt::entity MonoMixer<N>::create(entt::registry &registry) {
     registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
 
     return Block::create(registry, BlockType::MonoMixer,
-                         std::array<entt::entity, 8>{input, entt::null, entt::null, entt::null, entt::null, entt::null,
-                                                     entt::null, entt::null},
-                         std::array<entt::entity, 4>{output, entt::null, entt::null, entt::null},
+                         fill_with_null<N_INPUTS>(input),
+                         fill_with_null<N_OUTPUTS>(output),
                          process);
 
 }
@@ -56,9 +55,8 @@ entt::entity StereoMixer<N>::create(entt::registry &registry) {
     registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f}, ParamName::StereoOut);
 
     return Block::create(registry, BlockType::StereoMixer,
-                         std::array<entt::entity, 8>{input, entt::null, entt::null, entt::null, entt::null, entt::null,
-                                                     entt::null, entt::null},
-                         std::array<entt::entity, 4>{output, entt::null, entt::null, entt::null},
+                         fill_with_null<N_INPUTS>(input),
+                         fill_with_null<N_OUTPUTS>(output),
                          process);
 }
 

@@ -3,13 +3,22 @@
 
 #include "../../src/core/parameters.h"
 #include "../../src/core/graph.h"
-#include "../../src/core/blocks.h"
 #include "../../src/core/audio_engine.h"
 #include "../../src/blocks/mixers.h"
 #include <entt/entt.hpp>
 #include <catch2/catch_all.hpp>
 
 using namespace AAri;
+
+entt::entity getOutputId(entt::registry &registry, entt::entity blockId, int outputIndex) {
+    auto &block = registry.get<Block>(blockId);
+    return block.outputIds[outputIndex];
+}
+
+entt::entity getInputId(entt::registry &registry, entt::entity blockId, int inputIndex) {
+    auto &block = registry.get<Block>(blockId);
+    return block.inputIds[inputIndex];
+}
 
 void times_two(entt::registry &registry, const Block &block, AudioContext ctx) {
     auto &input = registry.get<Input1D>(block.inputIds[0]);
@@ -45,8 +54,10 @@ entt::entity create_times_two(entt::registry &registry) {
     auto output = registry.create();
     registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
 
-    return Block::create(registry, BlockType::Product, std::array<entt::entity, 8>{input},
-                         std::array<entt::entity, 4>{output}, times_two);
+    return Block::create(registry, BlockType::Product,
+                         fill_with_null<N_INPUTS>(input),
+                         fill_with_null<N_OUTPUTS>(output),
+                         times_two);
 }
 
 entt::entity create_plus_three(entt::registry &registry) {
@@ -55,8 +66,10 @@ entt::entity create_plus_three(entt::registry &registry) {
     auto output = registry.create();
     registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
 
-    return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input},
-                         std::array<entt::entity, 4>{output}, plus_three);
+    return Block::create(registry, BlockType::Sum,
+                         fill_with_null<N_INPUTS>(input),
+                         fill_with_null<N_OUTPUTS>(output),
+                         plus_three);
 }
 
 entt::entity create_times_2_and_plus_4(entt::registry &registry) {
@@ -69,8 +82,10 @@ entt::entity create_times_2_and_plus_4(entt::registry &registry) {
     auto output2 = registry.create();
     registry.emplace<Output1D>(output2, 0.0f, ParamName::Out);
 
-    return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input1, input2},
-                         std::array<entt::entity, 4>{output1, output2}, times_2_and_plus_4);
+    return Block::create(registry, BlockType::Sum,
+                         fill_with_null<N_INPUTS>(input1, input2),
+                         fill_with_null<N_OUTPUTS>(output1, output2),
+                         times_2_and_plus_4);
 }
 
 entt::entity create_times_2_and_plus_4_vectorized(entt::registry &registry) {
@@ -79,8 +94,10 @@ entt::entity create_times_2_and_plus_4_vectorized(entt::registry &registry) {
     auto output = registry.create();
     registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f}, ParamName::Out);
 
-    return Block::create(registry, BlockType::Sum, std::array<entt::entity, 8>{input},
-                         std::array<entt::entity, 4>{output}, times_2_and_plus_4_vectorized);
+    return Block::create(registry, BlockType::Sum,
+                         fill_with_null<N_INPUTS>(input),
+                         fill_with_null<N_OUTPUTS>(output),
+                         times_2_and_plus_4_vectorized);
 }
 
 
@@ -127,7 +144,8 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         // Set block 2 input to 2
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
 
-        auto wire = engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
+                        getInputId(registry, block1, 0), Wire::transmit_1d_to_1d);
 
         //Process one sample on the graph
         graph.process(ctx);
@@ -136,11 +154,13 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         REQUIRE(output1.value == 7.0f);
 
         //Adding the same wire again should throw an exception
-        REQUIRE_THROWS(engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d));
+        REQUIRE_THROWS(engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
+                                       getInputId(registry, block1, 0), Wire::transmit_1d_to_1d));
     }
 
     SECTION("Testing disconnection") {
-        engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
+                        getInputId(registry, block1, 0), Wire::transmit_1d_to_1d);
 
         auto maybe_wire = engine.get_wire_to_input(registry.get<Block>(block1).inputIds[0]);
         REQUIRE(maybe_wire.has_value());
@@ -172,7 +192,8 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         REQUIRE(output2.value == 2.0f);
 
     }SECTION("Testing wire gain and offset") {
-        auto wire = engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d);
+        auto wire = engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
+                                    getInputId(registry, block1, 0), Wire::transmit_1d_to_1d);
 
         // Check gain and offset are as expected:
         REQUIRE(engine.view_wire(wire).gain == 1.0f);
@@ -219,8 +240,10 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     SECTION("Testing Multiple layers of dependencies") {
         //Connect block 1's output to block 3's first input
         //and block 3's first output to block 2's input
-        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
-        engine.add_wire(block3, block2, 0, 0, Wire::transmit_1d_to_1d);
+        engine.add_wire(block1, block3, getOutputId(registry, block1, 0),
+                        getInputId(registry, block3, 0), Wire::transmit_1d_to_1d);
+        engine.add_wire(block3, block2, getOutputId(registry, block3, 0),
+                        getInputId(registry, block2, 0), Wire::transmit_1d_to_1d);
 
         //Set block 1 input to 2
         registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 2.0f;
@@ -274,8 +297,10 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     }
 
     SECTION("Testing Blocks with Multiple Inputs and Outputs") {
-        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
-        engine.add_wire(block2, block3, 0, 1, Wire::transmit_1d_to_1d);
+        engine.add_wire(block1, block3, getOutputId(registry, block1, 0),
+                        getInputId(registry, block3, 0), Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block3, getOutputId(registry, block2, 0),
+                        getInputId(registry, block3, 1), Wire::transmit_1d_to_1d);
 
         registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
@@ -292,27 +317,42 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         REQUIRE(output3_1.value == 9.0f);
     }SECTION("Testing that cycles throw an error") {
         //Connect block1 -> block3 -> block2 -> block1
-        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
-        engine.add_wire(block3, block2, 0, 0, Wire::transmit_1d_to_1d);
-        REQUIRE_THROWS(engine.add_wire(block2, block1, 0, 0, Wire::transmit_1d_to_1d));
+        engine.add_wire(block1, block3, getOutputId(registry, block1, 0),
+                        getInputId(registry, block3, 0), Wire::transmit_1d_to_1d);
+        engine.add_wire(block3, block2, getOutputId(registry, block3, 0),
+                        getInputId(registry, block2, 0), Wire::transmit_1d_to_1d);
+        REQUIRE_THROWS(engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
+                                       getInputId(registry, block1, 0), Wire::transmit_1d_to_1d));
 
 
     }
 
     SECTION("Testing wire with width > 1") {
         auto block4 = create_times_2_and_plus_4_vectorized(registry);
-        engine.add_wire(block1, block4, 0, 0, Wire::broadcast_1d_to_2d);
+        engine.add_wire(block1, block4, getOutputId(registry, block1, 0),
+                        getInputId(registry, block4, 0), Wire::broadcast_1d_to_2d);
 
         //Wiring in other blocks but we're not gonna check those
-        engine.add_wire(block1, block3, 0, 0, Wire::transmit_1d_to_1d);
-        engine.add_wire(block2, block3, 0, 1, Wire::transmit_1d_to_1d);
+        engine.add_wire(block1, block3, getOutputId(registry, block1, 0),
+                        getInputId(registry, block3, 0), Wire::transmit_1d_to_1d);
+        engine.add_wire(block2, block3, getOutputId(registry, block2, 0),
+                        getInputId(registry, block3, 1), Wire::transmit_1d_to_1d);
 
-        registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
+        registry.get<Input1D>(getInputId(registry, block1, 0)).value = 3.0f;
         graph.process(ctx);
 
         auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
         auto &output4 = registry.get<Output2D>(registry.get<Block>(block4).outputIds[0]);
 
+        REQUIRE(output1.value == 6.0f);
+        REQUIRE(output4.value[0] == 12.0f);
+        REQUIRE(output4.value[1] == 10.0f);
+
+
+        //Delete block 2 and 3 and check we still get the right output
+        engine.remove_block(block2);
+        engine.remove_block(block3);
+        graph.process(ctx);
         REQUIRE(output1.value == 6.0f);
         REQUIRE(output4.value[0] == 12.0f);
         REQUIRE(output4.value[1] == 10.0f);
@@ -332,8 +372,10 @@ TEST_CASE("Test mixers") {
 
     SECTION("Test mono mixer") {
         auto mixer = MonoMixer<4>::create(registry);
-        engine.add_wire(block1, mixer, 0, 0, Wire::transmit_to_mono_mixer<4>);
-        engine.add_wire(block2, mixer, 0, 1, Wire::transmit_to_mono_mixer<4>);
+        engine.add_wire(block1, mixer, getOutputId(registry, block1, 0), 0,
+                        Wire::transmit_to_mono_mixer<4>);
+        engine.add_wire(block2, mixer, getOutputId(registry, block2, 0), 1,
+                        Wire::transmit_to_mono_mixer<4>);
 
         registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;

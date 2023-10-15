@@ -6,6 +6,7 @@
 
 #include <array>
 #include "audio_context.h"
+#include "utils/data_structures.h"
 #include <entt/entt.hpp>
 
 
@@ -48,20 +49,15 @@ namespace AAri {
          * Wires ids have to be sequential: a null means the end of the list
          *
          */
-        std::array<entt::entity, N_WIRES> input_wire_ids = {entt::null, entt::null, entt::null, entt::null,
-                                                            entt::null, entt::null, entt::null, entt::null,
-                                                            entt::null, entt::null, entt::null, entt::null,
-                                                            entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_WIRES> input_wire_ids = fill_with_null<N_WIRES>();
     };
 
     struct Block {
         friend class AudioEngine;
 
         // Members ----------------------------------------------------------------------
-        std::array<entt::entity, N_INPUTS> inputIds = {
-                entt::null, entt::null, entt::null, entt::null,
-                entt::null, entt::null, entt::null, entt::null};
-        std::array<entt::entity, N_OUTPUTS> outputIds = {entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_INPUTS> inputIds = fill_with_null<N_INPUTS>();
+        std::array<entt::entity, N_OUTPUTS> outputIds = fill_with_null<N_OUTPUTS>();
 
         BlockType type = BlockType::NONE;
         uint32_t topo_sort_index = 0;
@@ -84,16 +80,27 @@ namespace AAri {
         // Deletion is private because it requires a new topological sort of the graph
         // therefore should be done through the AudioEngine class
         static void destroy(entt::registry &registry, entt::entity entity) {
+            //Delete all the inputs and outputs:
+            auto &block = registry.get<Block>(entity);
+            for (auto input: block.inputIds) {
+                if (input != entt::null) {
+                    registry.destroy(input);
+                }
+            }
+            for (auto output: block.outputIds) {
+                if (output != entt::null) {
+                    registry.destroy(output);
+                }
+            }
             registry.destroy(entity);
         }
     };
 
     struct InputExpansion {
-        std::array<entt::entity, N_INPUTS> inputIds = {entt::null, entt::null, entt::null, entt::null,
-                                                       entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_INPUTS> inputIds = fill_with_null<N_INPUTS>();
     };
     struct OutputExpansion {
-        std::array<entt::entity, N_OUTPUTS> outputIds = {entt::null, entt::null, entt::null, entt::null};
+        std::array<entt::entity, N_OUTPUTS> outputIds = fill_with_null<N_OUTPUTS>();
     };
 }
 

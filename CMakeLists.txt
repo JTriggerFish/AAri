@@ -41,7 +41,6 @@ FetchContent_MakeAvailable(entt)
 
 # Define the core library
 add_library(core STATIC
-        src/core/utils/FieldMap.cpp
         src/core/audio_engine.cpp
         src/blocks/oscillators.cpp
         src/blocks/envelopes.cpp
@@ -61,7 +60,7 @@ target_link_libraries(AAri PRIVATE core)
 # Define tests (we will use Catch2 for this)
 enable_testing()
 add_executable(utils_tests tests/cpp/utils_tests.cpp)
-target_link_libraries(utils_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11)
+target_link_libraries(utils_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 EnTT::EnTT)
 
 add_executable(graph_tests tests/cpp/graph_tests.cpp)
 target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::pybind11 EnTT::EnTT)

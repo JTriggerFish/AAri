@@ -28,8 +28,7 @@ SineOsc::create(entt::registry &registry, float init_freq, float init_amp) {
     registry.emplace<Output1D>(out, 0.0f, ParamName::Out);
 
     return Block::create(registry, BlockType::SineOsc,
-                         std::array<entt::entity, 8>{phase, freq, amp, entt::null, entt::null, entt::null,
-                                                     entt::null, entt::null},
-                         std::array<entt::entity, 4>{out, entt::null, entt::null, entt::null},
+                         fill_with_null<N_INPUTS>(phase, freq, amp),
+                         fill_with_null<N_OUTPUTS>(out),
                          process);
 }

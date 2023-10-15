@@ -7,6 +7,7 @@
 #include <string>
 #include <exception>
 #include <vector>
+#include <entt/entt.hpp>
 
 template<typename T>
 class Stack {
@@ -50,5 +51,14 @@ public:
 
     std::vector<T> _items;
 };
+
+template<size_t N, typename... Args>
+auto fill_with_null(Args... args) {
+    std::array<entt::entity, N> arr = {args...};
+    for (size_t i = sizeof...(args); i < N; ++i) {
+        arr[i] = entt::null;
+    }
+    return arr;
+}
 
 #endif //AARI_DATA_STRUCTURES_H
