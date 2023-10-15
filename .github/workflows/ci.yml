@@ -40,10 +40,5 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run tests (Windows)
-        if: runner.os == 'Windows'
-        run: ctest --test-dir build --schedule-random --config Release
-
-      - name: Run tests (Linux)
-        if: runner.os == 'Linux'
-        run: ctest --test-dir build --schedule-random
+      - name: Run tests
+        run: ctest --test-dir build --schedule-random --config Release --output-on-failure
