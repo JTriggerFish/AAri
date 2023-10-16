@@ -34,6 +34,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+
+      - name: Install latest CMake (Windows)
+        if: runner.os == "Windows"
+        run: |
+          choco install cmake --pre --installargs "ADD_CMAKE_TO_PATH=System"
+
       - name: Configure CMake
         run: cmake -B build
 
