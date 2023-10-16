@@ -42,7 +42,7 @@ jobs:
 
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
-        run: ctest --test-dir build/Testing --schedule-random --config Release --output-on-failure
+        run: ctest --test-dir build --schedule-random -C Release --output-on-failure
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
