@@ -34,17 +34,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-
-      - name: Install latest CMake (Windows)
-        if: runner.os == "Windows"
-        run: |
-          choco install cmake --pre --installargs "ADD_CMAKE_TO_PATH=System"
-
       - name: Configure CMake
         run: cmake -B build
 
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run tests
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        run: ctest --test-dir build/Testing --schedule-random --config Release --output-on-failure
+
+      - name: Run tests (Linux)
+        if: runner.os == 'Linux'
         run: ctest --test-dir build --schedule-random --config Release --output-on-failure
