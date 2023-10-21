@@ -33,7 +33,7 @@ namespace AAri {
     enum class BlockType {
         NONE,
         SineOsc,
-        TriangOsc,
+        TriOsc,
         SawOsc,
         SquareOsc,
         Product,
