@@ -29,8 +29,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .value("Sustain", ParamName::Sustain)
             .value("Release", ParamName::Release)
             .value("Out", ParamName::Out)
-            .value("StereoOut", ParamName::StereoOut)
-            .export_values();
+            .value("StereoOut", ParamName::StereoOut);
 
     py::class_<Input1D>(m, "Input1D", py::module_local())
             .def(py::init<float, ParamName>(), py::arg("value") = 0.0f, py::arg("name") = ParamName::NONE)
@@ -177,8 +176,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .value("Sum", BlockType::Sum)
             .value("Constant", BlockType::Constant)
             .value("MonoMixer", BlockType::MonoMixer)
-            .value("StereoMixer", BlockType::StereoMixer)
-            .export_values();
+            .value("StereoMixer", BlockType::StereoMixer);
 
     py::class_<WiresToBlock>(m, "WiresToBlock", py::module_local())
             .def_readonly("input_wire_ids", &WiresToBlock::input_wire_ids);
