@@ -91,10 +91,10 @@ entt::entity AudioEngine::add_wire(entt::entity from_block,
     return entity;
 }
 
-entt::entity AudioEngine::add_wire(entt::entity from_block,
-                                   entt::entity to_block, entt::entity from_output,
-                                   size_t to_mixer_input_index, TransmitFunc transmitFunc,
-                                   float gain, float offset) {
+entt::entity AudioEngine::add_wire_to_mixer(entt::entity from_block,
+                                            entt::entity to_block, entt::entity from_output,
+                                            size_t to_mixer_input_index, TransmitFunc transmitFunc,
+                                            float gain, float offset) {
     //For mixers we abuse the system a bit and store an index as an entity
     return add_wire(from_block, to_block, from_output, (entt::entity) to_mixer_input_index,
                     transmitFunc, gain, offset);

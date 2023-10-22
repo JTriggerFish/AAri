@@ -70,12 +70,12 @@ namespace AAri {
                               TransmitFunc transmitFunc,
                               float gain = 1.0f, float offset = 0.0f);
 
-        entt::entity add_wire(entt::entity from_block,
-                              entt::entity to_block,
-                              entt::entity from_output,
-                              size_t to_mixer_input_index,
-                              TransmitFunc transmitFunc,
-                              float gain = 1.0f, float offset = 0.0f);
+        entt::entity add_wire_to_mixer(entt::entity from_block,
+                                       entt::entity to_block,
+                                       entt::entity from_output,
+                                       size_t to_mixer_input_index,
+                                       TransmitFunc transmitFunc,
+                                       float gain = 1.0f, float offset = 0.0f);
 
         void remove_wire(entt::entity wire_id);
 

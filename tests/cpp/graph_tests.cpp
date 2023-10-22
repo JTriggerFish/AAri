@@ -372,10 +372,10 @@ TEST_CASE("Test mixers") {
 
     SECTION("Test mono mixer") {
         auto mixer = MonoMixer<4>::create(registry);
-        engine.add_wire(block1, mixer, getOutputId(registry, block1, 0), 0,
-                        Wire::transmit_to_mono_mixer<4>);
-        engine.add_wire(block2, mixer, getOutputId(registry, block2, 0), 1,
-                        Wire::transmit_to_mono_mixer<4>);
+        engine.add_wire_to_mixer(block1, mixer, getOutputId(registry, block1, 0), 0,
+                                 Wire::transmit_to_mono_mixer<4>);
+        engine.add_wire_to_mixer(block2, mixer, getOutputId(registry, block2, 0), 1,
+                                 Wire::transmit_to_mono_mixer<4>);
 
         registry.get<Input1D>(registry.get<Block>(block1).inputIds[0]).value = 3.0f;
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;

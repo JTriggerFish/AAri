@@ -67,7 +67,9 @@ target_link_libraries(graph_tests PRIVATE core Catch2::Catch2WithMain pybind11::
 
 
 # Define Python extension
-pybind11_add_module(AAri_cpp bindings/python_bindings.cpp)
+pybind11_add_module(AAri_cpp
+        bindings/python_bindings.cpp
+)
 target_link_libraries(AAri_cpp PRIVATE core EnTT::EnTT)
 
 set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "../AAri")
