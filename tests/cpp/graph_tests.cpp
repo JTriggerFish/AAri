@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 
-#include "../../src/core/parameters.h"
+#include "../../src/core/inputs_outputs.h"
 #include "../../src/core/graph.h"
 #include "../../src/core/audio_engine.h"
 #include "../../src/blocks/mixers.h"
@@ -57,7 +57,7 @@ entt::entity create_times_two(entt::registry &registry) {
     return Block::create(registry, BlockType::Product,
                          fill_with_null<N_INPUTS>(input),
                          fill_with_null<N_OUTPUTS>(output),
-                         times_two);
+                         times_two, nullptr);
 }
 
 entt::entity create_plus_three(entt::registry &registry) {
@@ -69,7 +69,7 @@ entt::entity create_plus_three(entt::registry &registry) {
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input),
                          fill_with_null<N_OUTPUTS>(output),
-                         plus_three);
+                         plus_three, nullptr);
 }
 
 entt::entity create_times_2_and_plus_4(entt::registry &registry) {
@@ -85,7 +85,7 @@ entt::entity create_times_2_and_plus_4(entt::registry &registry) {
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input1, input2),
                          fill_with_null<N_OUTPUTS>(output1, output2),
-                         times_2_and_plus_4);
+                         times_2_and_plus_4, nullptr);
 }
 
 entt::entity create_times_2_and_plus_4_vectorized(entt::registry &registry) {
@@ -97,7 +97,7 @@ entt::entity create_times_2_and_plus_4_vectorized(entt::registry &registry) {
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input),
                          fill_with_null<N_OUTPUTS>(output),
-                         times_2_and_plus_4_vectorized);
+                         times_2_and_plus_4_vectorized, nullptr);
 }
 
 
@@ -371,7 +371,7 @@ TEST_CASE("Test mixers") {
     auto &graph = engine._test_only_get_graph();
 
     SECTION("Test mono mixer") {
-        auto mixer = MonoMixer<4>::create(registry);
+        auto mixer = MonoMixer<4>::create(&engine);
         engine.add_wire_to_mixer(block1, mixer, getOutputId(registry, block1, 0), 0,
                                  Wire::transmit_to_mono_mixer<4>);
         engine.add_wire_to_mixer(block2, mixer, getOutputId(registry, block2, 0), 1,

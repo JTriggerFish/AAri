@@ -6,6 +6,7 @@
 
 #include "../core/graph.h"
 #include "../core/audio_context.h"
+#include "../core/graph_registry.h"
 #include <entt/entt.hpp>
 #include <cmath>
 
@@ -21,7 +22,7 @@ namespace AAri {
     struct MonoMixer : public Mixer {
         static void process(entt::registry &registry, const Block &block, AudioContext ctx);
 
-        static entt::entity create(entt::registry &registry);
+        static entt::entity create(IGraphRegistry *reg);
     };
 
 
@@ -29,7 +30,7 @@ namespace AAri {
     struct StereoMixer : public Mixer {
         static void process(entt::registry &registry, const Block &block, AudioContext ctx);
 
-        static entt::entity create(entt::registry &registry);
+        static entt::entity create(IGraphRegistry *reg);
     };
 
 

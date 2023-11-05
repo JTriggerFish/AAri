@@ -2,10 +2,30 @@ import sys
 import unittest
 from time import sleep
 
-from AAri.audio_engine import AudioEngine
+import AAri_cpp  # Import the Pybind11 module
+
+from AAri.audio_engine import AudioEngine, Block
 from AAri.oscillators import SineOsc
 
 sys.path.append(r"../../AAri")
+
+
+class TestEngine(unittest.TestCase):
+    def test_engine(self):
+        audio_engine = AudioEngine()
+        self.assertIsNotNone(audio_engine)
+
+        # Test starting and stopping the audio engine
+        audio_engine.start()
+        audio_engine.stop()
+
+    def test_sine_osc_block_manual(self):
+        audio_engine = AudioEngine()
+        sine_osc_id = AAri_cpp.SineOsc.create(audio_engine.engine)
+        sine_block = Block(sine_osc_id)
+        audio_engine.start()
+        io = sine_block.view_inputs_outputs()
+        audio_engine.stop()
 
 
 class TestBasicGraphs(unittest.TestCase):

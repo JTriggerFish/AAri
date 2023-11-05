@@ -18,7 +18,8 @@ void MonoMixer<N>::process(entt::registry &registry, const Block &block, AudioCo
 }
 
 template<size_t N>
-entt::entity MonoMixer<N>::create(entt::registry &registry) {
+entt::entity MonoMixer<N>::create(IGraphRegistry *reg) {
+    auto [registry, guard] = reg->get_graph_registry();
     auto input = registry.create();
     registry.emplace<InputND<N>>(input, std::array<float, N>{0.0f}, ParamName::Input);
     auto output = registry.create();
@@ -27,7 +28,7 @@ entt::entity MonoMixer<N>::create(entt::registry &registry) {
     return Block::create(registry, BlockType::MonoMixer,
                          fill_with_null<N_INPUTS>(input),
                          fill_with_null<N_OUTPUTS>(output),
-                         process);
+                         process, nullptr);
 
 }
 
@@ -47,7 +48,8 @@ void StereoMixer<N>::process(entt::registry &registry, const Block &block, Audio
 }
 
 template<size_t N>
-entt::entity StereoMixer<N>::create(entt::registry &registry) {
+entt::entity StereoMixer<N>::create(IGraphRegistry *reg) {
+    auto [registry, guard] = reg->get_graph_registry();
     auto input = registry.create();
     registry.emplace<InputNDStereo<N> >(input, std::array<float, N>{0.0f}, std::array<float, N>{0.0f},
                                         ParamName::Input);
@@ -57,7 +59,7 @@ entt::entity StereoMixer<N>::create(entt::registry &registry) {
     return Block::create(registry, BlockType::StereoMixer,
                          fill_with_null<N_INPUTS>(input),
                          fill_with_null<N_OUTPUTS>(output),
-                         process);
+                         process, nullptr);
 }
 
 

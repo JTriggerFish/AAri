@@ -4,7 +4,7 @@
 #include "audio_engine.h"
 #include "blocks.h"
 #include "graph.h"
-#include "parameters.h"
+#include "inputs_outputs.h"
 #include <iostream>
 
 using namespace AAri;
@@ -69,7 +69,7 @@ void AudioEngine::audio_callback(ma_device *pDevice, void *pOutput,
     }
 }
 
-void AudioEngine::set_output(entt::entity output_id, size_t output_width) {
+void AudioEngine::set_output_ref(entt::entity output_id, size_t output_width) {
     auto guard = lock_till_function_returns();
     _output_id = output_id;
     _output_width = output_width;
@@ -124,12 +124,12 @@ void AudioEngine::remove_block(entt::entity block_id) {
     _graph.toposort_blocks();
 }
 
-Block AudioEngine::view_block(entt::entity block_id) {
+Block AudioEngine::view_block(entt::entity block_id) const {
     return _graph.registry.get<Block>(block_id);
 }
 
 std::vector<entt::entity>
-AudioEngine::get_wires_to_block(entt::entity block_id) {
+AudioEngine::get_wires_to_block(entt::entity block_id) const {
     std::vector<entt::entity> wires;
     auto view = _graph.registry.view<Wire>();
     for (auto entity: view) {
@@ -142,7 +142,7 @@ AudioEngine::get_wires_to_block(entt::entity block_id) {
 }
 
 std::vector<entt::entity>
-AudioEngine::get_wires_from_block(entt::entity block_id) {
+AudioEngine::get_wires_from_block(entt::entity block_id) const {
     std::vector<entt::entity> wires;
     auto view = _graph.registry.view<Wire>();
     for (auto entity: view) {
@@ -155,7 +155,7 @@ AudioEngine::get_wires_from_block(entt::entity block_id) {
 }
 
 std::optional<entt::entity>
-AudioEngine::get_wire_to_input(entt::entity input_id) {
+AudioEngine::get_wire_to_input(entt::entity input_id) const {
     auto view = _graph.registry.view<Wire>();
     for (auto entity: view) {
         auto &wire = view.get<Wire>(entity);
@@ -167,7 +167,7 @@ AudioEngine::get_wire_to_input(entt::entity input_id) {
 }
 
 std::vector<entt::entity>
-AudioEngine::get_wires_from_output(entt::entity output_id) {
+AudioEngine::get_wires_from_output(entt::entity output_id) const {
     std::vector<entt::entity> wires;
     auto view = _graph.registry.view<Wire>();
     for (auto entity: view) {
@@ -179,7 +179,7 @@ AudioEngine::get_wires_from_output(entt::entity output_id) {
     return wires;
 }
 
-Wire AudioEngine::view_wire(entt::entity wire_id) {
+Wire AudioEngine::view_wire(entt::entity wire_id) const {
     return _graph.registry.get<Wire>(wire_id);
 }
 
@@ -193,4 +193,23 @@ void AudioEngine::tweak_wire_offset(entt::entity wire_id, float offset) {
     auto [registry, guard] = get_graph_registry();
     auto &wire = registry.get<Wire>(wire_id);
     wire.offset = offset;
+}
+
+std::vector<Block> AudioEngine::get_blocks() const {
+    auto view = _graph.registry.view<Block>();
+    std::vector<Block> blocks;
+    for (auto entity: view) {
+        blocks.push_back(view.get<Block>(entity));
+    }
+    return blocks;
+}
+
+std::tuple<entt::entity, size_t> AudioEngine::get_output_ref() const {
+    return {_output_id, _output_width};
+}
+
+IoMap AudioEngine::view_block_io(entt::entity block_id) {
+    auto [registry, lock] = get_graph_registry();
+    auto block = registry.get<Block>(block_id);
+    return block.viewFunc(registry, block);
 }

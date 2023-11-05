@@ -31,43 +31,45 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .value("Out", ParamName::Out)
             .value("StereoOut", ParamName::StereoOut);
 
-    py::class_<Input1D>(m, "Input1D", py::module_local())
+    py::class_<InputOutput>(m, "InputOutput", py::module_local());
+
+    py::class_<Input1D, InputOutput>(m, "Input1D", py::module_local())
             .def(py::init<float, ParamName>(), py::arg("value") = 0.0f, py::arg("name") = ParamName::NONE)
             .def_readwrite("value", &Input1D::value)
             .def_readwrite("name", &Input1D::name);
-    py::class_<Input2D>(m, "Input2D", py::module_local())
+    py::class_<Input2D, InputOutput>(m, "Input2D", py::module_local())
             .def(py::init<std::array<float, 2>, ParamName>(), py::arg("value") = std::array<float, 2>{0.0f, 0.0f},
                  py::arg("name") = ParamName::NONE)
             .def_readwrite("value", &Input2D::value)
             .def_readwrite("name", &Input2D::name);
-    py::class_<Output1D>(m, "Output1D", py::module_local())
+    py::class_<Output1D, InputOutput>(m, "Output1D", py::module_local())
             .def(py::init<float, ParamName>(), py::arg("value") = 0.0f, py::arg("name") = ParamName::NONE)
             .def_readonly("value", &Output1D::value)
             .def_readonly("name", &Output1D::name);
-    py::class_<Output2D>(m, "Output2D", py::module_local())
+    py::class_<Output2D, InputOutput>(m, "Output2D", py::module_local())
             .def(py::init<std::array<float, 2>, ParamName>(), py::arg("value") = std::array<float, 2>{0.0f, 0.0f},
                  py::arg("name") = ParamName::NONE)
             .def_readonly("value", &Output2D::value)
             .def_readonly("name", &Output2D::name);
-    py::class_<InputND<2>>(m, "InputND2", py::module_local())
+    py::class_<InputND<2>, InputOutput>(m, "InputND2", py::module_local())
             .def(py::init<std::array<float, 2>, ParamName>(), py::arg("value") = std::array<float, 2>{0.0f, 0.0f},
                  py::arg("name") = ParamName::NONE)
             .def_readwrite("value", &InputND<2>::value)
             .def_readwrite("name", &InputND<2>::name);
-    py::class_<InputND<4>>(m, "InputND4", py::module_local())
+    py::class_<InputND<4>, InputOutput>(m, "InputND4", py::module_local())
             .def(py::init<std::array<float, 4>, ParamName>(),
                  py::arg("value") = std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f},
                  py::arg("name") = ParamName::NONE)
             .def_readwrite("value", &InputND<4>::value)
             .def_readwrite("name", &InputND<4>::name);
-    py::class_<InputND<8>>(m, "InputND8", py::module_local())
+    py::class_<InputND<8>, InputOutput>(m, "InputND8", py::module_local())
             .def(py::init<std::array<float, 8>, ParamName>(),
                  py::arg("value") = std::array<float, 8>{0.0f, 0.0f, 0.0f, 0.0f,
                                                          0.0f, 0.0f, 0.0f, 0.0f},
                  py::arg("name") = ParamName::NONE)
             .def_readwrite("value", &InputND<8>::value)
             .def_readwrite("name", &InputND<8>::name);
-    py::class_<InputND<16>>(m, "InputND16", py::module_local())
+    py::class_<InputND<16>, InputOutput>(m, "InputND16", py::module_local())
             .def(py::init<std::array<float, 16>, ParamName>(),
                  py::arg("value") = std::array<float, 16>{0.0f, 0.0f, 0.0f, 0.0f,
                                                           0.0f, 0.0f, 0.0f, 0.0f,
@@ -76,7 +78,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
                  py::arg("name") = ParamName::NONE)
             .def_readwrite("value", &InputND<16>::value)
             .def_readwrite("name", &InputND<16>::name);
-    py::class_<InputND<32>>(m, "InputND32", py::module_local())
+    py::class_<InputND<32>, InputOutput>(m, "InputND32", py::module_local())
             .def(py::init<std::array<float, 32>, ParamName>(),
                  py::arg("value") = std::array<float, 32>{0.0f, 0.0f, 0.0f, 0.0f,
                                                           0.0f, 0.0f, 0.0f, 0.0f,
@@ -90,7 +92,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readwrite("value", &InputND<32>::value)
             .def_readwrite("name", &InputND<32>::name);
 
-    py::class_<InputNDStereo<2>>(m, "InputNDStereo2", py::module_local())
+    py::class_<InputNDStereo<2>, InputOutput>(m, "InputNDStereo2", py::module_local())
             .def(py::init<std::array<float, 2>, std::array<float, 2>, ParamName>(),
                  py::arg("left") = std::array<float, 2>{0.0f, 0.0f},
                  py::arg("right") = std::array<float, 2>{0.0f, 0.0f},
@@ -98,7 +100,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readwrite("left", &InputNDStereo<2>::left)
             .def_readwrite("right", &InputNDStereo<2>::right)
             .def_readwrite("name", &InputNDStereo<2>::name);
-    py::class_<InputNDStereo<4>>(m, "InputNDStereo4", py::module_local())
+    py::class_<InputNDStereo<4>, InputOutput>(m, "InputNDStereo4", py::module_local())
             .def(py::init<std::array<float, 4>, std::array<float, 4>, ParamName>(),
                  py::arg("left") = std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f},
                  py::arg("right") = std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f},
@@ -106,7 +108,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readwrite("left", &InputNDStereo<4>::left)
             .def_readwrite("right", &InputNDStereo<4>::right)
             .def_readwrite("name", &InputNDStereo<4>::name);
-    py::class_<InputNDStereo<8>>(m, "InputNDStereo8", py::module_local())
+    py::class_<InputNDStereo<8>, InputOutput>(m, "InputNDStereo8", py::module_local())
             .def(py::init<std::array<float, 8>, std::array<float, 8>, ParamName>(),
                  py::arg("left") = std::array<float, 8>{0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                                                         0.0f, 0.0f, 0.0f},
@@ -116,7 +118,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def_readwrite("left", &InputNDStereo<8>::left)
             .def_readwrite("right", &InputNDStereo<8>::right)
             .def_readwrite("name", &InputNDStereo<8>::name);
-    py::class_<OutputND<4>>(m, "OutputND4", py::module_local())
+    py::class_<OutputND<4>, InputOutput>(m, "OutputND4", py::module_local())
             .def(py::init<std::array<float, 4>, ParamName>(),
                  py::arg("value") = std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f},
                  py::arg("name") = ParamName::NONE)
@@ -192,8 +194,10 @@ PYBIND11_MODULE(AAri_cpp, m) {
     py::class_<OutputExpansion>(m, "OutputExpansion", py::module_local())
             .def_readonly("outputId", &OutputExpansion::outputIds);
 
+    py::class_<IGraphRegistry>(m, "IGraphRegistry", py::module_local())
+            .def("get_graph_registry", &IGraphRegistry::get_graph_registry);
 
-    py::class_<AudioEngine>(m, "AudioEngine", py::module_local())
+    py::class_<AudioEngine, IGraphRegistry>(m, "AudioEngine", py::module_local())
             .def(py::init<>())
             .def("startAudio", &AudioEngine::startAudio)
             .def("stopAudio", &AudioEngine::stopAudio)
@@ -206,13 +210,15 @@ PYBIND11_MODULE(AAri_cpp, m) {
             .def("remove_block", &AudioEngine::remove_block, py::arg("block_id"))
             .def("tweak_wire_gain", &AudioEngine::tweak_wire_gain, py::arg("wire_id"), py::arg("gain"))
             .def("tweak_wire_offset", &AudioEngine::tweak_wire_offset, py::arg("wire_id"), py::arg("offset"))
-            .def("set_output", &AudioEngine::set_output, py::arg("output_id"), py::arg("output_width"))
+            .def("set_output_ref", &AudioEngine::set_output_ref, py::arg("output_id"), py::arg("output_width"))
             .def("view_block", &AudioEngine::view_block, py::arg("block_id"))
             .def("view_wire", &AudioEngine::view_wire, py::arg("wire_id"))
             .def("get_wires_to_block", &AudioEngine::get_wires_to_block, py::arg("block_id"))
             .def("get_wires_from_block", &AudioEngine::get_wires_from_block, py::arg("block_id"))
             .def("get_wire_to_input", &AudioEngine::get_wire_to_input, py::arg("input_id"))
-            .def("get_wire_from_output", &AudioEngine::get_wires_from_output, py::arg("output_id"));
+            .def("get_wire_from_output", &AudioEngine::get_wires_from_output, py::arg("output_id"))
+            .def("get_blocks", &AudioEngine::get_blocks)
+            .def("view_block_io", &AudioEngine::view_block_io, py::arg("block_id"));
 
     // Mixers
     py::class_<MonoMixer<2>>(m, "MonoMixer2", py::module_local())
@@ -238,6 +244,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
 
     //Oscillators
     py::class_<SineOsc>(m, "SineOsc", py::module_local())
-            .def_static("create", &SineOsc::create);
+            .def_static("create", &SineOsc::create, py::arg("engine"), py::arg("freq") = 440.0f,
+                        py::arg("amp") = 1.0f);
 
 }

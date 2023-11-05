@@ -17,7 +17,8 @@ void SineOsc::process(entt::registry &registry, const Block &block, AudioContext
 }
 
 entt::entity
-SineOsc::create(entt::registry &registry, float init_freq, float init_amp) {
+SineOsc::create(IGraphRegistry *reg, float init_freq, float init_amp) {
+    auto [registry, guard] = reg->get_graph_registry();
     auto phase = registry.create();
     registry.emplace<Input1D>(phase, 0.0f, ParamName::Phase);
     auto freq = registry.create();
@@ -30,5 +31,21 @@ SineOsc::create(entt::registry &registry, float init_freq, float init_amp) {
     return Block::create(registry, BlockType::SineOsc,
                          fill_with_null<N_INPUTS>(phase, freq, amp),
                          fill_with_null<N_OUTPUTS>(out),
-                         process);
+                         process, view);
 }
+
+IoMap SineOsc::view(entt::registry &registry, const Block &block) {
+    auto phaseid = block.inputIds[0];
+    auto freqid = block.inputIds[1];
+    auto ampid = block.inputIds[2];
+    auto outid = block.outputIds[0];
+
+    IoMap io_map;
+    io_map[phaseid] = std::make_shared<Input1D>(registry.get<Input1D>(phaseid));
+    io_map[freqid] = std::make_shared<Input1D>(registry.get<Input1D>(freqid));
+    io_map[ampid] = std::make_shared<Input1D>(registry.get<Input1D>(ampid));
+    io_map[outid] = std::make_shared<Output1D>(registry.get<Output1D>(outid));
+
+    return io_map;
+}
+

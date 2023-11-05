@@ -6,27 +6,16 @@
 #include "../miniaudio.h"
 #include <mutex>
 #include "graph.h"
+#include "graph_registry.h"
 #include <memory>
 #include <tuple>
 #include <optional>
+#include <tuple>
 #include <entt/entt.hpp>
 
 namespace AAri {
-    class SpinLockGuard {
-    public:
-        SpinLockGuard(ma_spinlock &spinlock) : spinlock(spinlock) {
-            ma_spinlock_lock(&spinlock);
-        }
 
-        ~SpinLockGuard() {
-            ma_spinlock_unlock(&spinlock);
-        }
-
-    private:
-        ma_spinlock &spinlock;
-    };
-
-    class AudioEngine {
+    class AudioEngine : public IGraphRegistry {
     public:
         AudioEngine(ma_uint32 sample_rate = 48000, ma_uint32 buffer_size = 512);
 
@@ -44,7 +33,7 @@ namespace AAri {
          * @return a tuple containing the registry and a SpinLockGuard
          *
          */
-        std::tuple<entt::registry &, SpinLockGuard> get_graph_registry() {
+        std::tuple<entt::registry &, SpinLockGuard> get_graph_registry() override {
             return {_graph.registry, SpinLockGuard(_callback_lock)};
         }
 
@@ -61,7 +50,7 @@ namespace AAri {
         }
 
         //Graph modification functions ----------------------------------------------
-        void set_output(entt::entity output_id, size_t output_width);
+        void set_output_ref(entt::entity output_id, size_t output_width);
 
         entt::entity add_wire(entt::entity from_block,
                               entt::entity to_block,
@@ -85,19 +74,26 @@ namespace AAri {
 
         void tweak_wire_offset(entt::entity wire_id, float offset);
 
+        IoMap view_block_io(entt::entity block_id);
+
         //"free" inspection functions ----------------------------------------------
         // these can be called without locking the registry
-        Block view_block(entt::entity block_id);
+        Block view_block(entt::entity block_id) const;
 
-        Wire view_wire(entt::entity wire_id);
+        Wire view_wire(entt::entity wire_id) const;
 
-        std::vector<entt::entity> get_wires_to_block(entt::entity block_id);
 
-        std::vector<entt::entity> get_wires_from_block(entt::entity block_id);
+        std::vector<entt::entity> get_wires_to_block(entt::entity block_id) const;
 
-        std::optional<entt::entity> get_wire_to_input(entt::entity input_id);
+        std::vector<entt::entity> get_wires_from_block(entt::entity block_id) const;
 
-        std::vector<entt::entity> get_wires_from_output(entt::entity output_id);
+        std::optional<entt::entity> get_wire_to_input(entt::entity input_id) const;
+
+        std::vector<entt::entity> get_wires_from_output(entt::entity output_id) const;
+
+        std::vector<Block> get_blocks() const;
+
+        std::tuple<entt::entity, size_t> get_output_ref() const;
 
 
     private:

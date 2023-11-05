@@ -1,7 +1,7 @@
 //
 //
 
-#include "parameters.h"
+#include "inputs_outputs.h"
 
 
 //Explicit instantiation of power of 2 output and input structss sizes

@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 #include <stack>
-#include "parameters.h"
+#include "inputs_outputs.h"
 #include "blocks.h"
 #include "wires.h"
 #include "utils/data_structures.h"

@@ -7,6 +7,7 @@
 #include <array>
 #include "audio_context.h"
 #include "utils/data_structures.h"
+#include "inputs_outputs.h"
 #include <entt/entt.hpp>
 
 
@@ -16,10 +17,15 @@ namespace AAri {
     constexpr int N_WIRES = 16;
 
     struct Block;
+    typedef std::map<entt::entity, std::shared_ptr<InputOutput>> IoMap;
 
     //typedef process func pointer
     typedef void (*ProcessFunc)(entt::registry &registry, const Block &block, AudioContext ctx);
-    //Alternative modern c++ style function pointer:
+
+    //Typedef a function pointer to view the content of a block:
+    typedef IoMap (*ViewFunc)(entt::registry &registry,
+                              const Block &block);
+
 
     struct Visited {
         enum State {
@@ -63,14 +69,15 @@ namespace AAri {
         uint32_t topo_sort_index = 0;
 
         ProcessFunc processFunc = nullptr;
+        ViewFunc viewFunc = nullptr;
         // ------------------------------------------------------------------------------
 
         //Static functions to create and destroy blocks
         static entt::entity
         create(entt::registry &registry, BlockType type, const std::array<entt::entity, N_INPUTS> &inputIds,
-               const std::array<entt::entity, N_OUTPUTS> &outputIds, ProcessFunc processFunc) {
+               const std::array<entt::entity, N_OUTPUTS> &outputIds, ProcessFunc processFunc, ViewFunc viewFunc) {
             auto entity = registry.create();
-            registry.emplace<Block>(entity, inputIds, outputIds, type, 0u, processFunc);
+            registry.emplace<Block>(entity, inputIds, outputIds, type, 0u, processFunc, viewFunc);
             registry.emplace<Visited>(entity, Visited::UNVISITED);
             registry.emplace<WiresToBlock>(entity);
             return entity;

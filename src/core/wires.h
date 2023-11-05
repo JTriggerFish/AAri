@@ -5,7 +5,7 @@
 #define AARI_WIRES_H
 
 #include "blocks.h"
-#include "parameters.h"
+#include "inputs_outputs.h"
 #include <string>
 #include <vector>
 #include <entt/entt.hpp>

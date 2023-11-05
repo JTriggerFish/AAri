@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import sys
 import typing
 from collections import OrderedDict
 
 import AAri_cpp  # Import the Pybind11 module
 import numpy as np
+
+"""
+TODO - A lot of this is deprecated post switch to entt backend, and needs to be rewritten
+"""
 
 
 def dB(db_val: float) -> float:
@@ -346,22 +349,27 @@ class MixerBase(Block):
 
 
 class ProductBase(Block):
-    INPUT_SIZE = AAri_cpp.Product.INPUT_SIZE
-    OUTPUT_SIZE = AAri_cpp.Product.OUTPUT_SIZE
-    OUTPUTS = OrderedDict(
-        {"out1": AAri_cpp.Product.OUT1, "out2": AAri_cpp.Product.OUT2}
-    )
+    INPUT_SIZE = 2
+    OUTPUT_SIZE = 1
+    # INPUT_SIZE = AAri_cpp.Product.INPUT_SIZE
+    # OUTPUT_SIZE = AAri_cpp.Product.OUTPUT_SIZE
+    # OUTPUTS = OrderedDict(
+    #    {"out1": AAri_cpp.Product.OUT1, "out2": AAri_cpp.Product.OUT2}
+    # )
 
-    def __init__(self, product_type=AAri_cpp.ProductType.DUAL_CHANNELS):
-        super().__init__(AAri_cpp.Product(product_type))
+    # def __init__(self, product_type=AAri_cpp.ProductType.DUAL_CHANNELS):
+    #    super().__init__(AAri_cpp.Product(product_type))
+    pass
 
 
 class MonoMixerBase(MixerBase):
     """Mono mixer block"""
 
-    INPUT_SIZE = AAri_cpp.MonoMixer.INPUT_SIZE
-    OUTPUT_SIZE = AAri_cpp.MonoMixer.OUTPUT_SIZE
-    OUTPUTS = OrderedDict({"out": AAri_cpp.MonoMixer.OUT})
+    INPUT_SIZE = 8
+    OUTPUT_SIZE = 1
+    # INPUT_SIZE = AAri_cpp.MonoMixer.INPUT_SIZE
+    # OUTPUT_SIZE = AAri_cpp.MonoMixer.OUTPUT_SIZE
+    # OUTPUTS = OrderedDict({"out": AAri_cpp.MonoMixer.OUT})
 
     def __init__(self):
         super().__init__(AAri_cpp.MonoMixer())
@@ -370,8 +378,10 @@ class MonoMixerBase(MixerBase):
 class StereoMixerBase(MixerBase):
     """Stereo mixer block"""
 
-    INPUT_SIZE = AAri_cpp.StereoMixer.INPUT_SIZE
-    OUTPUT_SIZE = AAri_cpp.StereoMixer.OUTPUT_SIZE
+    INPUT_SIZE = 8
+    OUTPUT_SIZE = 2
+    # INPUT_SIZE = AAri_cpp.StereoMixer.INPUT_SIZE
+    # OUTPUT_SIZE = AAri_cpp.StereoMixer.OUTPUT_SIZE
 
     OUTPUTS = OrderedDict({"left": 0, "right": 1})
 

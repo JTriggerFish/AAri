@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 
-#include "../../src/core/parameters.h"
+#include "../../src/core/inputs_outputs.h"
 #include "../../src/core/graph.h"
 #include "../../src/core/audio_engine.h"
 #include "../../src/blocks/mixers.h"

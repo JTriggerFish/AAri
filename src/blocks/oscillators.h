@@ -5,6 +5,7 @@
 
 #include "../core/graph.h"
 #include "../core/audio_context.h"
+#include "../core/graph_registry.h"
 #include <entt/entt.hpp>
 #include <cmath>
 
@@ -21,7 +22,9 @@ namespace AAri {
     struct SineOsc : public Oscillator {
         static void process(entt::registry &registry, const Block &block, AudioContext ctx);
 
-        static entt::entity create(entt::registry &registry, float init_freq = 440.0f, float init_amp = 1.0f);
+        static entt::entity create(IGraphRegistry *reg, float init_freq = 440.0f, float init_amp = 1.0f);
+
+        static IoMap view(entt::registry &registry, const Block &block);
     };
 }
 
