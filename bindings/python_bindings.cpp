@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
 
 #include "../src/core/audio_engine.h"
 #include "../src/blocks/oscillators.h"
@@ -166,6 +167,9 @@ PYBIND11_MODULE(AAri_cpp, m) {
     wire.def_static("transmit_stereo_to_stereo_mixer_32", &Wire::transmit_stereo_to_stereo_mixer<32>,
                     py::arg("registry"),
                     py::arg("wire"));
+
+
+    m.attr("transmit_mono_to_stereo_mixer_4") = py::cpp_function(&Wire::transmit_mono_to_stereo_mixer<4>);
 
 
     py::enum_<BlockType>(m, "BlockType")

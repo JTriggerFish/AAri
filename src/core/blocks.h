@@ -17,7 +17,7 @@ namespace AAri {
     constexpr int N_WIRES = 16;
 
     struct Block;
-    typedef std::map<entt::entity, std::shared_ptr<InputOutput>> IoMap;
+    typedef std::map<entt::entity, std::unique_ptr<InputOutput>> IoMap;
 
     //typedef process func pointer
     typedef void (*ProcessFunc)(entt::registry &registry, const Block &block, AudioContext ctx);
