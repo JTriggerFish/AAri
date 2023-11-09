@@ -9,6 +9,8 @@
 #include <entt/entt.hpp>
 #include <catch2/catch_all.hpp>
 
+#include <thread>
+
 using namespace AAri;
 
 entt::entity getOutputId(entt::registry &registry, entt::entity blockId, int outputIndex) {
