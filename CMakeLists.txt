@@ -82,8 +82,6 @@ set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "../AAri")
 #        $<TARGET_FILE:AAri_cpp>
 #        ../../tests/python)
 
-# Install rules
-install(TARGETS AAri RUNTIME DESTINATION bin)
 
 # Set up tests
 add_test(NAME UtilsTests COMMAND utils_tests)
@@ -92,7 +90,8 @@ add_test(NAME GraphTests COMMAND graph_tests)
 # Custom command to generate Python stubs using stubgen
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
-        COMMAND ${Python3_EXECUTABLE} -m mypy.stubgen -o ${CMAKE_CURRENT_BINARY_DIR} -m AAri_cpp
+        COMMAND ${CMAKE_SOURCE_DIR}/venv/Scripts/stubgen -o ${CMAKE_CURRENT_BINARY_DIR} -m AAri_cpp
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/AAri
         DEPENDS AAri_cpp
         COMMENT "Generating Python stubs for AAri_cpp"
 )
@@ -102,3 +101,15 @@ add_custom_target(
         GenerateStubs ALL
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
 )
+
+# Copy the generated stub file to the AAri directory
+add_custom_command(
+        TARGET GenerateStubs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
+        ${CMAKE_SOURCE_DIR}/AAri/AAri_cpp.pyi
+        COMMENT "Copying AAri_cpp.pyi to AAri directory"
+)
+
+# Install rules
+install(TARGETS AAri RUNTIME DESTINATION bin)

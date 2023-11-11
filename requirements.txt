@@ -3,6 +3,7 @@ click==8.1.7
 colorama==0.4.6
 flake8==6.1.0
 mccabe==0.7.0
+mypy
 mypy-extensions==1.0.0
 numpy==1.25.2
 packaging==23.1
