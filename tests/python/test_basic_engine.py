@@ -20,7 +20,6 @@ class TestEngine(unittest.TestCase):
 
     def test_sine_osc_block_manual(self):
         audio_engine = AudioEngine()
-        # TODO figure out why adding the block after starting the engine causes a segfault
         audio_engine.start()
         sine_osc_id = AAri_cpp.SineOsc.create(audio_engine.engine)
         sine_block = Block(sine_osc_id)

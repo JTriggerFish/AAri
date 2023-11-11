@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List, Set, Dict, Any
 
 import AAri_cpp  # Import the Pybind11 module
@@ -83,6 +84,9 @@ class AudioEngine:
 
     def start(self):
         self.engine.startAudio()
+        # To avoid race conditions with other pybind11 functions
+        # calling into the engine while the audio thread is starting
+        sleep(0.0001)
 
     def stop(self):
         self.engine.stopAudio()
