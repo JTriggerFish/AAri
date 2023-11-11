@@ -1,5 +1,9 @@
 # Find Python interpreter
-set(Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/venv/Scripts/python)
+if (WIN32)
+    set(Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/venv/Scripts/python)
+else ()
+    set(Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/venv/bin/python)
+endif ()
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 cmake_minimum_required(VERSION 3.14)
 
