@@ -1,3 +1,6 @@
+# Find Python interpreter
+set(Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/venv/Scripts/python)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 cmake_minimum_required(VERSION 3.14)
 
 project(AAri VERSION 0.0.1 LANGUAGES CXX)
@@ -74,7 +77,6 @@ target_link_libraries(AAri_cpp PRIVATE core EnTT::EnTT)
 
 set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "../AAri")
 
-# TODO Fis this , it is broken
 #add_custom_command(TARGET AAri_cpp POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
 #        $<TARGET_FILE:AAri_cpp>
@@ -86,3 +88,17 @@ install(TARGETS AAri RUNTIME DESTINATION bin)
 # Set up tests
 add_test(NAME UtilsTests COMMAND utils_tests)
 add_test(NAME GraphTests COMMAND graph_tests)
+
+# Custom command to generate Python stubs using stubgen
+add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
+        COMMAND ${Python3_EXECUTABLE} -m mypy.stubgen -o ${CMAKE_CURRENT_BINARY_DIR} -m AAri_cpp
+        DEPENDS AAri_cpp
+        COMMENT "Generating Python stubs for AAri_cpp"
+)
+
+# Custom target to ensure stub generation
+add_custom_target(
+        GenerateStubs ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
+)
