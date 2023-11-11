@@ -24,7 +24,18 @@ class TestEngine(unittest.TestCase):
         sine_osc_id = AAri_cpp.SineOsc.create(audio_engine.engine)
         sine_block = Block(sine_osc_id)
         audio_engine.start()
-        io = sine_block.view_inputs_outputs()
+        audio_engine.engine.add_wire_to_mixer(
+            sine_osc_id,
+            audio_engine.output_mixer.entity,
+            sine_block.output_ids[0],
+            0,
+            AAri_cpp.transmit_mono_to_stereo_mixer_4,
+        )
+        sleep(3)
+        ios = []
+        sine_outs = []
+        for i in range(100):
+            ios.append(sine_block.view_inputs_outputs())
         audio_engine.stop()
 
 

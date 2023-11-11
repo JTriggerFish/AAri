@@ -5,8 +5,11 @@
 #include "../../src/core/graph.h"
 #include "../../src/core/audio_engine.h"
 #include "../../src/blocks/mixers.h"
+#include "../../src/blocks/oscillators.h"
 #include <entt/entt.hpp>
 #include <catch2/catch_all.hpp>
+
+#include <thread>
 
 using namespace AAri;
 
@@ -105,7 +108,22 @@ TEST_CASE("Testing audio start stop with graph callback", "[AudioEngine]") {
     AudioEngine engine;
 
     SECTION("Testing start and stop") {
+        auto osc = SineOsc::create(&engine, 440.0f, 1.0f);
+        auto osc_block = engine.view_block(osc);
+        auto output_mixer = StereoMixer<2>::create(&engine);
+        auto mixer_block = engine.view_block(output_mixer);
+        auto output_id = mixer_block.outputIds[0];
+
+        engine.set_output_ref(output_id, 2);
+        //Wire oscillator to output :
+        engine.add_wire_to_mixer(osc, output_mixer, osc_block.outputIds[0], 0,
+                                 Wire::transmit_mono_to_stereo_mixer<2>);
+        //Start and stop audio:
         engine.startAudio();
+        //Sleep for 3 seconds:
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        auto out1 = engine.view_block_io(osc);
+        auto out2 = engine.view_block_io(osc);
         engine.stopAudio();
     }
 }

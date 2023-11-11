@@ -24,7 +24,12 @@ namespace AAri {
         Out,
         StereoOut,
     };
+
     struct InputOutput {
+        // This is mainly to make the class polymorphic
+        // so that pybind11 can recognize it as such
+        // and we can have polymorphic containers
+        virtual ~InputOutput() = default;
     };
 
     struct Input1D : public InputOutput {

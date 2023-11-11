@@ -16,14 +16,34 @@ class Block:
 
     @property
     def input_ids(self) -> List[Entity]:
-        return self.cpp_block.inputIds()
+        return self.cpp_block.inputIds
 
     @property
     def output_ids(self) -> List[Entity]:
-        return self.cpp_block.outputIds()
+        return self.cpp_block.outputIds
 
     def view_inputs_outputs(self) -> Dict[Entity, Any]:
         return self.engine.engine.view_block_io(self.entity)
+
+
+class StereoMixer(Block):
+    def __init__(self, size: int = 4):
+        engine = AudioEngine()
+        match size:
+            case (2):
+                entity = AAri_cpp.StereoMixer2.create(engine.engine)
+            case (4):
+                entity = AAri_cpp.StereoMixer4.create(engine.engine)
+            case (8):
+                entity = AAri_cpp.StereoMixer8.create(engine.engine)
+            case (16):
+                entity = AAri_cpp.StereoMixer16.create(engine.engine)
+            case (32):
+                entity = AAri_cpp.StereoMixer32.create(engine.engine)
+            case other:
+                raise ValueError("Invalid size for StereoMixer")
+        super().__init__(entity)
+        self.free_inputs = [1] * size
 
 
 class AudioEngine:
@@ -37,6 +57,7 @@ class AudioEngine:
         if cls._instance is None:
             cls._instance = super(AudioEngine, cls).__new__(cls)
             cls._instance._initialize()  # Call a separate initialization method
+            cls._instance._set_default_output()
         return cls._instance
 
     def _initialize(self):
@@ -44,9 +65,14 @@ class AudioEngine:
         Any initialization logic should go here.
         """
         self.engine = AAri_cpp.AudioEngine()
-        # TODO add an output block
         self._blocks: Set[Block] = set()
-        # self.engine.set_output_block(StereoMixerBase())
+
+    def _set_default_output(self):
+        self.output_mixer = StereoMixer(4)
+        self.engine.set_output_ref(self.output_mixer.output_ids[0], 2)
+
+    def _add_output_mixer(self, mixer_size: int = 4):
+        mixer = AAri_cpp.StereoMixerBase.create(self.engine, mixer_size)
 
     @property
     def output_ref(self) -> (Entity, int):

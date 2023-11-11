@@ -41,10 +41,10 @@ IoMap SineOsc::view(entt::registry &registry, const Block &block) {
     auto outid = block.outputIds[0];
 
     IoMap io_map;
-    io_map[phaseid] = std::make_shared<Input1D>(registry.get<Input1D>(phaseid));
-    io_map[freqid] = std::make_shared<Input1D>(registry.get<Input1D>(freqid));
-    io_map[ampid] = std::make_shared<Input1D>(registry.get<Input1D>(ampid));
-    io_map[outid] = std::make_shared<Output1D>(registry.get<Output1D>(outid));
+    io_map[phaseid] = std::make_unique<Input1D>(registry.get<Input1D>(phaseid));
+    io_map[freqid] = std::make_unique<Input1D>(registry.get<Input1D>(freqid));
+    io_map[ampid] = std::make_unique<Input1D>(registry.get<Input1D>(ampid));
+    io_map[outid] = std::make_unique<Output1D>(registry.get<Output1D>(outid));
 
     return io_map;
 }

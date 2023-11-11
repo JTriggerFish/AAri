@@ -13,7 +13,7 @@
 namespace AAri {
     struct Wire;
 
-    typedef void (*TransmitFunc)(entt::registry &registry, const Wire &wire);
+    using TransmitFunc = std::function<void(entt::registry &, const Wire &)>;
 
     struct Wire {
         friend class AudioEngine;
