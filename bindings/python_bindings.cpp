@@ -17,6 +17,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
                         .def_readonly("clock", &AudioContext::clock);
 
         py::class_<entt::entity>(m, "Entity");
+        py::class_<entt::registry>(m, "Registry");
 
         m.doc() = "AAri_cpp: Real-time audio engine backend"; // Module documentation
 
@@ -103,6 +104,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
                         .def_readonly("value", &OutputND<4>::value);
 
         auto wire = py::class_<Wire>(m, "Wire", py::module_local())
+                        .def_readonly("from_block", &Wire::from_block)
                         .def_readonly("from_output", &Wire::from_output)
                         .def_readonly("to_block", &Wire::to_block)
                         .def_readonly("to_input", &Wire::to_input)
@@ -153,9 +155,6 @@ PYBIND11_MODULE(AAri_cpp, m) {
                         py::arg("wire"));
 
 
-        m.attr("transmit_mono_to_stereo_mixer_4") = py::cpp_function(&Wire::transmit_mono_to_stereo_mixer<4>);
-
-
         py::enum_<BlockType>(m, "BlockType")
                         .value("NONE", BlockType::NONE)
                         .value("SineOsc", BlockType::SineOsc)
@@ -182,8 +181,7 @@ PYBIND11_MODULE(AAri_cpp, m) {
         py::class_<OutputExpansion>(m, "OutputExpansion", py::module_local())
                         .def_readonly("outputId", &OutputExpansion::outputIds);
 
-        py::class_<IGraphRegistry>(m, "IGraphRegistry", py::module_local())
-                        .def("get_graph_registry", &IGraphRegistry::get_graph_registry);
+        py::class_<IGraphRegistry>(m, "IGraphRegistry", py::module_local());
 
         py::class_<AudioEngine, IGraphRegistry>(m, "AudioEngine", py::module_local())
                         .def(py::init<>())

@@ -95,7 +95,7 @@ add_test(NAME GraphTests COMMAND graph_tests)
 # Custom command to generate Python stubs using stubgen
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
-        COMMAND ${Python3_Folder}/stubgen -o ${CMAKE_CURRENT_BINARY_DIR} -m AAri_cpp
+        COMMAND ${Python3_EXECUTABLE} -m pybind11_stubgen AAri_cpp
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/AAri
         DEPENDS AAri_cpp
         COMMENT "Generating Python stubs for AAri_cpp"
@@ -111,7 +111,7 @@ add_custom_target(
 add_custom_command(
         TARGET GenerateStubs POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
+        ${CMAKE_SOURCE_DIR}/AAri/stubs/AAri_cpp.pyi
         ${CMAKE_SOURCE_DIR}/AAri/AAri_cpp.pyi
         COMMENT "Copying AAri_cpp.pyi to AAri directory"
 )

@@ -3,7 +3,6 @@ import unittest
 from time import sleep
 
 import AAri_cpp  # Import the Pybind11 module
-
 from AAri.audio_engine import AudioEngine, Block
 from AAri.oscillators import SineOsc
 
@@ -21,15 +20,16 @@ class TestEngine(unittest.TestCase):
 
     def test_sine_osc_block_manual(self):
         audio_engine = AudioEngine()
+        # TODO figure out why adding the block after starting the engine causes a segfault
+        audio_engine.start()
         sine_osc_id = AAri_cpp.SineOsc.create(audio_engine.engine)
         sine_block = Block(sine_osc_id)
-        audio_engine.start()
         audio_engine.engine.add_wire_to_mixer(
             sine_osc_id,
             audio_engine.output_mixer.entity,
             sine_block.output_ids[0],
             0,
-            AAri_cpp.transmit_mono_to_stereo_mixer_4,
+            AAri_cpp.Wire.transmit_mono_to_stereo_mixer_4,
         )
         sleep(3)
         ios = []

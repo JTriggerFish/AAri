@@ -108,6 +108,7 @@ TEST_CASE("Testing audio start stop with graph callback", "[AudioEngine]") {
     AudioEngine engine;
 
     SECTION("Testing start and stop") {
+        engine.startAudio();
         auto osc = SineOsc::create(&engine, 440.0f, 1.0f);
         auto osc_block = engine.view_block(osc);
         auto output_mixer = StereoMixer<2>::create(&engine);
@@ -119,7 +120,6 @@ TEST_CASE("Testing audio start stop with graph callback", "[AudioEngine]") {
         engine.add_wire_to_mixer(osc, output_mixer, osc_block.outputIds[0], 0,
                                  Wire::transmit_mono_to_stereo_mixer<2>);
         //Start and stop audio:
-        engine.startAudio();
         //Sleep for 3 seconds:
         std::this_thread::sleep_for(std::chrono::seconds(3));
         auto out1 = engine.view_block_io(osc);
