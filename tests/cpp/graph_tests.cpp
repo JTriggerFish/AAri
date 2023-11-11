@@ -13,49 +13,49 @@
 
 using namespace AAri;
 
-entt::entity getOutputId(entt::registry &registry, entt::entity blockId, int outputIndex) {
-    auto &block = registry.get<Block>(blockId);
+entt::entity getOutputId(entt::registry&registry, entt::entity blockId, int outputIndex) {
+    auto&block = registry.get<Block>(blockId);
     return block.outputIds[outputIndex];
 }
 
-entt::entity getInputId(entt::registry &registry, entt::entity blockId, int inputIndex) {
-    auto &block = registry.get<Block>(blockId);
+entt::entity getInputId(entt::registry&registry, entt::entity blockId, int inputIndex) {
+    auto&block = registry.get<Block>(blockId);
     return block.inputIds[inputIndex];
 }
 
-void times_two(entt::registry &registry, const Block &block, AudioContext ctx) {
-    auto &input = registry.get<Input1D>(block.inputIds[0]);
-    auto &output = registry.get<Output1D>(block.outputIds[0]);
+void times_two(entt::registry&registry, const Block&block, AudioContext ctx) {
+    auto&input = registry.get<Input1D>(block.inputIds[0]);
+    auto&output = registry.get<Output1D>(block.outputIds[0]);
     output.value = input.value * 2.0f;
 }
 
-void plus_three(entt::registry &registry, const Block &block, AudioContext ctx) {
-    auto &input = registry.get<Input1D>(block.inputIds[0]);
-    auto &output = registry.get<Output1D>(block.outputIds[0]);
+void plus_three(entt::registry&registry, const Block&block, AudioContext ctx) {
+    auto&input = registry.get<Input1D>(block.inputIds[0]);
+    auto&output = registry.get<Output1D>(block.outputIds[0]);
     output.value = input.value + 3.0f;
 }
 
-void times_2_and_plus_4(entt::registry &registry, const Block &block, AudioContext ctx) {
-    auto &input1 = registry.get<Input1D>(block.inputIds[0]);
-    auto &input2 = registry.get<Input1D>(block.inputIds[1]);
-    auto &output1 = registry.get<Output1D>(block.outputIds[0]);
-    auto &output2 = registry.get<Output1D>(block.outputIds[1]);
+void times_2_and_plus_4(entt::registry&registry, const Block&block, AudioContext ctx) {
+    auto&input1 = registry.get<Input1D>(block.inputIds[0]);
+    auto&input2 = registry.get<Input1D>(block.inputIds[1]);
+    auto&output1 = registry.get<Output1D>(block.outputIds[0]);
+    auto&output2 = registry.get<Output1D>(block.outputIds[1]);
     output1.value = input1.value * 2.0f;
     output2.value = input2.value + 4.0f;
 }
 
-void times_2_and_plus_4_vectorized(entt::registry &registry, const Block &block, AudioContext ctx) {
-    auto &input = registry.get<Input2D>(block.inputIds[0]);
-    auto &output = registry.get<Output2D>(block.outputIds[0]);
+void times_2_and_plus_4_vectorized(entt::registry&registry, const Block&block, AudioContext ctx) {
+    auto&input = registry.get<Input2D>(block.inputIds[0]);
+    auto&output = registry.get<Output2D>(block.outputIds[0]);
     output.value[0] = input.value[0] * 2.0f;
     output.value[1] = input.value[1] + 4.0f;
 }
 
-entt::entity create_times_two(entt::registry &registry) {
+entt::entity create_times_two(entt::registry&registry) {
     auto input = registry.create();
-    registry.emplace<Input1D>(input, 0.0f, ParamName::Input);
+    registry.emplace<Input1D>(input, 0.0f);
     auto output = registry.create();
-    registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
+    registry.emplace<Output1D>(output, 0.0f);
 
     return Block::create(registry, BlockType::Product,
                          fill_with_null<N_INPUTS>(input),
@@ -63,11 +63,11 @@ entt::entity create_times_two(entt::registry &registry) {
                          times_two, nullptr);
 }
 
-entt::entity create_plus_three(entt::registry &registry) {
+entt::entity create_plus_three(entt::registry&registry) {
     auto input = registry.create();
-    registry.emplace<Input1D>(input, 0.0f, ParamName::Input);
+    registry.emplace<Input1D>(input, 0.0f);
     auto output = registry.create();
-    registry.emplace<Output1D>(output, 0.0f, ParamName::Out);
+    registry.emplace<Output1D>(output, 0.0f);
 
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input),
@@ -75,15 +75,15 @@ entt::entity create_plus_three(entt::registry &registry) {
                          plus_three, nullptr);
 }
 
-entt::entity create_times_2_and_plus_4(entt::registry &registry) {
+entt::entity create_times_2_and_plus_4(entt::registry&registry) {
     auto input1 = registry.create();
-    registry.emplace<Input1D>(input1, 0.0f, ParamName::Input);
+    registry.emplace<Input1D>(input1, 0.0f);
     auto input2 = registry.create();
-    registry.emplace<Input1D>(input2, 0.0f, ParamName::Input);
+    registry.emplace<Input1D>(input2, 0.0f);
     auto output1 = registry.create();
-    registry.emplace<Output1D>(output1, 0.0f, ParamName::Out);
+    registry.emplace<Output1D>(output1, 0.0f);
     auto output2 = registry.create();
-    registry.emplace<Output1D>(output2, 0.0f, ParamName::Out);
+    registry.emplace<Output1D>(output2, 0.0f);
 
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input1, input2),
@@ -91,11 +91,11 @@ entt::entity create_times_2_and_plus_4(entt::registry &registry) {
                          times_2_and_plus_4, nullptr);
 }
 
-entt::entity create_times_2_and_plus_4_vectorized(entt::registry &registry) {
+entt::entity create_times_2_and_plus_4_vectorized(entt::registry&registry) {
     auto input = registry.create();
-    registry.emplace<Input2D>(input, std::array<float, 2>{0.0f, 0.0f}, ParamName::Input);
+    registry.emplace<Input2D>(input, std::array<float, 2>{0.0f, 0.0f});
     auto output = registry.create();
-    registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f}, ParamName::Out);
+    registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f});
 
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input),
@@ -136,7 +136,7 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     auto block2 = create_times_two(registry);
 
     AudioContext ctx{44100.0f, 1.0f / 44100.0f, 0.1};
-    auto &graph = engine._test_only_get_graph();
+    auto&graph = engine._test_only_get_graph();
 
 
     SECTION("Adding and processing blocks") {
@@ -146,18 +146,18 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         //Process one sample on the graph
         graph.process(ctx);
         //Get the output of the blocks
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
 
         REQUIRE(output1.value == 3.0f);
         REQUIRE(output2.value == 2.0f);
     }
 
-        // Note that each section rebuilds the graph, so the ids will be different
+    // Note that each section rebuilds the graph, so the ids will be different
     SECTION("Testing connection") {
         //Connecting the blocks and processing again
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
 
         // Set block 2 input to 2
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
@@ -173,7 +173,7 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
 
         //Adding the same wire again should throw an exception
         REQUIRE_THROWS(engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
-                                       getInputId(registry, block1, 0), Wire::transmit_1d_to_1d));
+            getInputId(registry, block1, 0), Wire::transmit_1d_to_1d));
     }
 
     SECTION("Testing disconnection") {
@@ -202,14 +202,14 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         //Process one sample on the graph
         graph.process(ctx);
         //Get the output of the blocks
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
 
         // Back to disconnected expected values
         REQUIRE(output1.value == 3.0f);
         REQUIRE(output2.value == 2.0f);
-
-    }SECTION("Testing wire gain and offset") {
+    }
+    SECTION("Testing wire gain and offset") {
         auto wire = engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
                                     getInputId(registry, block1, 0), Wire::transmit_1d_to_1d);
 
@@ -233,13 +233,12 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
         //Process one sample on the graph
         graph.process(ctx);
         //Get the output of the blocks
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
 
         // Back to disconnected expected values
         REQUIRE(output1.value == 3.0f);
         REQUIRE(output2.value == 2.0f);
-
     }
 }
 
@@ -252,7 +251,7 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     auto block3 = create_times_2_and_plus_4(registry);
 
     AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
-    auto &graph = engine._test_only_get_graph();
+    auto&graph = engine._test_only_get_graph();
 
 
     SECTION("Testing Multiple layers of dependencies") {
@@ -268,10 +267,10 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         // Process one sample on the graph
         graph.process(ctx);
         //Get the output of the blocks
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
-        auto &output3_0 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[0]);
-        auto &output3_1 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[1]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output3_0 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[0]);
+        auto&output3_1 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[1]);
 
         REQUIRE(output1.value == 4.0f);
         REQUIRE(output3_0.value == 8.0f);
@@ -295,8 +294,8 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         //Get the WireToBlock for each block and check that no wire in blocks[i]'WireToBlock is
         //after any wire in blocks[i+1]'s WireToBlock:
         for (int i = 0; i < blocks.size() - 1; ++i) {
-            auto &wire_to_block1 = registry.get<WiresToBlock>(blocks[i]);
-            auto &wire_to_block2 = registry.get<WiresToBlock>(blocks[i + 1]);
+            auto&wire_to_block1 = registry.get<WiresToBlock>(blocks[i]);
+            auto&wire_to_block2 = registry.get<WiresToBlock>(blocks[i + 1]);
             for (auto wire_id1: wire_to_block1.input_wire_ids) {
                 if (wire_id1 == entt::null) {
                     continue;
@@ -306,12 +305,10 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
                         continue;
                     }
                     REQUIRE(std::find(wires.begin(), wires.end(), wire_id1) <
-                            std::find(wires.begin(), wires.end(), wire_id2));
+                        std::find(wires.begin(), wires.end(), wire_id2));
                 }
             }
         }
-
-
     }
 
     SECTION("Testing Blocks with Multiple Inputs and Outputs") {
@@ -324,25 +321,24 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
         graph.process(ctx);
 
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
-        auto &output3_0 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[0]);
-        auto &output3_1 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[1]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output3_0 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[0]);
+        auto&output3_1 = registry.get<Output1D>(registry.get<Block>(block3).outputIds[1]);
 
         REQUIRE(output1.value == 6.0f);
         REQUIRE(output2.value == 5.0f);
         REQUIRE(output3_0.value == 12.0f);
         REQUIRE(output3_1.value == 9.0f);
-    }SECTION("Testing that cycles throw an error") {
+    }
+    SECTION("Testing that cycles throw an error") {
         //Connect block1 -> block3 -> block2 -> block1
         engine.add_wire(block1, block3, getOutputId(registry, block1, 0),
                         getInputId(registry, block3, 0), Wire::transmit_1d_to_1d);
         engine.add_wire(block3, block2, getOutputId(registry, block3, 0),
                         getInputId(registry, block2, 0), Wire::transmit_1d_to_1d);
         REQUIRE_THROWS(engine.add_wire(block2, block1, getOutputId(registry, block2, 0),
-                                       getInputId(registry, block1, 0), Wire::transmit_1d_to_1d));
-
-
+            getInputId(registry, block1, 0), Wire::transmit_1d_to_1d));
     }
 
     SECTION("Testing wire with width > 1") {
@@ -359,8 +355,8 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         registry.get<Input1D>(getInputId(registry, block1, 0)).value = 3.0f;
         graph.process(ctx);
 
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output4 = registry.get<Output2D>(registry.get<Block>(block4).outputIds[0]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output4 = registry.get<Output2D>(registry.get<Block>(block4).outputIds[0]);
 
         REQUIRE(output1.value == 6.0f);
         REQUIRE(output4.value[0] == 12.0f);
@@ -386,7 +382,7 @@ TEST_CASE("Test mixers") {
     auto block4 = create_times_2_and_plus_4_vectorized(registry);
 
     AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
-    auto &graph = engine._test_only_get_graph();
+    auto&graph = engine._test_only_get_graph();
 
     SECTION("Test mono mixer") {
         auto mixer = MonoMixer<4>::create(&engine);
@@ -399,20 +395,18 @@ TEST_CASE("Test mixers") {
         registry.get<Input1D>(registry.get<Block>(block2).inputIds[0]).value = 2.0f;
         graph.process(ctx);
 
-        auto &output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto &output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
-        auto &output3 = registry.get<Output1D>(registry.get<Block>(mixer).outputIds[0]);
+        auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
+        auto&output2 = registry.get<Output1D>(registry.get<Block>(block2).outputIds[0]);
+        auto&output3 = registry.get<Output1D>(registry.get<Block>(mixer).outputIds[0]);
 
         REQUIRE(output1.value == 6.0f);
         REQUIRE(output2.value == 5.0f);
         REQUIRE(output3.value == 11.0f);
-
     }
-
 }
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     Catch::Session session; // There must be exactly one instance
 
     // writing to session.configData() here sets defaults

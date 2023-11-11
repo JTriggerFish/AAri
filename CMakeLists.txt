@@ -1,9 +1,10 @@
 # Find Python interpreter
 if (WIN32)
-    set(Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/venv/Scripts/python)
+    set(Python3_Folder ${CMAKE_SOURCE_DIR}/venv/Scripts)
 else ()
-    set(Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/venv/bin/python)
+    set(Python3_Folder ${CMAKE_SOURCE_DIR}/venv/bin)
 endif ()
+set(Python3_EXECUTABLE ${Python3_Folder}/python)
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 cmake_minimum_required(VERSION 3.14)
 
@@ -94,7 +95,7 @@ add_test(NAME GraphTests COMMAND graph_tests)
 # Custom command to generate Python stubs using stubgen
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
-        COMMAND ${CMAKE_SOURCE_DIR}/venv/Scripts/stubgen -o ${CMAKE_CURRENT_BINARY_DIR} -m AAri_cpp
+        COMMAND ${Python3_Folder}/stubgen -o ${CMAKE_CURRENT_BINARY_DIR} -m AAri_cpp
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/AAri
         DEPENDS AAri_cpp
         COMMENT "Generating Python stubs for AAri_cpp"

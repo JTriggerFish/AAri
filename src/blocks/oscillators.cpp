@@ -6,27 +6,27 @@
 using namespace AAri;
 
 
-void SineOsc::process(entt::registry &registry, const Block &block, AudioContext ctx) {
-    auto &phase = registry.get<Input1D>(block.inputIds[0]);
-    auto &freq = registry.get<Input1D>(block.inputIds[1]);
-    auto &amp = registry.get<Input1D>(block.inputIds[2]);
-    auto &out = registry.get<Output1D>(block.outputIds[0]);
+void SineOsc::process(entt::registry&registry, const Block&block, AudioContext ctx) {
+    auto&phase = registry.get<Input1D>(block.inputIds[0]);
+    auto&freq = registry.get<Input1D>(block.inputIds[1]);
+    auto&amp = registry.get<Input1D>(block.inputIds[2]);
+    auto&out = registry.get<Output1D>(block.outputIds[0]);
 
     out.value = amp.value * sinf(2.0f * PI * freq.value * phase.value);
     phase.value = fmodf(phase.value + ctx.dt, 1.0f);
 }
 
 entt::entity
-SineOsc::create(IGraphRegistry *reg, float init_freq, float init_amp) {
+SineOsc::create(IGraphRegistry* reg, float init_freq, float init_amp) {
     auto [registry, guard] = reg->get_graph_registry();
     auto phase = registry.create();
-    registry.emplace<Input1D>(phase, 0.0f, ParamName::Phase);
+    registry.emplace<Input1D>(phase, 0.0f);
     auto freq = registry.create();
-    registry.emplace<Input1D>(freq, init_freq, ParamName::Freq);
+    registry.emplace<Input1D>(freq, init_freq);
     auto amp = registry.create();
-    registry.emplace<Input1D>(amp, init_amp, ParamName::Amp);
+    registry.emplace<Input1D>(amp, init_amp);
     auto out = registry.create();
-    registry.emplace<Output1D>(out, 0.0f, ParamName::Out);
+    registry.emplace<Output1D>(out, 0.0f);
 
     return Block::create(registry, BlockType::SineOsc,
                          fill_with_null<N_INPUTS>(phase, freq, amp),
@@ -34,7 +34,7 @@ SineOsc::create(IGraphRegistry *reg, float init_freq, float init_amp) {
                          process, view);
 }
 
-IoMap SineOsc::view(entt::registry &registry, const Block &block) {
+IoMap SineOsc::view(entt::registry&registry, const Block&block) {
     auto phaseid = block.inputIds[0];
     auto freqid = block.inputIds[1];
     auto ampid = block.inputIds[2];
