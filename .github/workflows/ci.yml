@@ -51,7 +51,6 @@ jobs:
 
       - name: Build
         run: |
-          pip list
           cmake --build build --config Release
 
       - name: Run tests (Windows)
