@@ -46,14 +46,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Try force install pybind11-stubgen
-        run: pip install pybind11-stubgen
-
       - name: Configure CMake
         run: cmake -B build
 
       - name: Build
-        run: cmake --build build --config Release
+        run: |
+          pip list
+          cmake --build build --config Release
 
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
