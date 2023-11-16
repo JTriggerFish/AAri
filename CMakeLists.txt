@@ -73,7 +73,7 @@ pybind11_add_module(AAri_cpp
 )
 target_link_libraries(AAri_cpp PRIVATE core EnTT::EnTT)
 
-set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../AAri")
+set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../AAri)
 
 #add_custom_command(TARGET AAri_cpp POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
