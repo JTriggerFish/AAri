@@ -73,7 +73,7 @@ pybind11_add_module(AAri_cpp
 )
 target_link_libraries(AAri_cpp PRIVATE core EnTT::EnTT)
 
-set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "../AAri")
+set_target_properties(AAri_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../AAri")
 
 #add_custom_command(TARGET AAri_cpp POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -87,9 +87,9 @@ add_test(NAME GraphTests COMMAND graph_tests)
 
 # Custom command to generate Python stubs using stubgen
 add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
+        OUTPUT ${CMAKE_BINARY_DIR}/../AAri/AAri_cpp.pyi
         COMMAND python -m pybind11_stubgen AAri_cpp
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/AAri
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../AAri
         DEPENDS AAri_cpp
         COMMENT "Generating Python stubs for AAri_cpp"
 )
@@ -97,15 +97,15 @@ add_custom_command(
 # Custom target to ensure stub generation
 add_custom_target(
         GenerateStubs ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/AAri_cpp.pyi
+        DEPENDS ${CMAKE_BINARY_DIR}/../AAri/AAri_cpp.pyi
 )
 
 # Copy the generated stub file to the AAri directory
 add_custom_command(
         TARGET GenerateStubs POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/AAri/stubs/AAri_cpp.pyi
-        ${CMAKE_SOURCE_DIR}/AAri/AAri_cpp.pyi
+        ${CMAKE_BINARY_DIR}/../AAri/stubs/AAri_cpp.pyi
+        ${CMAKE_BINARY_DIR}/../AAri/AAri_cpp.pyi
         COMMENT "Copying AAri_cpp.pyi to AAri directory"
 )
 
