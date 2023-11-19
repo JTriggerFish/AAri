@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-import typing
 from collections import OrderedDict
+from typing import List, Dict, Any, Union
+
+import numpy as np
 
 import AAri_cpp  # Import the Pybind11 module
-import numpy as np
+from AAri_cpp import Entity
 
 """
 TODO - A lot of this is deprecated post switch to entt backend, and needs to be rewritten
@@ -21,7 +23,7 @@ def dB(db_val: float) -> float:
 
 
 class Param:
-    def __init__(self, name: str, idx: int, width: bool, is_input: bool):
+    def __init__(self, name: str, idx: Entity, width: int, is_input: bool):
         self.name = name
         self.idx = idx
         self.width = width
@@ -39,19 +41,10 @@ class AttachedParam(ParamExpression):
         self.param = param
 
     @property
-    def value(self) -> typing.Union[float, np.ndarray]:
-        if self.param.is_input:
-            ret = self.block._graph.cpp_graph.get_block_inputs(
-                self.block.block_ptr.id, self.param.idx, self.param.width
-            )
+    def value(self) -> Union[float, np.ndarray]:
+        return self.block.view_inputs_outputs()[self.param.idx]
 
-        else:
-            ret = self.block._graph.cpp_graph.get_block_outputs(
-                self.block.block_ptr.id, self.param.idx, self.param.width
-            )
-        return ret[0] if self.param.width == 1 else ret
-
-    def __add__(self, other: typing.Union[float, int, "AttachedParam", "ScaledParam"]):
+    def __add__(self, other: Union[float, int, "AttachedParam", "ScaledParam"]):
         match other:
             case float(other):
                 return ScaledParam(self, 1.0, other)
@@ -85,7 +78,7 @@ class ScaledParam(ParamExpression):
         self.gain = gain
         self.offset = offset
 
-    def __add__(self, other: typing.Union[float, int, AttachedParam, "ScaledParam"]):
+    def __add__(self, other: Union[float, int, AttachedParam, "ScaledParam"]):
         match other:
             case float(other):
                 return ScaledParam(self.attached_param, self.gain, self.offset + other)
@@ -128,17 +121,8 @@ class ScaledParam(ParamExpression):
             raise RuntimeError(
                 "Cannot connect block parameters with different input and output size"
             )
-        graph = self.attached_param.block._graph
-        if not graph.cpp_graph.has_block(self.attached_param.block.block_ptr.id):
-            graph.cpp_graph.add_block(self.attached_param.block.block_ptr)
-        graph.connect(
-            self.attached_param.block,
-            input_param.block,
-            self.attached_param.param.idx,
-            self.attached_param.param.width,
-            input_param.param.idx,
-            self.gain,
-            self.offset,
+        self.attached_param.block.engine.add_wire(
+            self.attached_param, input_param, self.gain, self.offset
         )
 
 
@@ -243,7 +227,7 @@ class BlockWithParametersMeta(type):
             # Define setter
             def setter(
                 self: "Block",
-                value: typing.Union[float, np.ndarray, AttachedParam],
+                value: Union[float, np.ndarray, AttachedParam],
                 parameter=parameter,
             ):
                 """
@@ -274,10 +258,10 @@ class BlockWithParametersMeta(type):
 
     @staticmethod
     def create_params(
-        params: typing.OrderedDict[str, int],
+        params: OrderedDict[str, int],
         is_input: bool,
         total_size: int,
-    ) -> typing.Dict[str, Param]:
+    ) -> Dict[str, Param]:
         """
         Iterate through the parameters, check their indices are strictly increasing and
         set their width based on the difference with the next index
@@ -302,7 +286,7 @@ class BlockWithParametersMeta(type):
         return ret
 
 
-class Block(metaclass=BlockWithParametersMeta):
+class Block_old(metaclass=BlockWithParametersMeta):
     INPUT_SIZE = 0
     OUTPUT_SIZE = 0
 
@@ -318,6 +302,30 @@ class Block(metaclass=BlockWithParametersMeta):
 
     def __lshift__(self, block: "Block"):
         pass
+
+
+class Block(metaclass=BlockWithParametersMeta):
+    def __init__(self, entity: Entity):
+        from AAri.audio_engine import AudioEngine  # Avoid circular import
+
+        self.entity = entity
+        self.engine = AudioEngine()  # Get the unique instance
+        self.cpp_block = self.engine.engine.view_block(entity)
+        self.engine.blocks.add(self)
+
+    def __del__(self):
+        self.engine.blocks.remove(self)
+
+    @property
+    def input_ids(self) -> List[Entity]:
+        return self.cpp_block.inputIds
+
+    @property
+    def output_ids(self) -> List[Entity]:
+        return self.cpp_block.outputIds
+
+    def view_inputs_outputs(self) -> Dict[Entity, Any]:
+        return self.engine.engine.view_block_io(self.entity)
 
 
 class MixerBase(Block):
