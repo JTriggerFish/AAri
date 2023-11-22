@@ -3,32 +3,7 @@ from typing import List, Set
 
 import AAri_cpp  # Import the Pybind11 module
 from AAri_cpp import Entity
-from block import Block, AttachedParam
-
-
-class MixerBlock(Block):
-    def __init__(self, entity: Entity):
-        super().__init__(entity)
-
-
-class StereoMixer(MixerBlock):
-    def __init__(self, size: int = 4):
-        engine = AudioEngine()
-        match size:
-            case (2):
-                entity = AAri_cpp.StereoMixer2.create(engine.engine)
-            case (4):
-                entity = AAri_cpp.StereoMixer4.create(engine.engine)
-            case (8):
-                entity = AAri_cpp.StereoMixer8.create(engine.engine)
-            case (16):
-                entity = AAri_cpp.StereoMixer16.create(engine.engine)
-            case (32):
-                entity = AAri_cpp.StereoMixer32.create(engine.engine)
-            case other:
-                raise ValueError("Invalid size for StereoMixer")
-        super().__init__(entity)
-        self.free_inputs = [1] * size
+from block import Block, AttachedParam, MixerBlock, StereoMixer
 
 
 class AudioEngine:
@@ -76,6 +51,11 @@ class AudioEngine:
         self.stop()
         cls = type(self)
         cls._instance = None
+
+    def get_wires_to_block(self, block: Block) -> List[AAri_cpp.Wire]:
+        wires_ids = self.engine.get_wires_to_block(block.entity)
+        wires = [self.engine.view_wire(w) for w in wires_ids]
+        return wires
 
     def add_wire(
         self,

@@ -163,7 +163,7 @@ class AddedParams(ParamExpression):
             raise RuntimeError(
                 "Cannot connect block parameters with different input and output size"
             )
-        mixer = MonoMixerBase() if width == 1 else StereoMixerBase()
+        mixer = MonoMixer() if width == 1 else StereoMixer()
         if len(self.params_list) > mixer.INPUT_SIZE / width:
             raise RuntimeError(
                 f"Cannot connect more than {mixer.INPUT_SIZE / width} parameters to a single input"
@@ -207,17 +207,13 @@ class MultipliedParams(ParamExpression):
 
 class BlockWithParametersMeta(type):
     def __new__(cls, name, bases, dct):
-        # Fail if INPUTS, OUTPUTS, INPUT_SIZE or OUTPUT_SIZE are not defined
-        if "INPUT_SIZE" not in dct or "OUTPUT_SIZE" not in dct:
-            raise RuntimeError(
-                "INPUT_SIZE and OUTPUT_SIZE must be defined as static members of the class"
-            )
-
         params = cls.create_params(
-            dct.get("INPUTS", {}), True, dct.get("INPUT_SIZE", 0)
+            dct.get("INPUTS", {}),
+            True,
         )
         params |= cls.create_params(
-            dct.get("OUTPUTS", {}), False, dct.get("OUTPUT_SIZE", 0)
+            dct.get("OUTPUTS", {}),
+            False,
         )
         for name, parameter in params.items():
             # Define getter and setter
@@ -260,7 +256,6 @@ class BlockWithParametersMeta(type):
     def create_params(
         params: OrderedDict[str, int],
         is_input: bool,
-        total_size: int,
     ) -> Dict[str, Param]:
         """
         Iterate through the parameters, check their indices are strictly increasing and
@@ -272,36 +267,8 @@ class BlockWithParametersMeta(type):
         :return:
         """
         ret = {}
-        # Iterate backward through the parameters. The width of the last params
-        # is the difference between its start index and size of the inputs, and then the width of the parameter before
-        # it is the difference between its start index and the start index of the next parameter etc
-        last_idx = total_size
-        for name, idx in reversed(params.items()):
-            if last_idx is None:
-                width = idx
-            else:
-                width = last_idx - idx
-            ret[name] = Param(name, idx, width, is_input)
-            last_idx = idx
+        # TODO - redo this with entt backend
         return ret
-
-
-class Block_old(metaclass=BlockWithParametersMeta):
-    INPUT_SIZE = 0
-    OUTPUT_SIZE = 0
-
-    def __init__(
-        self,
-        block_ptr: AAri_cpp.Block,
-    ):
-        from AAri.audio_engine import AudioEngine  # Avoid circular import
-
-        """Base class for all blocks, wrapping cpp block"""
-        self.block_ptr = block_ptr
-        self._graph = AudioEngine().graph
-
-    def __lshift__(self, block: "Block"):
-        pass
 
 
 class Block(metaclass=BlockWithParametersMeta):
@@ -328,94 +295,71 @@ class Block(metaclass=BlockWithParametersMeta):
         return self.engine.engine.view_block_io(self.entity)
 
 
-class MixerBase(Block):
-    INPUT_SIZE = 0
-    OUTPUT_SIZE = 0
+class MixerBlock(Block):
+    def __init__(self, entity: Entity, num_inputs: int):
+        super().__init__(entity)
+        self.num_inputs = num_inputs
 
-    def __init__(self, block_ptr):
-        super().__init__(block_ptr)
-
-    def _find_free_slot(self, width: int) -> int:
-        """
-        Go through all the wires plugged into this block and find a free slot wide enough to accomodate
-        the input
-        :param width:
-        :return:
-        """
-        wires = self.block_ptr.wires
-        free_inputs = np.zeros(self.block_ptr.input_size, dtype=int)
+    def _find_free_slot(self) -> int:
+        wires = self.engine.get_wires_to_block(self)
+        used_inputs = np.zeros(self.num_inputs)
+        # Find the free inputs
         for wire in wires:
-            free_inputs[wire.out_index : wire.out_index + wire.width] = 1
-        free_inputs = np.where(free_inputs == 0)[0]
-        for i in range(len(free_inputs - width)):
-            if np.array_equal(
-                free_inputs[i : i + width],
-                np.arange(free_inputs[i], free_inputs[i] + width),
-            ):
-                return free_inputs[i]
-        raise RuntimeError("No free slot found")
+            used_inputs[wire.to_input] = 1
+        free_slots = np.where(used_inputs == 0)
+        if len(free_slots) == 0:
+            raise RuntimeError("No free inputs")
+        return free_slots[0]
+
+
+class StereoMixer(MixerBlock):
+    def __init__(self, size: int = 4):
+        from AAri.audio_engine import AudioEngine  # Avoid circular import
+
+        engine = AudioEngine()
+        match size:
+            case (2):
+                entity = AAri_cpp.StereoMixer2.create(engine.engine)
+            case (4):
+                entity = AAri_cpp.StereoMixer4.create(engine.engine)
+            case (8):
+                entity = AAri_cpp.StereoMixer8.create(engine.engine)
+            case (16):
+                entity = AAri_cpp.StereoMixer16.create(engine.engine)
+            case (32):
+                entity = AAri_cpp.StereoMixer32.create(engine.engine)
+            case other:
+                raise ValueError(
+                    "Invalid size for StereoMixer, must be a power of 2 and smaller than 32"
+                )
+        super().__init__(entity, size)
+        self.free_inputs = [1] * size
+
+
+class MonoMixer(MixerBlock):
+    def __init__(self, size: int = 4):
+        from AAri.audio_engine import AudioEngine  # Avoid circular import
+
+        engine = AudioEngine()
+        match size:
+            case (2):
+                entity = AAri_cpp.MonoMixer2.create(engine.engine)
+            case (4):
+                entity = AAri_cpp.MonoMixer4.create(engine.engine)
+            case (8):
+                entity = AAri_cpp.MonoMixer8.create(engine.engine)
+            case (16):
+                entity = AAri_cpp.MonoMixer16.create(engine.engine)
+            case (32):
+                entity = AAri_cpp.MonoMixer32.create(engine.engine)
+            case other:
+                raise ValueError(
+                    "Invalid size for StereoMixer, "
+                    "must be a power of 2 and smaller than 32"
+                )
+        super().__init__(entity, size)
+        self.free_inputs = [1] * size
 
 
 class ProductBase(Block):
-    INPUT_SIZE = 2
-    OUTPUT_SIZE = 1
-    # INPUT_SIZE = AAri_cpp.Product.INPUT_SIZE
-    # OUTPUT_SIZE = AAri_cpp.Product.OUTPUT_SIZE
-    # OUTPUTS = OrderedDict(
-    #    {"out1": AAri_cpp.Product.OUT1, "out2": AAri_cpp.Product.OUT2}
-    # )
-
-    # def __init__(self, product_type=AAri_cpp.ProductType.DUAL_CHANNELS):
-    #    super().__init__(AAri_cpp.Product(product_type))
     pass
-
-
-class MonoMixerBase(MixerBase):
-    """Mono mixer block"""
-
-    INPUT_SIZE = 8
-    OUTPUT_SIZE = 1
-    # INPUT_SIZE = AAri_cpp.MonoMixer.INPUT_SIZE
-    # OUTPUT_SIZE = AAri_cpp.MonoMixer.OUTPUT_SIZE
-    # OUTPUTS = OrderedDict({"out": AAri_cpp.MonoMixer.OUT})
-
-    def __init__(self):
-        super().__init__(AAri_cpp.MonoMixer())
-
-
-class StereoMixerBase(MixerBase):
-    """Stereo mixer block"""
-
-    INPUT_SIZE = 8
-    OUTPUT_SIZE = 2
-    # INPUT_SIZE = AAri_cpp.StereoMixer.INPUT_SIZE
-    # OUTPUT_SIZE = AAri_cpp.StereoMixer.OUTPUT_SIZE
-
-    OUTPUTS = OrderedDict({"left": 0, "right": 1})
-
-    def __init__(self):
-        super().__init__(AAri_cpp.StereoMixer())
-
-    def __lshift__(self, block: Block):
-        # Default to -30db
-        gain = dB(-30.0)
-        panning = 0.0
-        self._graph.add_block(block)
-        if block.block_ptr.output_size > 2:
-            raise RuntimeError("Cannot connect block with more than 2 outputs")
-        free_slot = self._find_free_slot(2)
-        if block.block_ptr.output_size == 1:
-            # Use a stereo wire:
-            self._graph.connect(
-                block,
-                self,
-                0,
-                2,
-                free_slot,
-                gain,
-                0.0,
-                AAri_cpp.WireTransform.STEREO_PAN,
-                panning,
-            )
-        else:
-            self._graph.connect(block, self, 0, 2, free_slot)
