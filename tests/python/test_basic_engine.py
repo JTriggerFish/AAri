@@ -5,6 +5,7 @@ from time import sleep
 import AAri_cpp  # Import the Pybind11 module
 from AAri.audio_engine import AudioEngine, Block
 from AAri.oscillators import SineOsc
+from block import StereoMixer
 
 sys.path.append(r"../../AAri")
 
@@ -35,6 +36,16 @@ class TestEngine(unittest.TestCase):
         sine_outs = []
         for i in range(100):
             ios.append(sine_block.view_inputs_outputs())
+        audio_engine.stop()
+
+
+class TestMixer(unittest.TestCase):
+    def test_stereo_mixer(self):
+        audio_engine = AudioEngine()
+        audio_engine.start()
+        mixer = StereoMixer(4)
+        free_input = mixer.find_free_slot()
+        assert free_input == 0
         audio_engine.stop()
 
 

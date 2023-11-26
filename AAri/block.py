@@ -130,25 +130,25 @@ class AddedParams(ParamExpression):
     def __init__(
         self, param1: ScaledParam | AddedParams, param2: ScaledParam | AddedParams
     ):
-        params_list = []
+        self.params_list = []
         if isinstance(param1, ScaledParam):
-            params_list.append(param1)
+            self.params_list.append(param1)
         else:
-            params_list += param1.params_list
+            self.params_list += param1.params_list
         if isinstance(param2, ScaledParam):
-            params_list.append(param2)
+            self.params_list.append(param2)
         else:
-            params_list += param2.params_list
-        self.params_list = params_list
+            self.params_list += param2.params_list
 
-    def connect(self, input_param: AttachedParam):
+    def connect(self, target_input: AttachedParam | MixerBlock):
         """
         First create a mono or stereo mixer after checking all the blocks outputs are of width 1 or 2,
         and then connect that to the input_param
-        :param input_param:
+        :param target_input:
         :return:
         """
         # Check all the blocks are of the same width =  1 or 2
+        engine = self.params_list[0].attached_param.block.engine
         width = self.params_list[0].attached_param.param.width
         for param in self.params_list:
             if param.attached_param.param.width != width:
@@ -156,35 +156,19 @@ class AddedParams(ParamExpression):
                     "Cannot connect parameters with different widths to a single input"
                 )
         if width > 2:
-            raise RuntimeError(
-                "Cannot connect more than 2 parameters to a single input"
-            )
-        if width != input_param.param.width:
-            raise RuntimeError(
-                "Cannot connect block parameters with different input and output size"
-            )
-        mixer = MonoMixer() if width == 1 else StereoMixer()
-        if len(self.params_list) > mixer.INPUT_SIZE / width:
-            raise RuntimeError(
-                f"Cannot connect more than {mixer.INPUT_SIZE / width} parameters to a single input"
-            )
-        for i, param in enumerate(self.params_list):
-            input_param._graph.connect(
-                param.attached_param.block,
-                mixer,
-                param.attached_param.param.idx,
-                param.attached_param.param.width,
-                i * param.attached_param.param.width,
-                param.gain,
-                param.offset,
-            )
-        mixer._graph.connect(
-            mixer,
-            input_param.block,
-            0,
-            mixer.OUTPUT_SIZE,
-            input_param.param.idx,
+            raise RuntimeError("Only widths of 1 or 2 are suppported so far")
+        target_width = (
+            target_input.param.width
+            if isinstance(target_input, AttachedParam)
+            else (2 if isinstance(target_input, StereoMixer) else 1)
         )
+        # First mix the list of params
+        mixer_size = 2 ** int(np.ceil(np.log2(len(self.params_list))))
+        mixer = MonoMixer(mixer_size) if width == 1 else StereoMixer(mixer_size)
+        for p in self.params_list:
+            engine.add_wire(p.attached_param, mixer, gain=p.gain, offset=p.offset)
+        # Then connect the mixer to the input
+        engine.add_wire(mixer.output, target_input)
 
 
 class MultipliedParams(ParamExpression):
@@ -299,17 +283,18 @@ class MixerBlock(Block):
     def __init__(self, entity: Entity, num_inputs: int):
         super().__init__(entity)
         self.num_inputs = num_inputs
+        # TODO add "output" parameter
 
-    def _find_free_slot(self) -> int:
+    def find_free_slot(self) -> int:
         wires = self.engine.get_wires_to_block(self)
         used_inputs = np.zeros(self.num_inputs)
         # Find the free inputs
         for wire in wires:
             used_inputs[wire.to_input] = 1
         free_slots = np.where(used_inputs == 0)
-        if len(free_slots) == 0:
+        if len(free_slots[0]) == 0:
             raise RuntimeError("No free inputs")
-        return free_slots[0]
+        return int(free_slots[0][0])
 
 
 class StereoMixer(MixerBlock):
@@ -320,20 +305,39 @@ class StereoMixer(MixerBlock):
         match size:
             case (2):
                 entity = AAri_cpp.StereoMixer2.create(engine.engine)
+                self.transmit_mono_func = AAri_cpp.Wire.transmit_mono_to_stereo_mixer_2
+                self.transmit_stereo_func = (
+                    AAri_cpp.Wire.transmit_stereo_to_stereo_mixer_2
+                )
             case (4):
                 entity = AAri_cpp.StereoMixer4.create(engine.engine)
+                self.transmit_mono_func = AAri_cpp.Wire.transmit_mono_to_stereo_mixer_4
+                self.transmit_stereo_func = (
+                    AAri_cpp.Wire.transmit_stereo_to_stereo_mixer_4
+                )
             case (8):
                 entity = AAri_cpp.StereoMixer8.create(engine.engine)
+                self.transmit_mono_func = AAri_cpp.Wire.transmit_mono_to_stereo_mixer_8
+                self.transmit_stereo_func = (
+                    AAri_cpp.Wire.transmit_stereo_to_stereo_mixer_8
+                )
             case (16):
                 entity = AAri_cpp.StereoMixer16.create(engine.engine)
+                self.transmit_mono_func = AAri_cpp.Wire.transmit_mono_to_stereo_mixer_16
+                self.transmit_stereo_func = (
+                    AAri_cpp.Wire.transmit_stereo_to_stereo_mixer_16
+                )
             case (32):
                 entity = AAri_cpp.StereoMixer32.create(engine.engine)
+                self.transmit_mono_func = AAri_cpp.Wire.transmit_mono_to_stereo_mixer_32
+                self.transmit_stereo_func = (
+                    AAri_cpp.Wire.transmit_stereo_to_stereo_mixer_32
+                )
             case other:
                 raise ValueError(
                     "Invalid size for StereoMixer, must be a power of 2 and smaller than 32"
                 )
         super().__init__(entity, size)
-        self.free_inputs = [1] * size
 
 
 class MonoMixer(MixerBlock):
@@ -344,21 +348,25 @@ class MonoMixer(MixerBlock):
         match size:
             case (2):
                 entity = AAri_cpp.MonoMixer2.create(engine.engine)
+                self.transmit_func = AAri_cpp.Wire.transmit_to_mono_mixer_2
             case (4):
                 entity = AAri_cpp.MonoMixer4.create(engine.engine)
+                self.transmit_func = AAri_cpp.Wire.transmit_to_mono_mixer_4
             case (8):
                 entity = AAri_cpp.MonoMixer8.create(engine.engine)
+                self.transmit_func = AAri_cpp.Wire.transmit_to_mono_mixer_8
             case (16):
                 entity = AAri_cpp.MonoMixer16.create(engine.engine)
+                self.transmit_func = AAri_cpp.Wire.transmit_to_mono_mixer_16
             case (32):
                 entity = AAri_cpp.MonoMixer32.create(engine.engine)
+                self.transmit_func = AAri_cpp.Wire.transmit_to_mono_mixer_32
             case other:
                 raise ValueError(
                     "Invalid size for StereoMixer, "
                     "must be a power of 2 and smaller than 32"
                 )
         super().__init__(entity, size)
-        self.free_inputs = [1] * size
 
 
 class ProductBase(Block):

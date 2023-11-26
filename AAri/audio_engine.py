@@ -60,17 +60,18 @@ class AudioEngine:
     def add_wire(
         self,
         source: AttachedParam,
-        target: AttachedParam,
+        target: AttachedParam | MixerBlock,
         gain: float = 1.0,
         offset: float = 0.0,
     ):
         assert not source.param.is_input
         assert source.param.is_input
+        target_block = target if isinstance(target, Block) else target.block
 
-        if isinstance(target.block, MixerBlock):
+        if isinstance(target_block, MixerBlock):
             self._add_wire_to_mixer(source, target)
 
-        match (source.param.width, target.param.width):
+        match source.param.width, target.param.width:
             case (1, 1):
                 self.engine.add_wire(
                     source.block.entity,
@@ -96,11 +97,39 @@ class AudioEngine:
                     f"Invalid wire width combination: {source.param.width}, {target.param.width}"
                 )
 
-    def _add_wire_to_mixer(self, source: AttachedParam, target: AttachedParam):
+    def _add_wire_to_mixer(self, source: AttachedParam, target: MixerBlock):
         """Match / case on the mixer size and whether the mixer is stereo
         or mono and the input is 1d or 2d / stereo"""
-        # TODO
-        pass
+        free_input = target.find_free_slot()
+        match source.param.width, type(target):
+            case (1, MonoMixer):
+                self.engine.add_wire_to_mixer(
+                    source.block.entity,
+                    target.entity,
+                    source.param.idx,
+                    free_input,
+                    target.transmit_func,
+                )
+            case (1, StereoMixer):
+                self.engine.add_wire_to_mixer(
+                    source.block.entity,
+                    target.entity,
+                    source.param.idx,
+                    free_input,
+                    target.transmit_mono_func,
+                )
+            case (2, StereoMixer):
+                self.engine.add_wire_to_mixer(
+                    source.block.entity,
+                    target.entity,
+                    source.param.idx,
+                    free_input,
+                    target.transmit_stereo_func,
+                )
+            case other:
+                raise ValueError(
+                    f"Invalid wire width combination: {source.param.width}, {target.param.width}"
+                )
 
     @property
     def _cpp_blocks(self) -> List[AAri_cpp.Block]:
