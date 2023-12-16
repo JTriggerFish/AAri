@@ -1,22 +1,22 @@
 import AAri_cpp  # Import the Pybind11 module
 
-from AAri.block import Block
+from AAri.block import Block, ParamDef
+from audio_engine import AudioEngine
 
 
 class SineOsc(Block):
     """Sine oscillator block"""
 
-    INPUT_SIZE = 3
-    OUTPUT_SIZE = 1
-    # INPUT_SIZE = AAri_cpp.SineOsc.INPUT_SIZE
-    # OUTPUT_SIZE = AAri_cpp.SineOsc.OUTPUT_SIZE
-    # INPUTS = OrderedDict(
-    #    {
-    #        "freq": AAri_cpp.SineOsc.FREQ,
-    #        "amp": AAri_cpp.SineOsc.AMP,
-    #    }
-    # )
-    # OUTPUTS = OrderedDict({"out": AAri_cpp.SineOsc.OUT})
+    INPUTS = [
+        ParamDef("phase", AAri_cpp.Input1D),
+        ParamDef("freq", AAri_cpp.Input1D),
+        ParamDef("amp", AAri_cpp.Input1D),
+    ]
+    OUTPUTS = [
+        ParamDef("out", AAri_cpp.Output1D),
+    ]
 
     def __init__(self, freq: float, amplitude: float = 1.0):
-        super().__init__(AAri_cpp.SineOsc(freq, amplitude))
+        audio_engine = AudioEngine()
+        sine_osc_id = AAri_cpp.SineOsc.create(audio_engine.engine)
+        super().__init__(sine_osc_id)

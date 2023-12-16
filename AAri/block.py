@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import dataclasses
 from collections import OrderedDict
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Type
 
 import numpy as np
 
@@ -22,12 +23,42 @@ def dB(db_val: float) -> float:
     return 10 ** (db_val / 20)
 
 
+@dataclasses.dataclass
+class ParamDef(frozen=True, eq=True):
+    name: str
+    io_type: Type[AAri_cpp.InputOutput]
+
+
 class Param:
-    def __init__(self, name: str, idx: Entity, width: int, is_input: bool):
+    def __init__(
+        self,
+        name: str,
+        io_number: int,
+        io_type: Type[AAri_cpp.InputOutput],
+        is_input: bool,
+    ):
         self.name = name
-        self.idx = idx
-        self.width = width
+        self.io_number = io_number
+        self.io_type = io_type
         self.is_input = is_input
+
+    @property
+    def width(self) -> int:
+        match self.io_type:
+            case AAri_cpp.Input1D, AAri_cpp.Output1D:
+                return 1
+            case AAri_cpp.Input2D, AAri_cpp.Output2D, AAri_cpp.InputND2:
+                return 2
+            case AAri_cpp.InputND4:
+                return 4
+            case AAri_cpp.InputND8:
+                return 8
+            case AAri_cpp.InputND16:
+                return 16
+            case AAri_cpp.InputND32:
+                return 32
+            case other:
+                raise ValueError(f"Invalid io_type {self.io_type}")
 
 
 class ParamExpression:
@@ -42,7 +73,14 @@ class AttachedParam(ParamExpression):
 
     @property
     def value(self) -> Union[float, np.ndarray]:
-        return self.block.view_inputs_outputs()[self.param.idx]
+        return self.block.view_inputs_outputs()[self.entity]
+
+    @property
+    def entity(self) -> Entity:
+        if self.param.is_input:
+            return self.block.cpp_block.input_ids[self.param.io_number]
+        else:
+            return self.block.cpp_block.output_ids[self.param.io_number]
 
     def __add__(self, other: Union[float, int, "AttachedParam", "ScaledParam"]):
         match other:
@@ -168,7 +206,7 @@ class AddedParams(ParamExpression):
         for p in self.params_list:
             engine.add_wire(p.attached_param, mixer, gain=p.gain, offset=p.offset)
         # Then connect the mixer to the input
-        engine.add_wire(mixer.output, target_input)
+        engine.add_wire(mixer.out, target_input)
 
 
 class MultipliedParams(ParamExpression):
@@ -187,6 +225,7 @@ class MultipliedParams(ParamExpression):
         :return:
         """
         # TODO
+        raise NotImplementedError()
 
 
 class BlockWithParametersMeta(type):
@@ -201,14 +240,14 @@ class BlockWithParametersMeta(type):
         )
         for name, parameter in params.items():
             # Define getter and setter
-            def getter(self: "Block", parameter=parameter):
-                return AttachedParam(self, parameter)
+            def getter(self: "Block", p=parameter):
+                return AttachedParam(self, p)
 
             # Define setter
             def setter(
                 self: "Block",
                 value: Union[float, np.ndarray, AttachedParam],
-                parameter=parameter,
+                p=parameter,
             ):
                 """
                 Set the value of a parameter to either a numerical
@@ -219,12 +258,10 @@ class BlockWithParametersMeta(type):
                 """
                 if parameter.is_input:
                     if isinstance(value, ParamExpression):
-                        value.connect(AttachedParam(self, parameter))
+                        value.connect(AttachedParam(self, p))
                     else:
-                        value = np.array(value)
-                        self._graph.cpp_graph.set_block_inputs(
-                            self.block_ptr.id, parameter.idx, value
-                        )
+                        # TODO how to set parameter value?
+                        pass
                 else:
                     raise RuntimeError("Cannot set output")
 
@@ -238,21 +275,18 @@ class BlockWithParametersMeta(type):
 
     @staticmethod
     def create_params(
-        params: OrderedDict[str, int],
+        params: List[ParamDef],
         is_input: bool,
     ) -> Dict[str, Param]:
-        """
-        Iterate through the parameters, check their indices are strictly increasing and
-        set their width based on the difference with the next index
-
-        :param params:
-        :param is_input:
-        :param total_size:
-        :return:
-        """
-        ret = {}
-        # TODO - redo this with entt backend
-        return ret
+        params_dict = OrderedDict()
+        for i, param in enumerate(params):
+            params_dict[param.name] = Param(
+                param.name,
+                i,
+                param.io_type,
+                is_input,
+            )
+        return params_dict
 
 
 class Block(metaclass=BlockWithParametersMeta):
@@ -298,6 +332,8 @@ class MixerBlock(Block):
 
 
 class StereoMixer(MixerBlock):
+    OUTPUTS = [ParamDef("out", AAri_cpp.Output2D)]
+
     def __init__(self, size: int = 4):
         from AAri.audio_engine import AudioEngine  # Avoid circular import
 
@@ -341,6 +377,8 @@ class StereoMixer(MixerBlock):
 
 
 class MonoMixer(MixerBlock):
+    OUTPUTS = [ParamDef("out", AAri_cpp.Output1D)]
+
     def __init__(self, size: int = 4):
         from AAri.audio_engine import AudioEngine  # Avoid circular import
 
