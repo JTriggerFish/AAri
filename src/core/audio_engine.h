@@ -14,7 +14,6 @@
 #include <entt/entt.hpp>
 
 namespace AAri {
-
     class AudioEngine : public IGraphRegistry {
     public:
         AudioEngine(ma_uint32 sample_rate = 48000, ma_uint32 buffer_size = 512);
@@ -45,7 +44,7 @@ namespace AAri {
             return {_callback_lock};
         }
 
-        Graph &_test_only_get_graph() {
+        Graph& _test_only_get_graph() {
             return _graph;
         }
 
@@ -95,9 +94,13 @@ namespace AAri {
 
         std::tuple<entt::entity, size_t> get_output_ref() const;
 
+        void set_input_1d(entt::entity input_id, float value);
+
+        template<size_t N>
+        void set_input_Nd(entt::entity input_id, const std::array<float, N>&value);
 
     private:
-        static void audio_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);
+        static void audio_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 
         double clock_seconds;
 

@@ -34,7 +34,7 @@ entt::entity MonoMixer<N>::create(IGraphRegistry* reg) {
 template<size_t N>
 void StereoMixer<N>::process(entt::registry&registry, const Block&block, AudioContext ctx) {
     auto&input = registry.get<InputNDStereo<N>>(block.inputIds[0]);
-    auto&out = registry.get<Output2D>(block.outputIds[0]);
+    auto&out = registry.get<OutputND<2>>(block.outputIds[0]);
 
     out.value[0] = 0.0f;
     out.value[1] = 0.0f;
@@ -50,7 +50,7 @@ entt::entity StereoMixer<N>::create(IGraphRegistry* reg) {
     auto input = registry.create();
     registry.emplace<InputNDStereo<N>>(input, std::array<float, N>{0.0f}, std::array<float, N>{0.0f});
     auto output = registry.create();
-    registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f});
+    registry.emplace<OutputND<2>>(output, std::array<float, 2>{0.0f, 0.0f});
 
     return Block::create(registry, BlockType::StereoMixer,
                          fill_with_null<N_INPUTS>(input),

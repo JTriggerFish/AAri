@@ -23,8 +23,8 @@ def dB(db_val: float) -> float:
     return 10 ** (db_val / 20)
 
 
-@dataclasses.dataclass
-class ParamDef(frozen=True, eq=True):
+@dataclasses.dataclass(frozen=True, eq=True)
+class ParamDef:
     name: str
     io_type: Type[AAri_cpp.InputOutput]
 
@@ -47,7 +47,7 @@ class Param:
         match self.io_type:
             case AAri_cpp.Input1D, AAri_cpp.Output1D:
                 return 1
-            case AAri_cpp.Input2D, AAri_cpp.Output2D, AAri_cpp.InputND2:
+            case AAri_cpp.OutputND2, AAri_cpp.InputND2:
                 return 2
             case AAri_cpp.InputND4:
                 return 4
@@ -257,11 +257,30 @@ class BlockWithParametersMeta(type):
                 :return:
                 """
                 if parameter.is_input:
+                    a = AttachedParam(self, p)
                     if isinstance(value, ParamExpression):
-                        value.connect(AttachedParam(self, p))
+                        value.connect(a)
                     else:
-                        # TODO how to set parameter value?
-                        pass
+                        match p.width:
+                            case 1:
+                                self.engine.engine.set_input_1d(
+                                    a.entity,
+                                    value,
+                                )
+                            case 2:
+                                self.engine.engine.set_input_2d(
+                                    a.entity,
+                                    value,
+                                )
+                            case 4:
+                                self.engine.engine.set_input_4d(
+                                    a.entity,
+                                    value,
+                                )
+                            case other:
+                                raise RuntimeError(
+                                    f"Invalid width for parameter {name}: {other}"
+                                )
                 else:
                     raise RuntimeError("Cannot set output")
 
@@ -332,7 +351,7 @@ class MixerBlock(Block):
 
 
 class StereoMixer(MixerBlock):
-    OUTPUTS = [ParamDef("out", AAri_cpp.Output2D)]
+    OUTPUTS = [ParamDef("out", AAri_cpp.OutputND2)]
 
     def __init__(self, size: int = 4):
         from AAri.audio_engine import AudioEngine  # Avoid circular import

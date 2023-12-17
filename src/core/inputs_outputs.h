@@ -25,24 +25,10 @@ namespace AAri {
         };
     };
 
-    struct Input2D : public InputOutput {
-        std::array<float, 2> value = {0.0, 0.0};
-
-        Input2D(std::array<float, 2> value): value(value) {
-        };
-    };
-
     struct Output1D : public InputOutput {
         float value = 0.0;
 
         Output1D(float value) : value(value) {
-        };
-    };
-
-    struct Output2D : public InputOutput {
-        std::array<float, 2> value = {0.0, 0.0};
-
-        Output2D(std::array<float, 2> value): value(value) {
         };
     };
 

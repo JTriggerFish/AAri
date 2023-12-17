@@ -38,6 +38,14 @@ class TestEngine(unittest.TestCase):
             ios.append(sine_block.view_inputs_outputs())
         audio_engine.stop()
 
+    def test_sine_osc_block_proper(self):
+        audio_engine = AudioEngine()
+        audio_engine.start()
+        sine_osc = SineOsc(freq=220, amplitude=1.0)
+        audio_engine.out += sine_osc
+        sleep(3)
+        audio_engine.reset()
+
 
 class TestMixer(unittest.TestCase):
     def test_stereo_mixer(self):

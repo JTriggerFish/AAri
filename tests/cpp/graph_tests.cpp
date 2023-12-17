@@ -45,8 +45,8 @@ void times_2_and_plus_4(entt::registry&registry, const Block&block, AudioContext
 }
 
 void times_2_and_plus_4_vectorized(entt::registry&registry, const Block&block, AudioContext ctx) {
-    auto&input = registry.get<Input2D>(block.inputIds[0]);
-    auto&output = registry.get<Output2D>(block.outputIds[0]);
+    auto&input = registry.get<InputND<2>>(block.inputIds[0]);
+    auto&output = registry.get<OutputND<2>>(block.outputIds[0]);
     output.value[0] = input.value[0] * 2.0f;
     output.value[1] = input.value[1] + 4.0f;
 }
@@ -93,9 +93,9 @@ entt::entity create_times_2_and_plus_4(entt::registry&registry) {
 
 entt::entity create_times_2_and_plus_4_vectorized(entt::registry&registry) {
     auto input = registry.create();
-    registry.emplace<Input2D>(input, std::array<float, 2>{0.0f, 0.0f});
+    registry.emplace<InputND<2>>(input, std::array<float, 2>{0.0f, 0.0f});
     auto output = registry.create();
-    registry.emplace<Output2D>(output, std::array<float, 2>{0.0f, 0.0f});
+    registry.emplace<OutputND<2>>(output, std::array<float, 2>{0.0f, 0.0f});
 
     return Block::create(registry, BlockType::Sum,
                          fill_with_null<N_INPUTS>(input),
@@ -344,7 +344,7 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     SECTION("Testing wire with width > 1") {
         auto block4 = create_times_2_and_plus_4_vectorized(registry);
         engine.add_wire(block1, block4, getOutputId(registry, block1, 0),
-                        getInputId(registry, block4, 0), Wire::broadcast_1d_to_2d);
+                        getInputId(registry, block4, 0), Wire::broadcast_1d_to_Nd<2>);
 
         //Wiring in other blocks but we're not gonna check those
         engine.add_wire(block1, block3, getOutputId(registry, block1, 0),
@@ -356,7 +356,7 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
         graph.process(ctx);
 
         auto&output1 = registry.get<Output1D>(registry.get<Block>(block1).outputIds[0]);
-        auto&output4 = registry.get<Output2D>(registry.get<Block>(block4).outputIds[0]);
+        auto&output4 = registry.get<OutputND<2>>(registry.get<Block>(block4).outputIds[0]);
 
         REQUIRE(output1.value == 6.0f);
         REQUIRE(output4.value[0] == 12.0f);
