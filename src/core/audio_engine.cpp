@@ -1,4 +1,3 @@
-
 #define MA_IMPLEMENTATION
 
 #include "audio_engine.h"
@@ -36,7 +35,9 @@ void AudioEngine::startAudio() {
     clock_seconds = 0.0;
 }
 
-void AudioEngine::stopAudio() { ma_device_stop(&_device); }
+void AudioEngine::stopAudio() {
+    ma_device_stop(&_device);
+}
 
 void AudioEngine::audio_callback(ma_device* pDevice, void* pOutput,
                                  const void* pInput, ma_uint32 frameCount) {

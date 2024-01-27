@@ -3,9 +3,9 @@ import unittest
 from time import sleep
 
 import AAri_cpp  # Import the Pybind11 module
-from AAri.audio_engine import AudioEngine, Block
+from AAri.audio_engine import AudioEngine
 from AAri.oscillators import SineOsc
-from block import StereoMixer
+from block import StereoMixer, Block
 
 sys.path.append(r"../../AAri")
 
@@ -42,7 +42,7 @@ class TestEngine(unittest.TestCase):
         audio_engine = AudioEngine()
         audio_engine.start()
         sine_osc = SineOsc(freq=220, amplitude=1.0)
-        audio_engine.out += sine_osc
+        audio_engine.output_mixer += sine_osc.out
         sleep(3)
         audio_engine.reset()
 

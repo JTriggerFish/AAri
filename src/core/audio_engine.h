@@ -32,16 +32,16 @@ namespace AAri {
          * @return a tuple containing the registry and a SpinLockGuard
          *
          */
-        std::tuple<entt::registry &, SpinLockGuard> get_graph_registry() override {
-            return {_graph.registry, SpinLockGuard(_callback_lock)};
+        std::tuple<entt::registry &, std::unique_ptr<SpinLockGuard>> get_graph_registry() override {
+            return {_graph.registry, std::make_unique<SpinLockGuard>(_callback_lock)};
         }
 
         ma_device get_audio_device() {
             return _device;
         }
 
-        SpinLockGuard lock_till_function_returns() {
-            return {_callback_lock};
+        std::unique_ptr<SpinLockGuard> lock_till_function_returns() {
+            return std::make_unique<SpinLockGuard>(_callback_lock);
         }
 
         Graph& _test_only_get_graph() {

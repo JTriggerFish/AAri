@@ -14,7 +14,7 @@
 namespace AAri {
     class SpinLockGuard {
     public:
-        SpinLockGuard(ma_spinlock &spinlock) : spinlock(spinlock) {
+        SpinLockGuard(ma_spinlock&spinlock) : spinlock(spinlock) {
             ma_spinlock_lock(&spinlock);
         }
 
@@ -23,12 +23,12 @@ namespace AAri {
         }
 
     private:
-        ma_spinlock &spinlock;
+        ma_spinlock&spinlock;
     };
 
     class IGraphRegistry {
     public:
-        virtual std::tuple<entt::registry &, SpinLockGuard> get_graph_registry() = 0;
+        virtual std::tuple<entt::registry &, std::unique_ptr<SpinLockGuard>> get_graph_registry() = 0;
     };
 }
 

@@ -33,22 +33,22 @@ namespace AAri {
         void process(AudioContext ctx) {
             //The blocks are already sorted at this point, so
             //we just need to use the entt functions to iterate through them
-            auto block_view = registry.view<Block>();
+            auto block_view = registry.view<Block, WiresToBlock>();
+            auto wire_view = registry.view<Wire>();
             for (auto entity: block_view) {
                 //Find all inbound wires to this block
                 //and transmit the data from upstream blocks
-                auto wire_view = registry.view<Wire>();
-                auto &wires_to_block = registry.get<WiresToBlock>(entity);
+                auto &wires_to_block = block_view.get<WiresToBlock>(entity);
+                auto &block = block_view.get<Block>(entity);
                 for (auto wire_id: wires_to_block.input_wire_ids) {
                     if (wire_id == entt::null)
-                        break;
+                        continue;
                     auto &wire = wire_view.get<Wire>(wire_id);
                     wire.transmitFunc(registry, wire);
                 }
 
                 // Now the block's inputs are up-to-date and we can
                 // process it
-                auto &block = block_view.get<Block>(entity);
                 block.processFunc(registry, block, ctx);
             }
         }

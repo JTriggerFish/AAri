@@ -3,7 +3,6 @@ from typing import List, Set
 
 import AAri_cpp  # Import the Pybind11 module
 from AAri_cpp import Entity
-from block import Block, AttachedParam, MixerBlock, StereoMixer
 
 
 class AudioEngine:
@@ -21,6 +20,8 @@ class AudioEngine:
         return cls._instance
 
     def _initialize(self):
+        from block import Block
+
         """
         Any initialization logic should go here.
         """
@@ -28,6 +29,8 @@ class AudioEngine:
         self._blocks: Set[Block] = set()
 
     def _set_default_output(self):
+        from block import StereoMixer
+
         self.output_mixer = StereoMixer(4)
         self.engine.set_output_ref(self.output_mixer.output_ids[0], 2)
 
@@ -52,18 +55,20 @@ class AudioEngine:
         cls = type(self)
         cls._instance = None
 
-    def get_wires_to_block(self, block: Block) -> List[AAri_cpp.Wire]:
+    def get_wires_to_block(self, block: "Block") -> List[AAri_cpp.Wire]:
         wires_ids = self.engine.get_wires_to_block(block.entity)
         wires = [self.engine.view_wire(w) for w in wires_ids]
         return wires
 
     def add_wire(
         self,
-        source: AttachedParam,
-        target: AttachedParam | MixerBlock,
+        source: "AttachedParam",
+        target: "AttachedParam | MixerBlock",
         gain: float = 1.0,
         offset: float = 0.0,
     ):
+        from block import Block, MixerBlock
+
         assert not source.param.is_input
         assert source.param.is_input
         target_block = target if isinstance(target, Block) else target.block
@@ -97,7 +102,7 @@ class AudioEngine:
                     f"Invalid wire width combination: {source.param.width}, {target.param.width}"
                 )
 
-    def _add_wire_to_mixer(self, source: AttachedParam, target: MixerBlock):
+    def _add_wire_to_mixer(self, source: "AttachedParam", target: "MixerBlock"):
         """Match / case on the mixer size and whether the mixer is stereo
         or mono and the input is 1d or 2d / stereo"""
         free_input = target.find_free_slot()
@@ -136,5 +141,5 @@ class AudioEngine:
         return self.engine.get_blocks()
 
     @property
-    def blocks(self) -> Set[Block]:
+    def blocks(self) -> Set["Block"]:
         return self._blocks

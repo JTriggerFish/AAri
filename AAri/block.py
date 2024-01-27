@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Union, Type
 import numpy as np
 
 import AAri_cpp  # Import the Pybind11 module
+from AAri.audio_engine import AudioEngine  # Avoid circular import
 from AAri_cpp import Entity
 
 """
@@ -310,8 +311,6 @@ class BlockWithParametersMeta(type):
 
 class Block(metaclass=BlockWithParametersMeta):
     def __init__(self, entity: Entity):
-        from AAri.audio_engine import AudioEngine  # Avoid circular import
-
         self.entity = entity
         self.engine = AudioEngine()  # Get the unique instance
         self.cpp_block = self.engine.engine.view_block(entity)
@@ -354,8 +353,6 @@ class StereoMixer(MixerBlock):
     OUTPUTS = [ParamDef("out", AAri_cpp.OutputND2)]
 
     def __init__(self, size: int = 4):
-        from AAri.audio_engine import AudioEngine  # Avoid circular import
-
         engine = AudioEngine()
         match size:
             case (2):
@@ -399,8 +396,6 @@ class MonoMixer(MixerBlock):
     OUTPUTS = [ParamDef("out", AAri_cpp.Output1D)]
 
     def __init__(self, size: int = 4):
-        from AAri.audio_engine import AudioEngine  # Avoid circular import
-
         engine = AudioEngine()
         match size:
             case (2):

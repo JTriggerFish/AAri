@@ -1,7 +1,6 @@
 import AAri_cpp  # Import the Pybind11 module
-
+from AAri.audio_engine import AudioEngine
 from AAri.block import Block, ParamDef
-from audio_engine import AudioEngine
 
 
 class SineOsc(Block):

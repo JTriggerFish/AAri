@@ -134,6 +134,7 @@ TEST_CASE("Testing AudioGraph with Dummy Blocks", "[AudioGraph]") {
     auto [registry, guard] = engine.get_graph_registry();
     auto block1 = create_plus_three(registry);
     auto block2 = create_times_two(registry);
+    guard.reset();
 
     AudioContext ctx{44100.0f, 1.0f / 44100.0f, 0.1};
     auto&graph = engine._test_only_get_graph();
@@ -249,6 +250,7 @@ TEST_CASE("Additional Testing of AudioGraph with Multiple Scenarios", "[AudioGra
     auto block1 = create_times_two(registry);
     auto block2 = create_plus_three(registry);
     auto block3 = create_times_2_and_plus_4(registry);
+    guard.reset();
 
     AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
     auto&graph = engine._test_only_get_graph();
@@ -380,6 +382,7 @@ TEST_CASE("Test mixers") {
     auto block2 = create_plus_three(registry);
     auto block3 = create_times_2_and_plus_4(registry);
     auto block4 = create_times_2_and_plus_4_vectorized(registry);
+    guard.reset();
 
     AudioContext ctx{48000.0f, 1.0f / 48000.0f, 0.5};
     auto&graph = engine._test_only_get_graph();
